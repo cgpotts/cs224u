@@ -1,0 +1,4 @@
+numpy >= 1.9
+scipy >= 0.11.0
+scikit >= 0.15.2
+matplotlib >= 1.4
