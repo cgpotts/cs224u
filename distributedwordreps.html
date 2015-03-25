@@ -218,17 +218,14 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Download or clone <a href="https://github.com/cgpotts/cs224u">this Github repository</a> so that you have all  the files it includes. In addition, make sure you have the following installed:</p>
+<p>Download or clone <a href="https://github.com/cgpotts/cs224u">this Github repository</a> so that you have all the files it includes.</p>
+<p>Download <a href="https://web.stanford.edu/class/cs224u/data/distributedwordreps-data.zip">the data distribution for this unit</a>, unpack it, and place it in the directory containing the above Github directory.</p>
+<p>In addition, make sure you have the following installed:</p>
 <ul>
 <li><a href="http://www.scipy.org/install.html">Numpy, Scipy, and matplotlib</a>. (Mac users: I suggest <a href="http://stronginference.com/ScipySuperpack/">the Scipy Superpack</a>)</li>
 <li><a href="http://scikit-learn.org/">scikit.learn</a></li>
 </ul>
-<p>And add the following files to the directory containing this file:</p>
-<ul>
-<li><a href="http://lvdmaaten.github.io/tsne/code/tsne_python.zip">tsne.py</a></li>
-<li><a href="http://www.humanities.mcmaster.ca/~vickup/Warriner_et_al%20emot%20ratings.csv">Warriner et al.'s valence/arousal/dominance lexicon</a></li>
-<li>The 50-dimensional Wikipedia-based GloVe word vectors: <a href="http://www-nlp.stanford.edu/data/glove.6B.50d.txt.gz">glove.6B.50d.txt</a></li>
-</ul>
+<p>If you want to work in and modify this notebook, you should also install <a href="http://ipython.org">the latest iPython</a>.</p>
 
 </div>
 </div>
@@ -264,8 +261,11 @@ div#notebook {
 <li><a href="#Shallow-neural-network-model">Shallow neural network model</a></li>
 <li><a href="#Logical-operator-example">Logical operator example</a></li>
 <li><a href="#Sentiment-lexicon-example">Sentiment lexicon example</a></li>
+<li><a href="#Word-level-inference-relations"> Word-level inference relations</a></li>
 </ol>
 </li>
+<li><a href="#Word-similarity-evaluation">Word similarity evaluation</a></li>
+<li><a href="#Word-analogies-evaluation">Word analogies evaluation</a></li>
 <li><a href="Exercises">Exercises</a><ol>
 <li><a href="#Exploratory-and-open-ended">Exploratory and open-ended</a></li>
 <li><a href="#Straightforward">Straightforward</a></li>
@@ -388,7 +388,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Let's read these in now for use in later examples. (Unzip 'imdb-wordword.csv.zip' and 'imdb-worddoc.csv.zip' if you haven't already.)</p>
+<p>Let's read these in now for use in later examples:</p>
 
 </div>
 </div>
@@ -398,8 +398,8 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">ww</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;imdb-wordword.csv&#39;</span><span class="p">)</span>
-<span class="n">wd</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;imdb-worddoc.csv&#39;</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">ww</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;distributedwordreps-data/imdb-wordword.csv&#39;</span><span class="p">)</span>
+<span class="n">wd</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;distributedwordreps-data/imdb-worddoc.csv&#39;</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -412,8 +412,8 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>There are some great pre-computed matrices available online too. These aren't matrices of counts, but rather more abstract values computed using methods like those under discussion here. Just for kicks, load in the GloVe vectors listed above in
-<a href="#Code-and-data-requirements">Code and data requirements</a> (<a href="http://www-nlp.stanford.edu/data/glove.6B.50d.txt.gz">direct link</a>).</p>
+<p>There are some great pre-computed matrices available online too. These aren't matrices of counts, but rather more abstract values computed using methods like those under discussion here. Just for kicks, load in the GloVe vectors 
+included in the data distribution:</p>
 
 </div>
 </div>
@@ -423,7 +423,7 @@ div#notebook {
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">glv</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;glove.6B.50d.txt&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONE</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">glv</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;distributedwordreps-data/glove.6B.50d.txt&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONE</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -1736,7 +1736,7 @@ to occur often in the same texts. Dimensionality reduction techniques are often 
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>It takes a while to produce this, so <a href="imdb-wordword-ppmi.pdf">here's an example of the output</a>. (t-SNE's output will vary somewhat from run to run).</p>
+<p>It takes a while to produce this, so here's an example of the output: <a href="fig/imdb-wordword-ppmi.pdf">fig/imdb-wordword-ppmi.pdf</a>. (t-SNE's output will vary somewhat from run to run).</p>
 
 </div>
 </div>
@@ -1879,7 +1879,7 @@ talk <a href="https://www.youtube.com/watch?v=RJVL80Gg3lA">Visualizing Data Usin
 <pre>[(&apos;well&apos;, 0.75360884916526505),
  (&apos;superior&apos;, 0.81493927722684845),
  (&apos;great&apos;, 0.89100807935189241),
- (&apos;nice&apos;, 0.93295714329167545),
+ (&apos;nice&apos;, 0.93295714329167501),
  (&apos;excellent&apos;, 1.1687082653604852)]</pre>
 </div>
 
@@ -2184,7 +2184,7 @@ talk <a href="https://www.youtube.com/watch?v=RJVL80Gg3lA">Visualizing Data Usin
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The following take a while to run, but the results look good, and they can be  improved by adding more vocabulary items, allowing more iterations, and increasing the dimension size. For the output with 100 dimensions and 100 iterations, check out this image: <a href="imdb-wordword-glove100.pdf">imdb-wordword-glove100.pdf</a>.</p>
+<p>The following take a while to run, but the results look good, and they can be  improved by adding more vocabulary items, allowing more iterations, and increasing the dimension size. For the output with 100 dimensions and 100 iterations, check out this image: <a href="fig/imdb-wordword-glove100.pdf">fig/imdb-wordword-glove100.pdf</a>.</p>
 
 </div>
 </div>
@@ -2368,10 +2368,10 @@ talk <a href="https://www.youtube.com/watch?v=RJVL80Gg3lA">Visualizing Data Usin
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>[1.0, 1.0] [1.0] [ 0.98] [ 0.58  0.85  0.25 -0.72  1.  ]
-[1.0, 0.0] [0.0] [ 0.] [ 0.61  1.   -0.34  0.56  1.  ]
-[0.0, 1.0] [0.0] [ 0.] [ 0.34 -0.69  0.76 -0.98  1.  ]
-[0.0, 0.0] [1.0] [ 0.98] [ 0.38  0.79  0.37 -0.66  1.  ]
+<pre>[1.0, 1.0] [1.0] [ 0.98] [-0.81  0.87  0.98  0.47  1.  ]
+[1.0, 0.0] [0.0] [ 0.] [-0.98 -0.62  0.79  0.77  1.  ]
+[0.0, 1.0] [0.0] [ 0.] [ 0.53  0.99  0.86 -0.04  1.  ]
+[0.0, 0.0] [1.0] [ 0.99] [-0.56  0.71  0.15  0.43  1.  ]
 </pre>
 </div>
 </div>
@@ -2404,7 +2404,7 @@ talk <a href="https://www.youtube.com/watch?v=RJVL80Gg3lA">Visualizing Data Usin
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The first function just processes the sentiment lexicon. (Make sure you downloaded 'Warriner_et_al emot ratings.csv', linked from <a href="#Code-and-data-requirements">Code and data requirements</a> above. We keep only the overall values for the three sentiment dimensions, and we rescale them into the space [-1,1]. (Somewhat counter intuitively, for the valence dimensions, the low values are positive and the high values are negative, because of the original rating scale.)</p>
+<p>The first function just processes the sentiment lexicon included in the data distribution (<code>Warriner_et_al emot ratings.csv</code>). We keep only the overall values for the three sentiment dimensions, and we rescale them into the space [-1,1]. (Somewhat counter intuitively, for the valence dimensions, the low values are positive and the high values are negative, because of the original rating scale.)</p>
 
 </div>
 </div>
@@ -2414,7 +2414,7 @@ talk <a href="https://www.youtube.com/watch?v=RJVL80Gg3lA">Visualizing Data Usin
 <div class="prompt input_prompt">In&nbsp;[50]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="k">def</span> <span class="nf">read_valence_arousal_dominance_lexicon</span><span class="p">(</span><span class="n">src_filename</span><span class="o">=</span><span class="s">&#39;Warriner_et_al emot ratings.csv&#39;</span><span class="p">):</span>
+<div class=" highlight hl-ipython2"><pre><span class="k">def</span> <span class="nf">read_valence_arousal_dominance_lexicon</span><span class="p">(</span><span class="n">src_filename</span><span class="o">=</span><span class="s">&#39;distributedwordreps-data/Warriner_et_al emot ratings.csv&#39;</span><span class="p">):</span>
     <span class="n">rescaler</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">5</span><span class="p">))</span>
     <span class="n">lex</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="nb">file</span><span class="p">(</span><span class="n">src_filename</span><span class="p">)):</span>
@@ -2512,11 +2512,280 @@ talk <a href="https://www.youtube.com/watch?v=RJVL80Gg3lA">Visualizing Data Usin
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The function <code>sentiment_lexicon_example</code> takes a while to run with reasonable keyword arguments. To see what the results tend to look like with the default  values, here's an informal comparison of the matrix <code>ww</code>, reweighted with Positive PMI, 
-before and after supervised sentiment training: <a href="imdb-wordword-ppmi-nn.pdf">imdb-wordword-ppmi-nn.pdf</a>.</p>
+<p>The function <code>sentiment_lexicon_example</code> takes a while to run with reasonable keyword arguments. To see what the results tend to look like with the default  values, here's an informal comparison of the matrix <code>ww</code>, reweighted with Positive PMI, before and after supervised sentiment training: <a href="fig/imdb-wordword-ppmi-nn.pdf">fig/imdb-wordword-ppmi-nn.pdf</a>.</p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Word-level-inference-relations">Word-level inference relations<a class="anchor-link" href="#Word-level-inference-relations">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="http://arxiv.org/abs/1410.4176">Bowman et al. (2015)</a> use neural networks to predict the relationship between words. 
+The data distribution for this unit includes one of their experiment files, <code>longer_shuffled_synset_relations.tsv</code>. The left column gives the semantic relation (<code>hyponym</code>, <code>hypernym</code>, <code>coordinate</code>), and the middle and right columns give the two words. We can use <code>ShallowNeuralNetwork</code> to train models that perform this prediction task, beginning either from randomly initialized input vectors or from distributional vectors.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Word-similarity-evaluation">Word similarity evaluation<a class="anchor-link" href="#Word-similarity-evaluation">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The function <code>word_similarity_evaluation</code> lets you evaluate a matrix <code>mat</code> against the human word similarity judgments in words in the WordSim-353 dataset. If you haven't already, <a href="http://www.cs.technion.ac.il/~gabr/resources/data/wordsim353/wordsim353.zip">download that data set</a> and unzip it so that the directory <code>wordsim353</code> is inside the directory containing this file.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[53]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">def</span> <span class="nf">word_similarity_evaluation</span><span class="p">(</span><span class="n">src_filename</span><span class="o">=</span><span class="s">&quot;distributedwordreps-data/wordsim353/combined.csv&quot;</span><span class="p">,</span> 
+        <span class="n">mat</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rownames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">distfunc</span><span class="o">=</span><span class="n">cosine</span><span class="p">):</span>
+    <span class="c"># Read in the data:</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="nb">file</span><span class="p">(</span><span class="n">src_filename</span><span class="p">))</span>
+    <span class="n">sims</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">vocab</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+        <span class="n">w1</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;Word 1&#39;</span><span class="p">]</span>
+        <span class="n">w2</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;Word 2&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">w1</span> <span class="ow">in</span> <span class="n">rownames</span> <span class="ow">and</span> <span class="n">w2</span> <span class="ow">in</span> <span class="n">rownames</span><span class="p">:</span>
+            <span class="c"># Use negative of scores to align intuitively with distance functions:</span>
+            <span class="n">sims</span><span class="p">[</span><span class="n">w1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">w2</span><span class="p">,</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;Human (mean)&#39;</span><span class="p">])))</span>
+            <span class="n">sims</span><span class="p">[</span><span class="n">w2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">w1</span><span class="p">,</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;Human (mean)&#39;</span><span class="p">])))</span>
+            <span class="n">vocab</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">w1</span><span class="p">)</span>
+            <span class="n">vocab</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">w2</span><span class="p">)</span>
+    <span class="c"># Evaluate the matrix by creating a vector of all_scores for the wordsim353 data</span>
+    <span class="c"># and all_dists for mat&#39;s distances. </span>
+    <span class="n">all_scores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_dists</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">:</span>
+        <span class="n">vec</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="n">rownames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">word</span><span class="p">)]</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">sims</span><span class="p">[</span><span class="n">word</span><span class="p">]</span>
+        <span class="n">cmps</span><span class="p">,</span> <span class="n">scores</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">vals</span><span class="p">)</span>
+        <span class="n">all_scores</span> <span class="o">+=</span> <span class="n">scores</span>
+        <span class="n">all_dists</span> <span class="o">+=</span> <span class="p">[</span><span class="n">distfunc</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">mat</span><span class="p">[</span><span class="n">rownames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">w</span><span class="p">)])</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">]</span>
+    <span class="c"># Return just the rank correlation coefficient (index [1] would be the p-value):</span>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">spearmanr</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">all_dists</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>   
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Evaluation is then simple. Here's the evaluation using the <code>ww_ppmi</code> matrix we built above:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[54]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">word_similarity_evaluation</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rownames</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[54]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>0.56579499517630127</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Word-analogies-evaluation">Word analogies evaluation<a class="anchor-link" href="#Word-analogies-evaluation">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[55]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">def</span> <span class="nf">analogy_completion</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mat</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rownames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">distfunc</span><span class="o">=</span><span class="n">cosine</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;a is to be as c is to predicted, where predicted is the closest to (b-a) + c&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rownames</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> is not in this VSM&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">avec</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="n">rownames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">a</span><span class="p">)]</span>
+    <span class="n">bvec</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="n">rownames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="p">)]</span>
+    <span class="n">cvec</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="n">rownames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span>
+    <span class="n">newvec</span> <span class="o">=</span> <span class="p">(</span><span class="n">bvec</span> <span class="o">-</span> <span class="n">avec</span><span class="p">)</span> <span class="o">+</span> <span class="n">cvec</span>
+    <span class="n">dists</span> <span class="o">=</span> <span class="p">[(</span><span class="n">w</span><span class="p">,</span> <span class="n">distfunc</span><span class="p">(</span><span class="n">newvec</span><span class="p">,</span> <span class="n">mat</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rownames</span><span class="p">)</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>    
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[56]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">analogy_completion</span><span class="p">(</span><span class="s">&#39;dance&#39;</span><span class="p">,</span> <span class="s">&#39;dancing&#39;</span><span class="p">,</span> <span class="s">&#39;sing&#39;</span><span class="p">,</span> <span class="n">mat</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rownames</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">1</span><span class="p">])[:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[56]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>[(&apos;singing&apos;, 0.36387000688724269),
+ (&apos;songs&apos;, 0.4322230813308281),
+ (&apos;song&apos;, 0.43648688095757859),
+ (&apos;musical&apos;, 0.45341770142029203),
+ (&apos;musicals&apos;, 0.50284943344566313)]</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[57]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">def</span> <span class="nf">analogy_evaluation</span><span class="p">(</span><span class="n">src_filename</span><span class="o">=</span><span class="s">&quot;distributedwordreps-data/question-data/gram1-adjective-to-adverb.txt&quot;</span><span class="p">,</span> 
+        <span class="n">mat</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rownames</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">distfunc</span><span class="o">=</span><span class="n">cosine</span><span class="p">):</span>
+    <span class="c"># Read in the data and restrict to problems we can solve:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">src_filename</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">prob</span> <span class="k">for</span> <span class="n">prob</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">prob</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">set</span><span class="p">(</span><span class="n">rownames</span><span class="p">)]</span>
+    <span class="c"># Run the evaluation, collecting accuracy and rankings:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">ranks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">predicted</span> <span class="o">=</span> <span class="n">analogy_completion</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">mat</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">rownames</span><span class="o">=</span><span class="n">rownames</span><span class="p">,</span> <span class="n">distfunc</span><span class="o">=</span><span class="n">distfunc</span><span class="p">)</span>
+        <span class="c"># print &quot;%s is to %s as %s is to %s (actual is %s)&quot; % (a, b, c, predicted, d)</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">predicted</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">d</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">predicted_words</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">predicted</span><span class="p">)</span>
+        <span class="n">ranks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predicted_words</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+    <span class="c"># Return the mean reciprocal rank and the accuracy results:</span>
+    <span class="n">mrr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ranks</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">mrr</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[58]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">analogy_evaluation</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rownames</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[58]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>(0.048040778437069588, defaultdict(&lt;type &apos;int&apos;&gt;, {False: 180, True: 2}))</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[59]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">analogy_evaluation</span><span class="p">(</span><span class="n">src_filename</span><span class="o">=</span><span class="s">&quot;distributedwordreps-data/question-data/gram7-past-tense.txt&quot;</span><span class="p">,</span> 
+                   <span class="n">mat</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rownames</span><span class="o">=</span><span class="n">ww_ppmi</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[59]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>(0.16482840597297255, defaultdict(&lt;type &apos;int&apos;&gt;, {False: 223, True: 17}))</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -2553,7 +2822,7 @@ before and after supervised sentiment training: <a href="imdb-wordword-ppmi-nn.p
 </li>
 <li><p>Use <code>sentiment_lexicon_example</code> on a different matrix, with different settings, to see what the results are like. You might also modify the code so that it trains on just a subset of the lexicon values.</p>
 </li>
-<li><p>Unzip and read in <code>gigawordnyt-advmod-matrix.csv</code>. This is an adverb x adjective matrix derived from the Gigaword corpus. Each cell contains the number of times that the modifier phrase <em>ADV ADJ</em> appeared in Gigaword, where <em>ADV</em> is the row value and <em>ADJ</em> is the column value. You can read it in with <code>build</code> above. Using the above techniques and measures, try to get a feel for what can be done with this matrix.</p>
+<li><p>Read in <code>distributedwordreps-data/gigawordnyt-advmod-matrix.csv</code>. This is an adverb x adjective matrix derived from the Gigaword corpus. Each cell contains the number of times that the modifier phrase <em>ADV ADJ</em> appeared in Gigaword, where <em>ADV</em> is the row value and <em>ADJ</em> is the column value. You can read it in with <code>build</code> above. Using the above techniques and measures, try to get a feel for what can be done with this matrix.</p>
 </li>
 <li><p>Use the <a href="https://code.google.com/p/word2vec/">word2vec</a> implementation in <a href="https://radimrehurek.com/gensim/">gensim</a> for some purpose.</p>
 </li>
