@@ -97,7 +97,8 @@ def pmi(mat=None, rownames=None, positive=True):
     return (p, rownames)
 
 def _pmi_log(x, positive=True):
-    """Maps 0 and negative values to 0.0, otherwise to log. With positive=True, maps negative values to 0."""
+    """Maps 0 and negative values to 0.0, otherwise to log.
+    With positive=True, maps negative values to 0."""
     val = 0.0
     if x > 0.0:
         val = np.log(x)
@@ -145,8 +146,10 @@ def tsne_viz(
         figheight=40,
         figwidth=50,
         display_progress=False): 
-    """2d plot of mat using tsne, with the points labeled by rownames, aligned with colors (defaults to all black).
-    If indices is a list of indices into mat and rownames, then it determines a subspace of mat and rownames to display.
+    """2d plot of mat using tsne, with the points labeled by rownames,
+    aligned with colors (defaults to all black).
+    If indices is a list of indices into mat and rownames,
+    then it determines a subspace of mat and rownames to display.
     Give output_filename a string argument to save the image to disk.
     figheight and figwidth set the figure dimensions.
     display_progress=True shows the information that the tsne method prints out."""

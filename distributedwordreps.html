@@ -1286,7 +1286,8 @@ in light of the arguments in <a href="http://papers.nips.cc/paper/5477-neural-wo
     <span class="k">return</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">rownames</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_pmi_log</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Maps 0 and negative values to 0.0, otherwise to log. With positive=True, maps negative values to 0.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Maps 0 and negative values to 0.0, otherwise to log. </span>
+<span class="sd">    With positive=True, maps negative values to 0.&quot;&quot;&quot;</span>
     <span class="n">val</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -1668,8 +1669,10 @@ to occur often in the same texts. Dimensionality reduction techniques are often 
         <span class="n">figheight</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
         <span class="n">figwidth</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
         <span class="n">display_progress</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span> 
-    <span class="sd">&quot;&quot;&quot;2d plot of mat using tsne, with the points labeled by rownames, aligned with colors (defaults to all black).</span>
-<span class="sd">    If indices is a list of indices into mat and rownames, then it determines a subspace of mat and rownames to display.</span>
+    <span class="sd">&quot;&quot;&quot;2d plot of mat using tsne, with the points labeled by rownames, </span>
+<span class="sd">    aligned with colors (defaults to all black).</span>
+<span class="sd">    If indices is a list of indices into mat and rownames, </span>
+<span class="sd">    then it determines a subspace of mat and rownames to display.</span>
 <span class="sd">    Give output_filename a string argument to save the image to disk.</span>
 <span class="sd">    figheight and figwidth set the figure dimensions.</span>
 <span class="sd">    display_progress=True shows the information that the tsne method prints out.&quot;&quot;&quot;</span>
@@ -2487,7 +2490,10 @@ talk <a href="https://www.youtube.com/watch?v=RJVL80Gg3lA">Visualizing Data Usin
     <span class="c"># Build the training data:</span>
     <span class="n">sentidata</span><span class="p">,</span> <span class="n">sentivocab</span> <span class="o">=</span> <span class="n">build_supervised_dataset</span><span class="p">(</span><span class="n">mat</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">rownames</span><span class="o">=</span><span class="n">rownames</span><span class="p">,</span> <span class="n">lex</span><span class="o">=</span><span class="n">lex</span><span class="p">)</span>
     <span class="c"># Set up the network:</span>
-    <span class="n">sentinet</span> <span class="o">=</span> <span class="n">ShallowNeuralNetwork</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">sentidata</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">hidden_dim</span><span class="o">=</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">sentidata</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">sentinet</span> <span class="o">=</span> <span class="n">ShallowNeuralNetwork</span><span class="p">(</span>
+        <span class="n">input_dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">sentidata</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> 
+        <span class="n">hidden_dim</span><span class="o">=</span><span class="n">hidden_dim</span><span class="p">,</span> 
+        <span class="n">output_dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">sentidata</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
     <span class="c"># Train the network:</span>
     <span class="n">sentinet</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">sentidata</span><span class="p">),</span> <span class="n">maxiter</span><span class="o">=</span><span class="n">maxiter</span><span class="p">,</span> <span class="n">display_progress</span><span class="o">=</span><span class="n">display_progress</span><span class="p">)</span>
     <span class="c"># Build the new matrix of hidden representations:</span>
@@ -2822,7 +2828,7 @@ The data distribution for this unit includes one of their experiment files, <cod
 </li>
 <li><p>Use <code>sentiment_lexicon_example</code> on a different matrix, with different settings, to see what the results are like. You might also modify the code so that it trains on just a subset of the lexicon values.</p>
 </li>
-<li><p>Read in <code>distributedwordreps-data/gigawordnyt-advmod-matrix.csv</code>. This is an adverb x adjective matrix derived from the Gigaword corpus. Each cell contains the number of times that the modifier phrase <em>ADV ADJ</em> appeared in Gigaword, where <em>ADV</em> is the row value and <em>ADJ</em> is the column value. You can read it in with <code>build</code> above. Using the above techniques and measures, try to get a feel for what can be done with this matrix.</p>
+<li><p>Read in <code>distributedwordreps-data/gigawordnyt-advmod-matrix.csv</code>. This is an adjective $\times$ adverb matrix derived from the Gigaword corpus. Each cell contains the number of times that the modifier phrase <em>ADV ADJ</em> appeared in Gigaword, where <em>ADJ</em> is the row value and <em>ADV</em> is the column value. You can read it in with <code>build</code> above. Using the above techniques and measures, try to get a feel for what can be done with this matrix.</p>
 </li>
 <li><p>Use the <a href="https://code.google.com/p/word2vec/">word2vec</a> implementation in <a href="https://radimrehurek.com/gensim/">gensim</a> for some purpose.</p>
 </li>
@@ -2848,13 +2854,13 @@ The data distribution for this unit includes one of their experiment files, <cod
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <ol>
-<li><p>Implement <a href="http://en.wikipedia.org/wiki/Jensen–Shannon_divergence">Jensen&ndash;Shannon distance</a> and run it on the toy matrix <code>ABC</code> defined above. Does this measure place <code>A</code> and <code>B</code> close together relative to <code>B</code> and <code>C</code> (our goal for that example)? Submit: (i) your implementation, (ii) the JS distance values between <code>A</code> and <code>B</code> and between <code>B</code> and <code>C</code>.</p>
+<li><p>Implement <a href="http://en.wikipedia.org/wiki/Jensen–Shannon_divergence">Jensen&ndash;Shannon distance</a> and run it on the toy matrix <code>ABC</code> defined above. Does this measure place <code>A</code> and <code>B</code> close together relative to <code>B</code> and <code>C</code> (our goal for that example)? Submit: (i) your implementation, and (ii) the JS distance values between <code>A</code> and <code>B</code> and between <code>B</code> and <code>C</code>.</p>
 </li>
 <li><p>Implement the <a href="http://en.wikipedia.org/wiki/Sørensen–Dice_coefficient">Dice coefficient</a> for real-valued vectors, as</p>
 <p>$$1.0 - \left(\frac{2\sum_{i=1}^{n}\min(u_{i}, v_{i})}{\sum_{i=1}^{n}u_{i}+v_{i}}\right)$$</p>
-<p>Run your code on the toy matrix <code>ABC</code> defined above. Does this measure place <code>A</code> and <code>B</code> close together relative to <code>B</code> and <code>C</code> (our goal for that example)? Submit: (i) your implementation, (ii) the Dice coefficient values for <code>A</code> and <code>B</code> and for <code>B</code> and <code>C</code>.</p>
+<p>Run your code on the toy matrix <code>ABC</code> defined above. Does this measure place <code>A</code> and <code>B</code> close together relative to <code>B</code> and <code>C</code> (our goal for that example)? Submit: (i) your implementation, and (ii) the Dice coefficient values for <code>A</code> and <code>B</code> and for <code>B</code> and <code>C</code>.</p>
 </li>
-<li><p>Consider the matrix <code>np.array([[1.0, 0.0, 0.0], [1000.0, 1000.0, 4000.0], [1000.0, 2000.0, 999.0]])</code>. Reweight this matrix using <code>pmi</code> with <code>positive=True</code>. Submit: (i) the value obtained for cell <code>[0,0]</code>, and a 1&ndash;2 sentence explanation of what is what is likely problematic about this value.</p>
+<li><p>Consider the matrix <code>np.array([[1.0, 0.0, 0.0], [1000.0, 1000.0, 4000.0], [1000.0, 2000.0, 999.0]])</code>. Reweight this matrix using <code>pmi</code> with <code>positive=True</code>. Submit: (i) the value obtained for cell <code>[0,0]</code>, and (ii) a 1&ndash;2 sentence explanation of what is what is likely problematic about this value.</p>
 </li>
 <li><p>The t-test statistic can be thought of as a reweighting scheme. For a word&ndash;context pair $(w, c)$, the weighted value is</p>
 <p>$$\frac{P(w, c)-(P(w)P(c))}{\sqrt{P(w)P(c)}}$$</p>
@@ -2862,9 +2868,9 @@ The data distribution for this unit includes one of their experiment files, <cod
 </li>
 <li><p>Using <code>glv</code> (which has a large and diverse set or rownames/words), pick a new semantic opposition and see how well <code>semantic_orientation</code> captures it. Submit: (i) the name of the semantic opposition you seek to capture (e.g., "positive/negative"), and (ii) your seed sets.</p>
 </li>
-<li><p>Train a <code>ShallowNeuralNetwork</code> instance on the XOR problem. (XOR is the function $f$ such that, for truth-valued arguments $x$ and $y$, $f(x,y)$ is true iff $x$ and $y$ are different.) Submit: a function comparable to <code>iff_example</code>, showing how to set-up this problem using <code>ShallowNeuralNetwork</code>.</p>
+<li><p>Using <code>iff_example</code> as an example, write a function <code>boolean_nn</code> that can train a <code>ShallowNeuralNetwork</code> on any binary logical connective that the user supplies as training data (in the same format as the training data in <code>iff_example</code>). Give the user the option to set the hidden layer dimensionality as a keyword argument. Submit: (i) your function <code>boolean_nn</code>, and (ii) an example function call training on the XOR connective. (XOR is the function $f$ such that, for truth-valued arguments $x$ and $y$, $f(x,y)$ is true iff $x$ and $y$ are different.)</p>
 </li>
-<li><p>The default activation function for <code>ShallowNeuralNetwork</code> is <code>tanh</code>. Implement a rectified linear activation function, defined as $f(x) = \max(x, 0) + 0.01\min(x, 0)$. Submit: your implementations of this function and its derivative (the value of <code>d_afunc</code>).</p>
+<li><p>The default activation function for <code>ShallowNeuralNetwork</code> is <code>tanh</code>. Implement a sigmoid activation function, defined as $f(x) = \frac{1}{1 + \exp(-x)}$. Submit: (i) your implementation of this function, and (ii) its derivative (the value of <code>d_afunc</code>).</p>
 </li>
 </ol>
 
@@ -2886,6 +2892,8 @@ The data distribution for this unit includes one of their experiment files, <cod
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <ol>
+<li><p>The file <code>distributedwordreps-data/gigawordnyt-advmod-matrix.csv</code> contains an adjective $\times$ adverb matrix derived from the Gigaword corpus. Each cell contains the number of times that the modifier phrase <em>ADV ADJ</em> appeared in Gigaword, where <em>ADJ</em> is the row value and <em>ADV</em> is the column value. You can read it in with <code>build</code> above. Your task: without introducing any new data, get at least 190 examples right on the analogy file <code>distributedwordreps-data/question-data/gram3-comparative.txt</code>. Submit: a function that implements your model and returns the evaluation (the output of <code>analogy_evaluation</code> above). (If your function depends on other code you wrote that isn't included in this codelab, include that code as well.)</p>
+</li>
 <li><p>Turney and Pantel 2010, p.&nbsp;158, propose a "contextual discounting" extension of PMI to try to address its bias for low-frequency events. Extend <code>pmi</code> so that the user has the option of performing this discounting with the keyword argument <code>discounting=True</code>. Submit: your revised <code>pmi</code> in full.</p>
 </li>
 <li><p>Modify <code>disambiguate</code> so that words with the same "root" (e.g., <code>bird_0</code> and <code>bird_1</code>) are collapsed back down to the same vector if their separate vectors are within a user-supplied distance of one another (to remove spurious ambiguities). Submit: your modified <code>disambiguate</code> implementation.</p>
