@@ -97,8 +97,8 @@ def pmi(mat=None, rownames=None, positive=True):
     return (p, rownames)
 
 def _pmi_log(x, positive=True):
-    """Maps 0 and negative values to 0.0, otherwise to log.
-    With positive=True, maps negative values to 0."""
+    """With positive=False, return log(x) if possible, else 0.
+    With positive=True, log(x) is mapped to 0 where negative."""
     val = 0.0
     if x > 0.0:
         val = np.log(x)
