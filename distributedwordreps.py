@@ -349,7 +349,7 @@ def read_valence_arousal_dominance_lexicon(src_filename='distributedwordreps-dat
     for d in csv.DictReader(file(src_filename)):
         vals = {'valence': rescaler(d['V.Mean.Sum']), 
                 'arousal': rescaler(d['A.Mean.Sum']), 
-                'dominance': rescaler(d['A.Mean.Sum'])}
+                'dominance': rescaler(d['D.Mean.Sum'])}
         lex[d['Word']] = vals
     return lex
 
