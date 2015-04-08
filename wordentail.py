@@ -15,6 +15,8 @@ SUBSET = 1.0    # Left word entails right, as in (hippo, mammal)
 SUPERSET = -1.0 # Rigth word entails left, as in (mammal, hippo)
 
 # In case you want to make use of GloVe vectors somehow ...
+# It's worth checking on higher dimensionality versions too:
+# http://nlp.stanford.edu/projects/glove/
 #
 # GLOVE_MAT, GLOVE_VOCAB, _ = build('distributedwordreps-data/glove.6B.50d.txt', delimiter=' ', header=False, quoting=csv.QUOTE_NONE)
 
@@ -43,7 +45,8 @@ def data_prep(
     # network:
     #
     # {'train': [(vec, [cls]), (vec, [cls]), ...],
-    #  'test':  [(vec, [cls]), (vec, [cls]), ...] }
+    #  'test':  [(vec, [cls]), (vec, [cls]), ...],
+    #  'disjoint_vocab_test': [(vec, [cls]), (vec, [cls]), ...]}    
     dataset = defaultdict(list)
     for split, data in d.items():
         for clsname, word_pairs in data.items():
@@ -62,9 +65,9 @@ def data_prep(
     return dataset
     
 def train_and_evaluate(dataset):
-    # Get the train and test sets from the dataset:
     train = dataset['train']
     test = dataset['test']
+    disjoint_vocab_test = dataset['disjoint_vocab_test']
 
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # Set up the neural network so that input_dim is the length of
@@ -77,13 +80,14 @@ def train_and_evaluate(dataset):
     # Train the network, with the number of iterations set you by you
     # (make it a keyword argument to this function). You might want
     # to use display_progress=True to track errors andd speed.
+    # USE ONLY train FOR THE TRAINING!!!
 
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     # The following is evaluation code. You won't have to alter it
     # unless you did something unanticipated like transform the output
     # variables before training.
-    for typ, data in (('train', train), ('test', test)):
+    for typ, data in (('train', train), ('test', test), ('disjoint_vocab_test', disjoint_vocab_test)):
         predictions = []
         cats = []
         for ex, cat in data:            
