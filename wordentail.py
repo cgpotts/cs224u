@@ -10,9 +10,9 @@ import numpy as np
 from collections import defaultdict
 import sklearn.metrics
 
-# Classs labels:
+# Class labels:
 SUBSET = 1.0    # Left word entails right, as in (hippo, mammal)
-SUPERSET = -1.0 # Rigth word entails left, as in (mammal, hippo)
+SUPERSET = -1.0 # Right word entails left, as in (mammal, hippo)
 
 # In case you want to make use of GloVe vectors somehow ...
 # It's worth checking on higher dimensionality versions too:
@@ -79,7 +79,7 @@ def train_and_evaluate(dataset):
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # Train the network, with the number of iterations set you by you
     # (make it a keyword argument to this function). You might want
-    # to use display_progress=True to track errors andd speed.
+    # to use display_progress=True to track errors and speed.
     # USE ONLY train FOR THE TRAINING!!!
 
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -106,7 +106,7 @@ def train_and_evaluate(dataset):
 
 if __name__ == '__main__':
 
-    # This is a complete run. You'll probbably want to make keyword
+    # This is a complete run. You'll probably want to make keyword
     # arguments available here to tune good networks heuristically.
     dataset = data_prep()
     train_and_evaluate(dataset)
