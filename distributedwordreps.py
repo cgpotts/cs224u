@@ -288,7 +288,7 @@ def glove(
 
 def glove_viz(mat=None, rownames=None, word_count=1000, iterations=10, n=50, display_progress=True):
     glove_indices = random.sample(range(len(rownames)), word_count)
-    glovemat = glove(mat=mat[glove_indices, :], iterations=iterations, n=n)
+    glovemat, _ = glove(mat=mat[glove_indices, :], iterations=iterations, n=n)
     tsne_viz(mat=glovemat, rownames=np.array(rownames)[glove_indices])
 
 ######################################################################
