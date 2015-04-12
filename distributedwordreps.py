@@ -305,7 +305,7 @@ class ShallowNeuralNetwork:
         self.output = np.ones(output_dim)        
         self.iweights = randmatrix(input_dim+1, hidden_dim)
         self.oweights = randmatrix(hidden_dim+1, output_dim)        
-        self.oerr = np.zeros(output_dim+1)
+        self.oerr = np.zeros(output_dim)
         self.ierr = np.zeros(input_dim+1)
         
     def forward_propagation(self, ex):        
