@@ -16,7 +16,6 @@ import copy
 import numpy as np
 import itertools
 from collections import Counter
-from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_selection import SelectFpr, chi2
 from sklearn.linear_model import LogisticRegression
