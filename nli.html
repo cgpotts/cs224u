@@ -199,11 +199,22 @@ div#notebook {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sklearn</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;scikit-learn version 0.16.* is required</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;0.16&#39;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;scikit-learn version 0.16.* is required. You have version </span><span class="si">%s</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
 <span class="kn">from</span> <span class="nn">sklearn.feature_extraction</span> <span class="kn">import</span> <span class="n">DictVectorizer</span>
 <span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">SelectFpr</span><span class="p">,</span> <span class="n">chi2</span>
 <span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
@@ -244,8 +255,9 @@ This data is in the subfolder <code>nli-data</code> of this Github repository.</
 <p>This codebook explores two general approaches: a standard classifier, and 
 a shallow neural network using distributed representations.</p>
 <p>The <a href="#Classifier-training-and-assessment">Classifier training and assessment</a> section also 
-serves as a general illustration of how to take advantage of the scikit-learn functions for 
-doing feature selection, cross-validation, hyper-parameter optimization,  evaluation in the 
+serves as a general illustration of how to take advantage of the 
+<a href="http://scikit-learn.org/stable/">scikit-learn</a> functions for 
+doing feature selection, cross-validation, hyper-parameter optimization, and evaluation in the 
 context of multi-class classification. That code could be easily modified to work with 
 any classification problem.</p>
 
@@ -295,11 +307,9 @@ any classification problem.</p>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Our parsed version of the SICK data contains triples like this (tab-separated fields):</p>
-<p>`
-ENTAILMENT  ( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )  ( ( A child ) ( is playing ) )
-NEUTRAL  ( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )  ( ( A child ) ( is ( wearing ( blue jeans ) ) ) )
-CONTRADICTION  ( ( A child ) ( is ( playing ) ) )  ( ( A child ) ( is sleeping ) )
-`</p>
+<p><code>ENTAILMENT  ( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )  ( ( A child ) ( is playing ) )</code></p>
+<p><code>NEUTRAL  ( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )  ( ( A child ) ( is ( wearing ( blue jeans ) ) ) )</code></p>
+<p><code>CONTRADICTION  ( ( A child ) ( is ( playing ) ) )  ( ( A child ) ( is sleeping ) )</code></p>
 <p>The brackets encode a label-free constituency structure of each sentence. The three labels on the left 
 are the classes that we want to learn to predict. We'll frequently need access to them, so let's define
 them as a list:</p>
@@ -376,7 +386,7 @@ the above into tuples of tuples encoding the syntactic structure.</p>
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this examples from loading on import of this module.</span>
+<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this example from loading on import of this module.</span>
     
     <span class="k">print</span> <span class="n">str2tree</span><span class="p">(</span><span class="s">&quot;( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )&quot;</span><span class="p">)</span>
 </pre></div>
@@ -405,7 +415,7 @@ the above into tuples of tuples encoding the syntactic structure.</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>For baseline models, we often want just the words, also called terminal nodes or leaves.
+<p>For baseline models, we often want just the words, also called terminal nodes or <em>leaves</em>.
 This function gives us access to them as a list:</p>
 
 </div>
@@ -447,7 +457,7 @@ This function gives us access to them as a list:</p>
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this examples from loading on import of this module.</span>
+<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this example from loading on import of this module.</span>
     
     <span class="n">t</span> <span class="o">=</span> <span class="n">str2tree</span><span class="p">(</span><span class="s">&quot;( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )&quot;</span><span class="p">)</span>
     <span class="k">print</span> <span class="n">leaves</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
@@ -517,7 +527,7 @@ tree, and the right tree, as parsed by <code>str2tree</code>:</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Now readers for the training and development data:</p>
+<p>Now we define separate readers for the training and development data:</p>
 
 </div>
 </div>
@@ -545,7 +555,7 @@ tree, and the right tree, as parsed by <code>str2tree</code>:</p>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Eventually, we'll want a test-set reader. As Bill discussed in class, though, 
-__we swear on hour honor as scholars that we won't use this data until
+__we swear on our honor as scholars that we won't use this data until
 system development is complete and we are ready to conduct our final
 assessment__!</p>
 
@@ -642,7 +652,7 @@ words from both sentences:</p>
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Both of these feature functions return count dictionaries mapping feature names to 
 the number of times they occur in the data. This is the representation we'll work
-with throughout; scikit learn will handle the further processing it needs to build
+with throughout; scikit-learn will handle the further processing it needs to build
 linear classifiers.</p>
 <p>Naturally, you can do better than these feature functions! 
 Both of these feature classes might be useful even in a more advanced model, though.</p>
@@ -665,7 +675,8 @@ Both of these feature classes might be useful even in a more advanced model, tho
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The first step in training a classifier is using a feature function like the one above
-to turn the data into feature representations:</p>
+to turn the data into a list of <em>training instances</em>: feature representations and their 
+associated labels:</p>
 
 </div>
 </div>
@@ -712,7 +723,7 @@ class of models we're exploring) for the data we have to train on. The major ste
 <p>Part of the thinking behind this approach is that one can work as follows:</p>
 <ul>
 <li>By and large, you check models just by training them and seeing how they do in cross-validation.</li>
-<li>Only occasionally, and only with good reason, you check how you're doing on the dev set. If this is done only rarely, then it will help prevent you from over-fitting to quirks of this data or the training data.</li>
+<li>Only ccasionally, and only with good reason, do you check how you're doing on the dev set. If this is done only rarely, then it will help prevent you from over-fitting to quirks of this data or the training data.</li>
 <li>At the very end, one runs the test. </li>
 <li>The final paper can report, for the final model,<ul>
 <li>Mean cross-validation values on the training data with standard errors</li>
@@ -746,13 +757,13 @@ class of models we're exploring) for the data we have to train on. The major ste
     <span class="c">##### FEATURE SELECTION    </span>
     <span class="c"># (An optional step; not always productive). By default, we select all</span>
     <span class="c"># the features that pass the chi2 test of association with the</span>
-    <span class="c"># class labels at  p &lt; 0.05. sklearn.feature_selection has other</span>
+    <span class="c"># class labels at p &lt; 0.05. sklearn.feature_selection has other</span>
     <span class="c"># methods that are worth trying.</span>
     <span class="n">feat_matrix</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">feature_selector</span><span class="p">:</span>
         <span class="n">feat_matrix</span> <span class="o">=</span> <span class="n">feature_selector</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">feat_matrix</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">feat_matrix</span> <span class="o">=</span> <span class="n">X</span>
     
     <span class="c">##### HYPER-PARAMETER SEARCH</span>
     <span class="c"># Define the basic model to use for parameter search:</span>
@@ -764,7 +775,7 @@ class of models we're exploring) for the data we have to train on. The major ste
     <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">feat_matrix</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">best_params_</span>
 
-    <span class="c"># Establish the model we want using the parameters obtained from  the search:</span>
+    <span class="c"># Establish the model we want using the parameters obtained from the search:</span>
     <span class="n">mod</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">fit_intercept</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">intercept_scaling</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;C&#39;</span><span class="p">],</span> <span class="n">penalty</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;penalty&#39;</span><span class="p">])</span>
 
     <span class="c">##### ASSESSMENT              </span>
@@ -807,7 +818,7 @@ selection).</p>
 <div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this examples from loading on import of this module.</span>
+<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this example from loading on import of this module.</span>
     
     <span class="n">model</span> <span class="o">=</span> <span class="n">train_classifier</span><span class="p">(</span><span class="n">feature_function</span><span class="o">=</span><span class="n">word_overlap_features</span><span class="p">)</span>
 </pre></div>
@@ -860,7 +871,7 @@ on the dev set, but this same code would be used to evaluate the final model on 
     <span class="k">if</span> <span class="n">feature_selector</span><span class="p">:</span>
         <span class="n">feat_matrix</span> <span class="o">=</span> <span class="n">feature_selector</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">feat_matrix</span><span class="p">)</span>
     <span class="n">predictions</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">feat_matrix</span><span class="p">)</span>
-    <span class="k">print</span> <span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -883,12 +894,12 @@ on the dev set, but this same code would be used to evaluate the final model on 
 <div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this examples from loading on import of this module.</span>
+<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this example from loading on import of this module.</span>
     
     <span class="k">for</span> <span class="n">readername</span><span class="p">,</span> <span class="n">reader</span> <span class="ow">in</span> <span class="p">((</span><span class="s">&#39;Train&#39;</span><span class="p">,</span> <span class="n">sick_train_reader</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;Dev&#39;</span><span class="p">,</span> <span class="n">sick_dev_reader</span><span class="p">)):</span>
         <span class="k">print</span> <span class="s">&quot;======================================================================&quot;</span>
         <span class="k">print</span> <span class="n">readername</span>
-        <span class="n">evaluate_trained_classifier</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="n">reader</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">evaluate_trained_classifier</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="n">reader</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -952,8 +963,8 @@ avg / total       0.54      0.58      0.54       500
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The baseline I define here is just turns each sentences into the average of all its word vectors.
-To create inputs to the network, we just concatenate the output of glove_featurizer for the
+<p>The baseline I define here just turns each sentence into the average of all its word vectors.
+To create inputs to the network, we just concatenate the output of <code>glove_featurizer</code> for the
 two trees being compared. Pretty simplistic, but it is at least a start!</p>
 
 </div>
@@ -1013,8 +1024,8 @@ two trees being compared. Pretty simplistic, but it is at least a start!</p>
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>To shoehorn the current problem into our current network implemetation, I define
-our output vectors as having a 1 for the dimension of the correct class, and a -1 
+<p>To shoehorn the current problem into our current neural network implementation, I 
+define our output vectors as having a 1 for the dimension of the correct class, and a -1 
 for the other two classes:</p>
 
 </div>
@@ -1161,12 +1172,12 @@ class imbalances, but it seems to be doing okay overall.</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this examples from loading on import of this module.</span>
+<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="c"># Prevent this example from loading on import of this module.</span>
 
-    <span class="n">network</span> <span class="o">=</span> <span class="n">train_network</span><span class="p">(</span><span class="n">hidden_dim</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="n">sick_train_reader</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">glove_featurizer</span><span class="p">)</span>
+    <span class="n">network</span> <span class="o">=</span> <span class="n">train_network</span><span class="p">(</span><span class="n">hidden_dim</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="n">sick_train_reader</span><span class="p">,</span> <span class="n">featurizer</span><span class="o">=</span><span class="n">glove_featurizer</span><span class="p">)</span>
     
     <span class="k">for</span> <span class="n">readername</span><span class="p">,</span> <span class="n">reader</span> <span class="ow">in</span> <span class="p">((</span><span class="s">&#39;Train&#39;</span><span class="p">,</span> <span class="n">sick_train_reader</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;Dev&#39;</span><span class="p">,</span> <span class="n">sick_dev_reader</span><span class="p">)):</span>
         <span class="k">print</span> <span class="s">&quot;======================================================================&quot;</span>
@@ -1189,22 +1200,22 @@ Train
 ======================================================================
                precision    recall  f1-score   support
 
-   ENTAILMENT       0.82      0.37      0.51       665
-CONTRADICTION       0.78      0.45      0.57      1299
-      NEUTRAL       0.70      0.95      0.80      2536
+   ENTAILMENT       0.68      0.42      0.52       665
+CONTRADICTION       0.62      0.57      0.59      1299
+      NEUTRAL       0.73      0.84      0.78      2536
 
-  avg / total       0.74      0.72      0.69      4500
+  avg / total       0.69      0.70      0.69      4500
 
 ======================================================================
 Dev
 ======================================================================
                precision    recall  f1-score   support
 
-   ENTAILMENT       0.44      0.15      0.22        74
-CONTRADICTION       0.53      0.33      0.41       144
-      NEUTRAL       0.62      0.84      0.71       282
+   ENTAILMENT       0.53      0.26      0.35        74
+CONTRADICTION       0.47      0.43      0.45       144
+      NEUTRAL       0.64      0.75      0.69       282
 
-  avg / total       0.57      0.59      0.55       500
+  avg / total       0.57      0.59      0.57       500
 
 </pre>
 </div>
@@ -1233,8 +1244,8 @@ CONTRADICTION       0.53      0.33      0.41       144
 arXiv manuscript 1406.1827.</p>
 <p>Dagan, Ido; Oren Glickman; and  Bernardo Magnini. 2006. 
 <a href="http://eprints.pascal-network.org/archive/00001298/01/dagan_et_al_rte05.pdf">The PASCAL recognising textual entailment challenge</a>.
-In J. Quinonero-Candela, I. Dagan, B. Magnini, F. d'Alché-Buc, ed., Machine Learning Challenges, 
-Lecture Notes in Computer Science, 177-190. Springer-Verlag.</p>
+In J. Quinonero-Candela, I. Dagan, B. Magnini, F. d'Alché-Buc, ed., <em>Machine Learning Challenges</em>, 
+177-190. Springer-Verlag.</p>
 <p>Icard, Thomas F. 2012. <a href="http://link.springer.com/article/10.1007%2Fs11225-012-9425-8">Inclusion and exclusion in natural language</a>. <em>Studia Logica</em> 100(4): 705-725.</p>
 <p>MacCartney, Bill and Christopher D. Manning. 2009. 
 <a href="http://www.aclweb.org/anthology/W09-3714">An extended model of natural logic</a>. 

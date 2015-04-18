@@ -11,11 +11,22 @@
 # In[2]:
 
 import re
+import sys
 import csv
 import copy
 import numpy as np
 import itertools
 from collections import Counter
+
+try:
+    import sklearn
+except ImportError:
+    sys.stderr.write("scikit-learn version 0.16.* is required\n")
+    sys.exit(2)
+if sklearn.__version__[:4] != '0.16':
+    sys.stderr.write("scikit-learn version 0.16.* is required. You have version %s.\n" % sklearn.__version__[:4])
+    sys.exit(2)
+
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_selection import SelectFpr, chi2
 from sklearn.linear_model import LogisticRegression
@@ -51,8 +62,9 @@ from distributedwordreps import build, ShallowNeuralNetwork
 # a shallow neural network using distributed representations.
 # 
 # The [Classifier training and assessment](#Classifier-training-and-assessment) section also 
-# serves as a general illustration of how to take advantage of the scikit-learn functions for 
-# doing feature selection, cross-validation, hyper-parameter optimization,  evaluation in the 
+# serves as a general illustration of how to take advantage of the 
+# [scikit-learn](http://scikit-learn.org/stable/) functions for 
+# doing feature selection, cross-validation, hyper-parameter optimization, and evaluation in the 
 # context of multi-class classification. That code could be easily modified to work with 
 # any classification problem.
 
@@ -74,7 +86,13 @@ from distributedwordreps import build, ShallowNeuralNetwork
 #     
 # `
 # ENTAILMENT  ( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )  ( ( A child ) ( is playing ) )
+# `
+# 
+# `
 # NEUTRAL  ( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )  ( ( A child ) ( is ( wearing ( blue jeans ) ) ) )
+# `
+# 
+# `
 # CONTRADICTION  ( ( A child ) ( is ( playing ) ) )  ( ( A child ) ( is sleeping ) )
 # `
 # 
@@ -109,12 +127,12 @@ def str2tree(s):
 
 # In[5]:
 
-if __name__ == '__main__': # Prevent this examples from loading on import of this module.
+if __name__ == '__main__': # Prevent this example from loading on import of this module.
     
     print str2tree("( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )")
 
 
-# For baseline models, we often want just the words, also called terminal nodes or leaves.
+# For baseline models, we often want just the words, also called terminal nodes or _leaves_.
 # This function gives us access to them as a list:
 
 # In[6]:
@@ -134,7 +152,7 @@ def leaves(t):
 
 # In[7]:
 
-if __name__ == '__main__': # Prevent this examples from loading on import of this module.
+if __name__ == '__main__': # Prevent this example from loading on import of this module.
     
     t = str2tree("( ( A child ) ( is ( playing ( in ( a yard ) ) ) ) )")
     print leaves(t)
@@ -157,7 +175,7 @@ def sick_reader(src_filename):
             yield (label, str2tree(t1), str2tree(t2))
 
 
-# Now readers for the training and development data:
+# Now we define separate readers for the training and development data:
 
 # In[9]:
 
@@ -169,7 +187,7 @@ def sick_dev_reader():
 
 
 # Eventually, we'll want a test-set reader. As Bill discussed in class, though, 
-# __we swear on hour honor as scholars that we won't use this data until
+# __we swear on our honor as scholars that we won't use this data until
 # system development is complete and we are ready to conduct our final
 # assessment__!
 
@@ -204,7 +222,7 @@ def word_cross_product_features(t1, t2):
 
 # Both of these feature functions return count dictionaries mapping feature names to 
 # the number of times they occur in the data. This is the representation we'll work
-# with throughout; scikit learn will handle the further processing it needs to build
+# with throughout; scikit-learn will handle the further processing it needs to build
 # linear classifiers.
 # 
 # Naturally, you can do better than these feature functions! 
@@ -213,7 +231,8 @@ def word_cross_product_features(t1, t2):
 # ### Classifier training and assessment
 
 # The first step in training a classifier is using a feature function like the one above
-# to turn the data into feature representations:
+# to turn the data into a list of _training instances_: feature representations and their 
+# associated labels:
 
 # In[13]:
 
@@ -244,7 +263,7 @@ def featurizer(reader=sick_train_reader, feature_function=word_overlap_features)
 # Part of the thinking behind this approach is that one can work as follows:
 # 
 # * By and large, you check models just by training them and seeing how they do in cross-validation.
-# * Only occasionally, and only with good reason, you check how you're doing on the dev set. If this is done only rarely, then it will help prevent you from over-fitting to quirks of this data or the training data.
+# * Only ccasionally, and only with good reason, do you check how you're doing on the dev set. If this is done only rarely, then it will help prevent you from over-fitting to quirks of this data or the training data.
 # * At the very end, one runs the test. 
 # * The final paper can report, for the final model,
 #   * Mean cross-validation values on the training data with standard errors
@@ -269,13 +288,13 @@ def train_classifier(
     ##### FEATURE SELECTION    
     # (An optional step; not always productive). By default, we select all
     # the features that pass the chi2 test of association with the
-    # class labels at  p < 0.05. sklearn.feature_selection has other
+    # class labels at p < 0.05. sklearn.feature_selection has other
     # methods that are worth trying.
     feat_matrix = None
     if feature_selector:
         feat_matrix = feature_selector.fit_transform(X, labels)
     else:
-        feat_matrix = copy.copy(X)
+        feat_matrix = X
     
     ##### HYPER-PARAMETER SEARCH
     # Define the basic model to use for parameter search:
@@ -287,7 +306,7 @@ def train_classifier(
     clf.fit(feat_matrix, labels)
     params = clf.best_params_
 
-    # Establish the model we want using the parameters obtained from  the search:
+    # Establish the model we want using the parameters obtained from the search:
     mod = LogisticRegression(fit_intercept=True, intercept_scaling=1, C=params['C'], penalty=params['penalty'])
 
     ##### ASSESSMENT              
@@ -314,7 +333,7 @@ def train_classifier(
 
 # In[15]:
 
-if __name__ == '__main__': # Prevent this examples from loading on import of this module.
+if __name__ == '__main__': # Prevent this example from loading on import of this module.
     
     model = train_classifier(feature_function=word_overlap_features)
 
@@ -332,27 +351,27 @@ def evaluate_trained_classifier(model=None, reader=sick_dev_reader):
     if feature_selector:
         feat_matrix = feature_selector.transform(feat_matrix)
     predictions = mod.predict(feat_matrix)
-    print metrics.classification_report(labels, predictions)
+    return metrics.classification_report(labels, predictions)
 
 
 # Let's see how we do on the training data as well as on the development data:
 
 # In[17]:
 
-if __name__ == '__main__': # Prevent this examples from loading on import of this module.
+if __name__ == '__main__': # Prevent this example from loading on import of this module.
     
     for readername, reader in (('Train', sick_train_reader), ('Dev', sick_dev_reader)):
         print "======================================================================"
         print readername
-        evaluate_trained_classifier(model=model, reader=reader)
+        print evaluate_trained_classifier(model=model, reader=reader)
 
 
 # ## Shallow neural network approach
 
 # ### Baseline distributed features
 
-# The baseline I define here is just turns each sentences into the average of all its word vectors.
-# To create inputs to the network, we just concatenate the output of glove_featurizer for the
+# The baseline I define here just turns each sentence into the average of all its word vectors.
+# To create inputs to the network, we just concatenate the output of `glove_featurizer` for the
 # two trees being compared. Pretty simplistic, but it is at least a start!
 
 # In[18]:
@@ -381,8 +400,8 @@ def glove_featurizer(t1, t2):
 
 # ### Output label vectors
 
-# To shoehorn the current problem into our current network implemetation, I define
-# our output vectors as having a 1 for the dimension of the correct class, and a -1 
+# To shoehorn the current problem into our current neural network implementation, I 
+# define our output vectors as having a 1 for the dimension of the correct class, and a -1 
 # for the other two classes:
 
 # In[20]:
@@ -453,11 +472,11 @@ def evaluate_trained_network(network=None, reader=sick_dev_reader):
 # Here's a summary train/dev evaluation. The network has trouble dealing with the
 # class imbalances, but it seems to be doing okay overall.
 
-# In[25]:
+# In[24]:
 
-if __name__ == '__main__': # Prevent this examples from loading on import of this module.
+if __name__ == '__main__': # Prevent this example from loading on import of this module.
 
-    network = train_network(hidden_dim=10, maxiter=1000, reader=sick_train_reader, featurizer=glove_featurizer)
+    network = train_network(hidden_dim=20, maxiter=1000, reader=sick_train_reader, featurizer=glove_featurizer)
     
     for readername, reader in (('Train', sick_train_reader), ('Dev', sick_dev_reader)):
         print "======================================================================"
@@ -473,8 +492,8 @@ if __name__ == '__main__': # Prevent this examples from loading on import of thi
 # 
 # Dagan, Ido; Oren Glickman; and  Bernardo Magnini. 2006. 
 # [The PASCAL recognising textual entailment challenge](http://eprints.pascal-network.org/archive/00001298/01/dagan_et_al_rte05.pdf).
-# In J. Quinonero-Candela, I. Dagan, B. Magnini, F. d'Alché-Buc, ed., Machine Learning Challenges, 
-# Lecture Notes in Computer Science, 177-190. Springer-Verlag.
+# In J. Quinonero-Candela, I. Dagan, B. Magnini, F. d'Alché-Buc, ed., _Machine Learning Challenges_, 
+# 177-190. Springer-Verlag.
 # 
 # Icard, Thomas F. 2012. [Inclusion and exclusion in natural language](http://link.springer.com/article/10.1007%2Fs11225-012-9425-8). _Studia Logica_ 100(4): 705-725.
 # 
