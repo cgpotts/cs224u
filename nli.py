@@ -142,7 +142,7 @@ def train_classifier(
         feature_function=word_overlap_features,
         feature_selector=SelectFpr(chi2, alpha=0.05), # Use None to stop feature selection
         cv=10, # Number of folds used in cross-validation
-        priorlims=np.arange(.1, 2.1, .1)): # regularization priors to explore (we expect something around 1)
+        priorlims=np.arange(.1, 3.1, .1)): # regularization priors to explore (we expect something around 1)
     # Featurize the data:
     feats, labels = featurizer(reader=reader, feature_function=feature_function) 
     
