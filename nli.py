@@ -142,7 +142,7 @@ def train_classifier(
         feature_function=word_overlap_features,
         feature_selector=SelectFpr(chi2, alpha=0.05), # Use None to stop feature selection
         cv=10, # Number of folds used in cross-validation
-        priorlims=range(1,10)): # regularization priors to explore (we expect something around 1)
+        priorlims=np.arange(.1, 2.1, .1)): # regularization priors to explore (we expect something around 1)
     # Featurize the data:
     feats, labels = featurizer(reader=reader, feature_function=feature_function) 
     
@@ -167,7 +167,7 @@ def train_classifier(
     # Define the basic model to use for parameter search:
     searchmod = LogisticRegression(fit_intercept=True, intercept_scaling=1)
     # Parameters to grid-search over:
-    parameters = {'C':[x / 10.0 for x in priorlims], 'penalty':['l1','l2']}  
+    parameters = {'C':priorlims, 'penalty':['l1','l2']}  
     # Cross-validation grid search to find the best hyper-parameters:     
     clf = GridSearchCV(searchmod, parameters, cv=cv)
     clf.fit(feat_matrix, labels)
