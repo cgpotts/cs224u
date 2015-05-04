@@ -194,43 +194,6 @@ div#notebook {
 </div>
 </div>
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">csv</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">sklearn</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;scikit-learn version 0.16.* is required</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;0.16&#39;</span><span class="p">:</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;scikit-learn version 0.16.* is required. You&#39;re at </span><span class="si">%s</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-
-<span class="kn">from</span> <span class="nn">sklearn.feature_extraction</span> <span class="kn">import</span> <span class="n">DictVectorizer</span>
-<span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">SelectFpr</span><span class="p">,</span> <span class="n">chi2</span>
-<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
-<span class="kn">from</span> <span class="nn">sklearn.grid_search</span> <span class="kn">import</span> <span class="n">GridSearchCV</span>
-<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">cross_val_score</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
-
-<span class="kn">from</span> <span class="nn">distributedwordreps</span> <span class="kn">import</span> <span class="n">build</span><span class="p">,</span> <span class="n">ShallowNeuralNetwork</span> 
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -290,10 +253,48 @@ any classification problem.</p>
 </ol>
 </li>
 <li><a href="#Some-further-reading">Some further reading</a></li>
+<li><a href="#Homework-4">Homework 4</a></li>
 </ol>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sklearn</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;scikit-learn version 0.16.* is required</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;0.16&#39;</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;scikit-learn version 0.16.* is required. You&#39;re at </span><span class="si">%s</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction</span> <span class="kn">import</span> <span class="n">DictVectorizer</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="kn">import</span> <span class="n">SelectFpr</span><span class="p">,</span> <span class="n">chi2</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.grid_search</span> <span class="kn">import</span> <span class="n">GridSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">cross_val_score</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+
+<span class="kn">from</span> <span class="nn">distributedwordreps</span> <span class="kn">import</span> <span class="n">build</span><span class="p">,</span> <span class="n">ShallowNeuralNetwork</span> 
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -835,12 +836,12 @@ class of models we're exploring) for the data we have to train on. The major ste
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Best model LogisticRegression(C=0.8, class_weight=None, dual=False, fit_intercept=True,
-          intercept_scaling=1, max_iter=100, multi_class=&apos;ovr&apos;,
-          penalty=&apos;l2&apos;, random_state=None, solver=&apos;liblinear&apos;, tol=0.0001,
-          verbose=0)
+<pre>Best model LogisticRegression(C=2.8000000000000003, class_weight=None, dual=False,
+          fit_intercept=True, intercept_scaling=1, max_iter=100,
+          multi_class=&apos;ovr&apos;, penalty=&apos;l2&apos;, random_state=None,
+          solver=&apos;liblinear&apos;, tol=0.0001, verbose=0)
 203 features selected out of 1397 total
-F1 mean: 0.45 (+/- 0.02)
+F1 mean: 0.47 (+/- 0.03)
 </pre>
 </div>
 </div>
@@ -918,19 +919,19 @@ on the dev set, but this same code would be used to evaluate the final model on 
 Train
              precision    recall  f1-score   support
 
-CONTRADICTION       0.66      0.33      0.44       665
- ENTAILMENT       0.60      0.35      0.44      1299
-    NEUTRAL       0.69      0.93      0.79      2536
+CONTRADICTION       0.66      0.39      0.49       665
+ ENTAILMENT       0.60      0.37      0.46      1299
+    NEUTRAL       0.70      0.92      0.80      2536
 
-avg / total       0.66      0.67      0.64      4500
+avg / total       0.67      0.68      0.65      4500
 
 ======================================================================
 Dev
              precision    recall  f1-score   support
 
-CONTRADICTION       0.47      0.19      0.27        74
- ENTAILMENT       0.37      0.24      0.29       144
-    NEUTRAL       0.65      0.86      0.74       282
+CONTRADICTION       0.43      0.22      0.29        74
+ ENTAILMENT       0.39      0.28      0.32       144
+    NEUTRAL       0.64      0.82      0.72       282
 
 avg / total       0.54      0.58      0.54       500
 
@@ -979,31 +980,31 @@ feature selection!</p>
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Best model LogisticRegression(C=0.9, class_weight=None, dual=False, fit_intercept=True,
-          intercept_scaling=1, max_iter=100, multi_class=&apos;ovr&apos;,
-          penalty=&apos;l2&apos;, random_state=None, solver=&apos;liblinear&apos;, tol=0.0001,
-          verbose=0)
+<pre>Best model LogisticRegression(C=1.3000000000000003, class_weight=None, dual=False,
+          fit_intercept=True, intercept_scaling=1, max_iter=100,
+          multi_class=&apos;ovr&apos;, penalty=&apos;l2&apos;, random_state=None,
+          solver=&apos;liblinear&apos;, tol=0.0001, verbose=0)
 3680 features selected out of 89038 total
-F1 mean: 0.69 (+/- 0.08)
+F1 mean: 0.69 (+/- 0.07)
 ======================================================================
 Train
              precision    recall  f1-score   support
 
-CONTRADICTION       0.97      0.92      0.95       665
- ENTAILMENT       0.89      0.79      0.84      1299
+CONTRADICTION       0.98      0.94      0.96       665
+ ENTAILMENT       0.90      0.80      0.85      1299
     NEUTRAL       0.89      0.95      0.92      2536
 
-avg / total       0.90      0.90      0.90      4500
+avg / total       0.91      0.91      0.91      4500
 
 ======================================================================
 Dev
              precision    recall  f1-score   support
 
 CONTRADICTION       0.79      0.65      0.71        74
- ENTAILMENT       0.57      0.50      0.53       144
-    NEUTRAL       0.72      0.80      0.76       282
+ ENTAILMENT       0.55      0.49      0.52       144
+    NEUTRAL       0.72      0.79      0.75       282
 
-avg / total       0.69      0.69      0.69       500
+avg / total       0.68      0.68      0.68       500
 
 </pre>
 </div>
@@ -1030,9 +1031,9 @@ avg / total       0.69      0.69      0.69       500
 <ul>
 <li><p>Cross product of synsets compatible with each word, as given by WordNet. (Here is <a href="http://compprag.christopherpotts.net/wordnet.html">a codebook on using WordNet from NLTK to do things like this</a>.)</p>
 </li>
-<li><p>More fine-grained WordNet features --- e.g., spotting pairs like <em>puppy</em>/<em>dog</em> across the two sentences.</p>
+<li><p>More fine-grained WordNet features &mdash; e.g., spotting pairs like <em>puppy</em>/<em>dog</em> across the two sentences.</p>
 </li>
-<li><p>Use of other WordNet relations (see Table 1 and Table 2 in <a href="http://compprag.christopherpotts.net/wordnet.html">the above codebook</a> for relations and their coverage).</p>
+<li><p>Use of other WordNet relations (see Table 1 and Table 2 in <a href="http://compprag.christopherpotts.net/wordnet.html">the above codelab</a> for relations and their coverage).</p>
 </li>
 <li><p>Using the tree structure to define features that are sensitive to how negation scopes over constituents.</p>
 </li>
@@ -1080,7 +1081,7 @@ two trees being compared. Pretty simplistic, but it is at least a start!</p>
 <div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">GLOVE_MAT</span><span class="p">,</span> <span class="n">GLOVE_VOCAB</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;../distributedwordreps-data/glove.6B.50d.txt&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONE</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">GLOVE_MAT</span><span class="p">,</span> <span class="n">GLOVE_VOCAB</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">&#39;distributedwordreps-data/glove.6B.50d.txt&#39;</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONE</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -1255,8 +1256,7 @@ training and evalution.</p>
         <span class="c"># Store the gold label for the classification report:</span>
         <span class="n">cats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LABELS</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">cat</span><span class="p">)])</span>        
     <span class="c"># Report:</span>
-    <span class="k">print</span> <span class="s">&quot;======================================================================&quot;</span>
-    <span class="k">print</span> <span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span><span class="n">cats</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="n">LABELS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">metrics</span><span class="o">.</span><span class="n">classification_report</span><span class="p">(</span><span class="n">cats</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">target_names</span><span class="o">=</span><span class="n">LABELS</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -1287,7 +1287,7 @@ class imbalances, but it seems to be doing okay overall.</p>
     <span class="k">for</span> <span class="n">readername</span><span class="p">,</span> <span class="n">reader</span> <span class="ow">in</span> <span class="p">((</span><span class="s">&#39;Train&#39;</span><span class="p">,</span> <span class="n">sick_train_reader</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;Dev&#39;</span><span class="p">,</span> <span class="n">sick_dev_reader</span><span class="p">)):</span>
         <span class="k">print</span> <span class="s">&quot;======================================================================&quot;</span>
         <span class="k">print</span> <span class="n">readername</span>
-        <span class="n">evaluate_trained_network</span><span class="p">(</span><span class="n">network</span><span class="o">=</span><span class="n">network</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="n">reader</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">evaluate_trained_network</span><span class="p">(</span><span class="n">network</span><span class="o">=</span><span class="n">network</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="n">reader</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -1302,25 +1302,23 @@ class imbalances, but it seems to be doing okay overall.</p>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>======================================================================
 Train
-======================================================================
                precision    recall  f1-score   support
 
-   ENTAILMENT       0.67      0.54      0.60       665
-CONTRADICTION       0.70      0.57      0.63      1299
-      NEUTRAL       0.76      0.87      0.81      2536
+   ENTAILMENT       0.81      0.33      0.47       665
+CONTRADICTION       0.65      0.58      0.61      1299
+      NEUTRAL       0.73      0.88      0.80      2536
 
-  avg / total       0.73      0.74      0.73      4500
+  avg / total       0.72      0.71      0.70      4500
 
 ======================================================================
 Dev
-======================================================================
                precision    recall  f1-score   support
 
-   ENTAILMENT       0.42      0.30      0.35        74
-CONTRADICTION       0.48      0.38      0.42       144
-      NEUTRAL       0.64      0.76      0.69       282
+   ENTAILMENT       0.52      0.15      0.23        74
+CONTRADICTION       0.41      0.42      0.41       144
+      NEUTRAL       0.63      0.74      0.68       282
 
-  avg / total       0.56      0.58      0.56       500
+  avg / total       0.55      0.56      0.54       500
 
 </pre>
 </div>
@@ -1384,6 +1382,169 @@ In J. Quinonero-Candela, I. Dagan, B. Magnini, F. d'Alché-Buc, ed., <em>Machine
 <a href="http://www.aclweb.org/anthology/W09-3714">An extended model of natural logic</a>. 
 In  <em>Proceedings of the Eighth International Conference on Computational Semantics</em>, 140-156. 
 Tilburg, The Netherlands: Association for Computational Linguistics.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Homework-4">Homework 4<a class="anchor-link" href="#Homework-4">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>All four problems are required. The work is due by the start of class on May 20.</p>
+<p><strong>Important</strong>: These questions ask you to conduct evaluations. Great perfomance is always nice, but you should not spend hours or days trying to achieve it just for the sake of this assignment. (If you're obsessed, then go for it, but not on account of our grading!)</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Problem-1">Problem 1<a class="anchor-link" href="#Problem-1">&#182;</a></h3><p>This problem calls for two revisions to <code>train_classifier</code>:</p>
+<ul>
+<li><p><code>train_classifier</code> currently optimizes our multi-class problem using a 'one vs. rest' scheme (<code>multi_class=ovr</code>). Revise <code>train_classifier</code> so that the choice of value for <code>multi_class</code> is part of the hyper-parameter search. Be sure to look over the documentation for <code>sklearn.linear_model.LogisticRegression</code> &mdash; this kind of search requires another adjustment to how the model is set up. (Don't worry about overlooking something; it won't work unless you figure it out!)</p>
+</li>
+<li><p><code>train_classifier</code> currently does feature selection outside of the context of the model we ultimately want to fit. Revise the function so that the user has the option of using <a href="http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html#sklearn.feature_selection.RFE">Feature ranking with recursive feature elimination as implemented by scikit-learn's <code>RFE</code> function</a>. This is a model-based approach to feature selection that is slow but can be powerful. (It's tricky to decide whether to run RFE before or after grid-search for the optimal parameters. I suggest before, since the proper regularization scheme will be heavily influenced by the number of features.)</p>
+</li>
+</ul>
+<p><strong>Submit</strong>:</p>
+<ol>
+<li>Your revised <code>train_classifier</code> function.</li>
+<li>A copy-and-paste of all the messages printed by your revised <code>train_classifier</code> when it is trained on <code>sick_train_reader</code> using <code>word_overlap_features</code> and <code>RFE</code> (<code>n_features_to_select=None, step=1, verbose=0</code>), with a grid-search that includes at least both values of <code>multi_class</code>.</li>
+</ol>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Problem-2">Problem 2<a class="anchor-link" href="#Problem-2">&#182;</a></h3><p><a href="http://www.nltk.org">Python NLTK</a> has an excellent WordNet interface. (If you don't have NLTK installed, install it now!) As noted above, WordNet is a natural choice for defining useful features in the context of NLI.</p>
+<p><strong>Your task</strong>: write a feature function, for use with <code>train_classifier</code>, that is just like <code>word_cross_product_features</code> except that, given a sentence pair $(S_{1}, S_{2})$, it counts only pairs $(w_{1}, w_{2})$ such that $w_{1}$ entails $w_{2}$, for $w_{1} \in S_{1}$ and $w_{2} \in S_{2}$. For example, the sentence pair (<em>the cat runs</em>, <em>the animal moves</em>) would create the dictionary <code>{(cat, animal): 1.0, (runs, moves): 1.0}</code>.</p>
+<p>There are many ways to do this. For the purposes of the question, we can limit attention to the WordNet hypernym relation. The following illustrates reasonable ways to go from a string $s$ to the set of all hypernyms of Synsets consistent with $s$:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    
+    <span class="kn">from</span> <span class="nn">nltk.corpus</span> <span class="kn">import</span> <span class="n">wordnet</span> <span class="k">as</span> <span class="n">wn</span>
+    
+    <span class="n">puppies</span> <span class="o">=</span> <span class="n">wn</span><span class="o">.</span><span class="n">synsets</span><span class="p">(</span><span class="s">&#39;puppy&#39;</span><span class="p">)</span>
+    <span class="k">print</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">ss</span> <span class="ow">in</span> <span class="n">puppies</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">ss</span><span class="o">.</span><span class="n">hypernyms</span><span class="p">()]</span>
+
+    <span class="c"># A more conservative approach uses just the first-listed </span>
+    <span class="c"># Synset, which should be the most frequent sense:</span>
+    <span class="k">print</span> <span class="n">wn</span><span class="o">.</span><span class="n">synsets</span><span class="p">(</span><span class="s">&#39;puppy&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hypernyms</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>[Synset(&apos;dog.n.01&apos;), Synset(&apos;pup.n.01&apos;), Synset(&apos;young_person.n.01&apos;)]
+[Synset(&apos;dog.n.01&apos;), Synset(&apos;pup.n.01&apos;)]
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Whatever your preferred approach, the logic is that $w_{1}$ entails $w_{2}$ if a Synset consistent with $w_{2}$ is in the hypernym set you define for $w_{1}$.</p>
+<p><strong>Submit</strong>:</p>
+<ol>
+<li><p>Your feature function.</p>
+</li>
+<li><p>Copy-and-paste of the printed output of <code>evaluate_trained_classifier</code>, using your feature function, trained on <code>sick_train_reader</code>, with your preferred settings, and evaluated on <code>sick_dev_reader</code>.</p>
+</li>
+</ol>
+<p>For more on using the Python NLTK interface, see <a href="http://compprag.christopherpotts.net/wordnet.html">these notes</a>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Problem-3">Problem 3<a class="anchor-link" href="#Problem-3">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>By and large, deleting subphrases from a phrase will make it more general. For instance, if we begin with <em>fat cat</em> and remove <em>cat</em>, then we end up with something that is entailed by the original. This also holds at the phrasal level. For example,</p>
+<p><em>( land ( in ( a field ) ) )</em></p>
+<p>entails</p>
+<p><em>( land )</em></p>
+<p><strong>Your tasks</strong>:</p>
+<ul>
+<li><p>Write a function that, given a tree (as given by <code>str2tree</code> above), returns a list of all of the subphrases of that tree. For example, given <code>( land ( in ( a field ) ) )</code> the return value should be the following (order irrelevant):</p>
+<p><code>[( land ( in ( a field ) ) ), ( in ( a field ) ), ( a field ), land, in, a, field]</code></p>
+</li>
+</ul>
+<ul>
+<li>Use this function to write a feature function that, given two tree-structured inputs $S_{1}$ and $S_{2}$, returns the number of cases where a phrase in $S_{2}$ contains a phrase in $S_{1}$ (including the case where the two phrases are identical).</li>
+</ul>
+<p><strong>Submit</strong>:</p>
+<ol>
+<li><p>The two functions you wrote for the above tasks.</p>
+</li>
+<li><p>Copy-and-paste of the printed output of <code>evaluate_trained_classifier</code>, using your feature function, trained on <code>sick_train_reader</code>, with your preferred settings, and evaluated on <code>sick_dev_reader</code>.</p>
+</li>
+</ol>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Problem-4">Problem 4<a class="anchor-link" href="#Problem-4">&#182;</a></h3><p>Write a new function, comparable to <code>glove_featurizer</code>, that employs an alternative to <code>vec_concatenate</code> and an alternative to <code>glove_features</code>. Train a network with this function using <code>train_network</code> and evaluate it using <code>evaluate_trained_network</code>, with the default parameters &mdash; except of course for <code>featurizer</code>, which should be your new function.</p>
+<p><strong>Submit</strong>:</p>
+<ol>
+<li><p>Your new function.</p>
+</li>
+<li><p>Copy-and-paste of the report given by <code>evaluate_trained_network</code> from your training and evaluation run.</p>
+</li>
+</ol>
 
 </div>
 </div>
