@@ -54,3 +54,9 @@ docs/_build/
 target/
 
 .ipynb_checkpoints*
+
+
+# Data
+trees/*
+glove.6B/*
+vsmdata/*
