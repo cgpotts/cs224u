@@ -1,4 +1,6 @@
-numpy >= 1.9
+python >= 2.7.10
+numpy >= 1.10
 scipy >= 0.11.0
-scikit >= 0.16
-matplotlib >= 1.4
+matplotlib >= 1.5.1
+sklearn >= 0.17
+dateutil >= 2.4
