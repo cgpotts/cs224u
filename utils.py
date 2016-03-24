@@ -66,31 +66,3 @@ def safe_macro_f1(y, y_pred):
     gold labels and `y_pred` is the list of predicted labels."""
     return f1_score(y, y_pred, average='macro', pos_label=None)
 
-
-def multirun_classification_report(results, digits=3, labels=None):
-    results = np.array(results).mean(0).T
-    labels = map(str, range(results.shape(0))) if labels == None else labels    
-    header = ('', 'precision', 'recall', 'f1', 'support')
-    width = 9
-    labelmaxwidth = max([len(x) for x in labels])
-    
-    def cellfmt(x, typ='float', width=width):
-        val = ""
-        if typ=='int':
-            val = "%0d" % x
-        elif typ=='str':
-            val = x
-        else:
-            val "%0.03f" % x
-        return val.rjust(width)
-
-    def rowfmt(row, label):
-        s = [cellfmt(label, typ='str'),
-             " ".join([cellfmt(x, typ='float') for x in row[:-1]]),
-             cellfmt(row[-1], typ='int')]
-        return " ".join(s)
-
-    rows = [" ".join([x.rjust(width) for x in header])]
-    rows += [rowfmt(row, label) for row, label in zip(results, labels)]
-    return "\n".join(rows)
-
