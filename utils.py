@@ -5,6 +5,7 @@ __version__ = "CS224u, Stanford, Spring 2016"
 import unicodecsv as csv
 import random
 import numpy as np
+from sklearn.metrics import f1_score
 
 
 
@@ -57,3 +58,10 @@ def build_glove(src_filename):
 def randmatrix(m, n, lower=-0.5, upper=0.5):
     """Creates an m x n matrix of random values in [lower, upper]"""
     return np.array([random.uniform(lower, upper) for i in range(m*n)]).reshape(m, n)
+
+
+def safe_macro_f1(y, y_pred):
+    """Macro-averaged F1, forcing `sklearn` to report as a multiclass
+    problem even when there are just two classes. `y` is the list of 
+    gold labels and `y_pred` is the list of predicted labels."""
+    return f1_score(y, y_pred, average='macro', pos_label=None)
