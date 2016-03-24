@@ -1,14 +1,21 @@
+import sys
+import copy
+import random
+import numpy as np
+from numpy import dot, outer
+import tensorflow as tf
+import utils
+
+
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2016"
+
+
 def d_tanh(z):
     """The derivative of the hyperbolic tangent function. 
     z should be a float or np-array."""
     return 1.0 - z**2
 
-def progress_bar(iteration, error):
-    """Simple over-writing progress bar for tracking the speed and 
-    trajectory of training."""
-    sys.stderr.write('\r')
-    sys.stderr.write('completed iteration %s; error is %s' % ((iteration+1), error))
-    sys.stderr.flush()
 
 class ShallowNeuralNetwork:
     """Fit a model f(f(xW1 + b1)W2 + b2)"""    
@@ -124,10 +131,10 @@ class ShallowNeuralNetwork:
             random.shuffle(training_data)
             for ex, labels in training_data:
                 self.forward_propagation(ex)
-                error += self.backward_propagation(labels)           
-            if self.display_progress:
-                progress_bar(iteration, error)
+                error += self.backward_propagation(labels)
             iteration += 1
+            if self.display_progress:
+                self._progress_bar(iteration, error)            
                     
     def predict(self, ex):
         """Prediction for `ex`, which must be featurized as the
@@ -136,8 +143,14 @@ class ShallowNeuralNetwork:
         self.forward_propagation(ex)
         return copy.deepcopy(self.y)
 
+    def _progress_bar(self, iteration, error):
+        """Simple over-writing progress bar for tracking the speed and 
+        trajectory of training."""
+        sys.stderr.write('\r')
+        sys.stderr.write('completed iteration %s; error is %s' % (iteration, error))
+        sys.stderr.flush()
+    
 ######################################################################
-
 
 class TfShallowNeuralNetwork:
     """Fairly exact reproduction of `ShallowNeuralNetwork` in
