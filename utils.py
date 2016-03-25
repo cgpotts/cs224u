@@ -53,10 +53,24 @@ def build(src_filename, delimiter=',', header=True, quoting=csv.QUOTE_MINIMAL):
 
 
 def build_glove(src_filename):
+    """Wrapper for using `build` to read in a GloVe file as a matrix"""
     return build(src_filename, delimiter=' ', header=False, quoting=csv.QUOTE_NONE)
 
 
 def glove2dict(src_filename):
+    """GloVe Reader.
+    
+    Parameters
+    ----------
+    src_filename : str
+        Full path to the GloVe file to be processed.
+
+    Returns
+    -------
+    dict
+        Mapping words to their GloVe vectors.
+    
+    """
     reader = csv.reader(file(src_filename), delimiter=' ', quoting=csv.QUOTE_NONE)    
     return {line[0]: np.array(map(float, line[1: ])) for line in reader}
 
