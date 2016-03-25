@@ -2,6 +2,7 @@ __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2016"
 
 
+import sys
 import unicodecsv as csv
 import random
 import numpy as np
@@ -55,6 +56,11 @@ def build_glove(src_filename):
     return build(src_filename, delimiter=' ', header=False, quoting=csv.QUOTE_NONE)
 
 
+def glove2dict(src_filename):
+    reader = csv.reader(file(src_filename), delimiter=' ', quoting=csv.QUOTE_NONE)    
+    return {line[0]: np.array(map(float, line[1: ])) for line in reader}
+
+
 def randmatrix(m, n, lower=-0.5, upper=0.5):
     """Creates an m x n matrix of random values in [lower, upper]"""
     return np.array([random.uniform(lower, upper) for i in range(m*n)]).reshape(m, n)
@@ -66,3 +72,9 @@ def safe_macro_f1(y, y_pred):
     gold labels and `y_pred` is the list of predicted labels."""
     return f1_score(y, y_pred, average='macro', pos_label=None)
 
+
+def progress_bar(msg):
+    """Simple over-writing progress bar."""
+    sys.stderr.write('\r')
+    sys.stderr.write(msg)
+    sys.stderr.flush()
