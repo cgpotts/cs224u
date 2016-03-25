@@ -134,21 +134,16 @@ class ShallowNeuralNetwork:
                 error += self.backward_propagation(labels)
             iteration += 1
             if self.display_progress:
-                self._progress_bar(iteration, error)            
+                utils.progress_bar('completed iteration %s; error is %s' % (iteration, error))
+        if self.display_progress:
+            sys.stderr.write('\n')
                     
     def predict(self, ex):
         """Prediction for `ex`, which must be featurized as the
         training data were. Simply runs `foward_propagation` and
         returns a copy of self.y."""
         self.forward_propagation(ex)
-        return copy.deepcopy(self.y)
-
-    def _progress_bar(self, iteration, error):
-        """Simple over-writing progress bar for tracking the speed and 
-        trajectory of training."""
-        sys.stderr.write('\r')
-        sys.stderr.write('completed iteration %s; error is %s' % (iteration, error))
-        sys.stderr.flush()
+        return copy.deepcopy(self.y)    
     
 ######################################################################
 
@@ -212,10 +207,9 @@ class TfShallowNeuralNetwork:
         self.b2 = tf.Variable(tf.random_normal([self.output_dim]))
         # Network structure. As before, we use tanh for both 
         # layers. This is not strictly necessary, and TensorFlow
-        # makes it easier to try different combinations because
-        # it calculates the derivatives for us.
-        self.h = tf.nn.tanh(tf.matmul(self.x, self.W1) + self.b1)
-        self.y = tf.nn.tanh(tf.matmul(self.h, self.W2) + self.b2)
+        # makes it easier to try different combinations.
+        self.h = tf.nn.tanh(tf.matmul(self.x, self.W1) + self.b1)    
+        self.y = tf.nn.tanh(tf.matmul(self.h, self.W2) + self.b2)        
         # A place holder for the true labels. None in the first
         # dimension allows us to train and evaluate on datasets
         # of different size.
@@ -229,18 +223,53 @@ class TfShallowNeuralNetwork:
         # Simple GradientDescent (as opposed to the stochastic version
         # used by `ShallowNeuralNetwork`). For more options, see
         # https://www.tensorflow.org/versions/r0.7/api_docs/python/train.html#optimizers
-        optimizer = tf.train.GradientDescentOptimizer(self.eta).minimize(cost)
+        self.optimizer = tf.train.GradientDescentOptimizer(self.eta).minimize(cost)
         # TF session initialization:   
         init = tf.initialize_all_variables()
-        self.sess.run(init)        
+        self.sess.run(init)
         # Train (for larger datasets, the epochs should be batched):
         x, y_ = zip(*training_data)
-        for iteration in range(self.maxiter):            
-            optimizer.run(feed_dict={self.x: x, self.y_: y_})                       
+        for iteration in range(self.maxiter):
+            self.sess.run(self.optimizer, feed_dict={self.x: x, self.y_: y_})
 
     def predict(self, ex):
-        """Prediction for `ex`, which must be featurized as the
-        training data were. This runs the model (forward 
-        propagation with self.x replaced by the single 
-        example ex.)"""
-        return self.sess.run(self.y, feed_dict={self.x: [ex]})
+        """
+        Prediction for `ex`. This runs the model (forward propagation with
+        self.x replaced by the single example `ex`).
+
+        Parameters
+        ----------
+        ex : np.array
+          Must be featurized as the training data were.
+
+        Returns
+        -------
+        np.array
+            The predicted outputs, dimension self.output_dim. TensorFlow
+            assumes self.x is a list of examples and so returns a list of
+            predictions. Since we're classifying just one, we return the
+            list's only member.
+            
+        """
+        return self.sess.run(self.y, feed_dict={self.x: [ex]})[0]
+
+
+
+if __name__ == '__main__':
+
+    def logical_operator_example(net):
+        train = [
+            # p  q    (p=q) (p v q)
+            ([1.,1.], [1.,   1.]), # T T ==> T, T
+            ([1.,0.], [0.,   1.]), # T F ==> F, T
+            ([0.,1.], [0.,   1.]), # F T ==> F, T
+            ([0.,0.], [1.,   0.])] # F F ==> T, F
+        net.fit(copy.deepcopy(train))        
+        for ex, labels in train:
+            prediction = net.predict(ex)
+            print ex, labels, np.round(prediction, 2)
+
+    print 'From scratch'
+    logical_operator_example(ShallowNeuralNetwork(hidden_dim=4, maxiter=1000))
+    print 'TensorFlow'    
+    logical_operator_example(TfShallowNeuralNetwork(hidden_dim=4, maxiter=1000))
