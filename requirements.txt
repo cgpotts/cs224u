@@ -4,6 +4,6 @@ scipy >= 0.11.0
 matplotlib >= 1.5.1
 scikit-learn >= 0.17
 nltk >= 3.0
-dateutil >= 2.4
+python-dateutil >= 2.4
 unicodecsv >= 0.14
 tensorflow >= 0.7.1
