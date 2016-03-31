@@ -3,7 +3,7 @@ __version__ = "CS224u, Stanford, Spring 2016"
 
 
 import sys
-import unicodecsv as csv
+import csv
 import random
 import numpy as np
 from sklearn.metrics import f1_score
@@ -39,16 +39,16 @@ def build(src_filename, delimiter=',', header=True, quoting=csv.QUOTE_MINIMAL):
        input file has no header. The row names are assumed always 
        to be present in the leftmost column.    
     """
-    reader = csv.reader(file(src_filename), delimiter=delimiter, quoting=quoting)
+    reader = csv.reader(open(src_filename), delimiter=delimiter, quoting=quoting)
     colnames = None
     if header:
-        colnames = reader.next()
+        colnames = next(reader)
         colnames = colnames[1: ]
     mat = []    
     rownames = []
     for line in reader:        
         rownames.append(line[0])            
-        mat.append(np.array(map(float, line[1: ])))
+        mat.append(np.array(list(map(float, line[1: ]))))
     return (np.array(mat), rownames, colnames)
 
 
@@ -71,8 +71,8 @@ def glove2dict(src_filename):
         Mapping words to their GloVe vectors.
     
     """
-    reader = csv.reader(file(src_filename), delimiter=' ', quoting=csv.QUOTE_NONE)    
-    return {line[0]: np.array(map(float, line[1: ])) for line in reader}
+    reader = csv.reader(open(src_filename), delimiter=' ', quoting=csv.QUOTE_NONE)    
+    return {line[0]: np.array(list(map(float, line[1: ]))) for line in reader}
 
 
 def randmatrix(m, n, lower=-0.5, upper=0.5):
