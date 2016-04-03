@@ -75,17 +75,29 @@ def glove2dict(src_filename):
     return {line[0]: np.array(list(map(float, line[1: ]))) for line in reader}
 
 
+def d_tanh(z):
+    """The derivative of np.tanh. z should be a float or np.array."""
+    return 1.0 - z**2
+
+def softmax(z):
+    """Softmax activation function. z should be a float or np.array."""
+    # Increases numerical stability:
+    t = np.exp(z - np.max(z))
+    return t / np.sum(t)
+
+def randvec(n=50, lower=-0.5, upper=0.5):
+    """Returns a random vector of length `n`. `w` is ignored."""
+    return np.array([random.uniform(lower, upper) for i in range(n)])
+
 def randmatrix(m, n, lower=-0.5, upper=0.5):
     """Creates an m x n matrix of random values in [lower, upper]"""
     return np.array([random.uniform(lower, upper) for i in range(m*n)]).reshape(m, n)
-
 
 def safe_macro_f1(y, y_pred):
     """Macro-averaged F1, forcing `sklearn` to report as a multiclass
     problem even when there are just two classes. `y` is the list of 
     gold labels and `y_pred` is the list of predicted labels."""
     return f1_score(y, y_pred, average='macro', pos_label=None)
-
 
 def progress_bar(msg):
     """Simple over-writing progress bar."""
