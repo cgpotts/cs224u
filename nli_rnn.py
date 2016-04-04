@@ -243,7 +243,7 @@ if __name__ == '__main__':
     vocab = [T, F]
     embedding = np.array([randvec(10) for _ in vocab])
     
-    mod = ClassifierRNN(vocab=vocab, embedding=embedding, maxiter=50000)
+    mod = ClassifierRNN(vocab=vocab, embedding=embedding, maxiter=1000)
     mod.fit(copy.copy(train))
     
     for x, y in train:
