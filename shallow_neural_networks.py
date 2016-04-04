@@ -267,9 +267,9 @@ if __name__ == '__main__':
         net.fit(copy.deepcopy(train))        
         for ex, labels in train:
             prediction = net.predict(ex)
-            print ex, labels, np.round(prediction, 2)
+            print(ex, labels, np.round(prediction, 2))
 
-    print 'From scratch'
+    print('From scratch')
     logical_operator_example(ShallowNeuralNetwork(hidden_dim=4, maxiter=1000))
-    print 'TensorFlow'    
+    print('TensorFlow')
     logical_operator_example(TfShallowNeuralNetwork(hidden_dim=4, maxiter=1000))
