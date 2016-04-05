@@ -47,8 +47,7 @@ class ClassifierRNN:
       |    |    |      |    |    |    look-up in embedding space
     every dog danced every dog  moved
     
-    """
-    
+    """    
     def __init__(self,
             vocab,
             embedding,
@@ -140,15 +139,20 @@ class ClassifierRNN:
         while error > self.epsilon and iteration < self.maxiter:
             error = 0.0
             random.shuffle(training_data)
-            for seq, labels in training_data:                
+            for seq, labels in training_data:                               
                 self._forward_propagation(seq)
                 # Cross-entropy error reduces to log(prediction-for-correct-label):
                 error += -np.log(self.y[np.argmax(labels)])
-                self._backward_propagation(seq, labels)
+                # Back-prop:
+                d_W_hy, d_W_hh, d_W_xh = self._backward_propagation(seq, labels)
+                # Updates:
+                self.W_hy -= self.eta * d_W_hy
+                self.W_hh -= self.eta * d_W_hh
+                self.W_xh -= self.eta * d_W_xh                
             iteration += 1
             if self.display_progress:
                 # Report the average error:
-                error /= len(training_data)                
+                error /= len(training_data)
                 progress_bar("Finished epoch %s of %s; error is %s" % (iteration, self.maxiter, error))
         if self.display_progress:
             sys.stderr.write('\n')
@@ -169,7 +173,7 @@ class ClassifierRNN:
 
         self.y : np.array
             The vector of predictions.
-        """        
+        """
         self.h = np.zeros((len(seq)+1, self.hidden_dim))
         for t in range(1, len(seq)+1):
             word_rep = self.get_word_rep(seq[t-1])
@@ -186,15 +190,20 @@ class ClassifierRNN:
 
         y_ : list
             The label vector.
+
+        Returns
+        -------
+        tuple
+            The matrices of derivatives (d_W_hy, d_W_hh, d_W_xh).
         
         """            
         # Output errors:
         y_err = self.y
         y_err[np.argmax(y_)] -= 1
-        # Output update:
-        self.W_hy -= self.eta * np.outer(self.h[-1], y_err)
+        # Output update:        
         h_err = y_err.dot(self.W_hy.T) * d_tanh(self.h[-1])
         # For accumulating the gradients through time:
+        d_W_hy =  np.outer(self.h[-1], y_err)
         d_W_hh = np.zeros(self.W_hh.shape)
         d_W_xh = np.zeros(self.W_xh.shape)
         # Back-prop through time; the +1 is because the 0th
@@ -205,9 +214,7 @@ class ClassifierRNN:
             word_rep = self.get_word_rep(seq[t-1])
             d_W_xh += np.outer(word_rep, h_err)
             h_err = h_err.dot(self.W_hh.T) * d_tanh(self.h[t])
-        # Hidden and input updates:
-        self.W_xh -= (self.eta * d_W_xh)
-        self.W_hh -= (self.eta * d_W_hh)
+        return (d_W_hy, d_W_hh, d_W_xh)
     
     def predict(self, seq):
         """
