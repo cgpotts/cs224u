@@ -89,17 +89,17 @@ class ClassifierRNN:
         """
         self.vocab = dict(zip(vocab, range(len(vocab))))
         self.embedding = embedding
-        self.hidden_dim = hidden_dim        
+        self.hidden_dim = hidden_dim
         self.eta = eta
         self.maxiter = maxiter
         self.epsilon = epsilon
-        self.display_progress = display_progress        
+        self.display_progress = display_progress
         self.word_dim = len(embedding[0])
 
     def get_word_rep(self, w):
         """For getting the input representation of word `w` from `self.embedding`."""
         word_index = self.vocab[w]
-        return self.embedding[word_index]   
+        return self.embedding[word_index]
                         
     def fit(self, training_data):
         """Train the network.
@@ -139,7 +139,7 @@ class ClassifierRNN:
         while error > self.epsilon and iteration < self.maxiter:
             error = 0.0
             random.shuffle(training_data)
-            for seq, labels in training_data:                               
+            for seq, labels in training_data:
                 self._forward_propagation(seq)
                 # Cross-entropy error reduces to log(prediction-for-correct-label):
                 error += -np.log(self.y[np.argmax(labels)])
@@ -148,7 +148,7 @@ class ClassifierRNN:
                 # Updates:
                 self.W_hy -= self.eta * d_W_hy
                 self.W_hh -= self.eta * d_W_hh
-                self.W_xh -= self.eta * d_W_xh                
+                self.W_xh -= self.eta * d_W_xh
             iteration += 1
             if self.display_progress:
                 # Report the average error:
@@ -200,7 +200,7 @@ class ClassifierRNN:
         # Output errors:
         y_err = self.y
         y_err[np.argmax(y_)] -= 1
-        # Output update:        
+        # Output update:
         h_err = y_err.dot(self.W_hy.T) * d_tanh(self.h[-1])
         # For accumulating the gradients through time:
         d_W_hy =  np.outer(self.h[-1], y_err)
@@ -209,7 +209,7 @@ class ClassifierRNN:
         # Back-prop through time; the +1 is because the 0th
         # hidden state is the all-0s initial state.
         num_steps = len(seq)+1
-        for t in reversed(range(1, num_steps)):                
+        for t in reversed(range(1, num_steps)):
             d_W_hh += np.outer(self.h[t], h_err)
             word_rep = self.get_word_rep(seq[t-1])
             d_W_xh += np.outer(word_rep, h_err)
@@ -242,9 +242,9 @@ if __name__ == '__main__':
     
     train = [
         # p  q      XOR
-        ([T ,T], [1.,   0.]), 
-        ([T, F], [0.,   1.]), 
-        ([F, T], [0.,   1.]), 
+        ([T ,T], [1.,   0.]),
+        ([T, F], [0.,   1.]),
+        ([F, T], [0.,   1.]),
         ([F, F], [1.,   0.])]
     
     vocab = [T, F]
