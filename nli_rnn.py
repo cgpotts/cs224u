@@ -14,38 +14,39 @@ class ClassifierRNN:
     """Very simple Recurrent Neural Network for classification
     problems. The structure of the network is as follows:
 
-                                       y
-                                       |
-                                       | W_hy
-                                       |
-        h_1 -- W_hh -- h_2 -- W_hh -- h_3
-         |              |              |
-         | W_xh         | W_xh         | W_xh
-         |              |              |
-        x_1            x_2            x_3
-
+                                                  y 
+                                                 /|
+                                                b | W_hy
+                                                  |
+    h_0 -- W_hh --  h_1 -- W_hh -- h_2 -- W_hh -- h_3
+                     |              |              |
+                     | W_xh         | W_xh         | W_xh
+                     |              |              |
+                    x_1            x_2            x_3
     
     where x_i are the inputs, h_j are the hidden units, and y is a
     one-hot vector indicating the true label for this sequence. The
-    parameters are W_xh, W_hh, and W_hy. The inputs x_i come from
-    a user-supplied embedding space for the vocabulary. These can
-    either be random or pretrained. The network equations in brief:
+    parameters are W_xh, W_hh, W_hy, and the bias b. The inputs x_i
+    come from a user-supplied embedding space for the vocabulary. These
+    can either be random or pretrained. The network equations in brief:
 
         h[t] = tanh(x[t].dot(W_xh) + h[t-1].dot(W_hh))
 
-        y = softmax(h[-1].dot(W_hy))
+        y = softmax(h[-1].dot(W_hy) + b)
 
     The network will work for any kind of classification task. For
     NLI, we process the premise and hypothesis in order and then
     use the final hidden state as the basis for the predictions:
 
-                              [1, 0, 0] (entailment, contradiction, neutral)
-                                 |
-      h1 - h2 - h3 -  h4 -  h5 - h6   
-      |    |    |      |    |    |    
-      x3  x2   x1     x3   x2    x4
-      |    |    |      |    |    |    look-up in embedding space
-    every dog danced every dog  moved
+                                 [1, 0, 0] (entailment, contradiction, neutral)
+                                  / |
+                                 b  |
+                                    |
+    h0 - h1 - h2 - h3 -  h4 -  h5 - h6   
+         |    |    |      |    |    |    
+         x3  x2   x1     x3   x2    x4
+         |    |    |      |    |    | look-up in embedding space
+       every dog danced every dog  moved
     
     """    
     def __init__(self,
@@ -119,20 +120,25 @@ class ClassifierRNN:
         
         self.W_xh : np.array
             Dense connections between the word representations
-            and the hidden layers
+            and the hidden layers. Random initialization.
 
         self.W_hh : np.array
             Dense connections between the hidden representations.
+            Random initialization.
 
         self.W_hy : np.array
             Dense connections from the final hidden layer to
-            the output layer.
+            the output layer. Random initialization.
+
+        self.b : np.array
+            Output bias. Initialized to all 0.
     
         """              
         self.output_dim = len(training_data[0][1])
         self.W_xh = randmatrix(self.word_dim, self.hidden_dim)
         self.W_hh = randmatrix(self.hidden_dim, self.hidden_dim)
         self.W_hy = randmatrix(self.hidden_dim, self.output_dim)
+        self.b = np.zeros(self.output_dim)
         # SGD:
         iteration = 0
         error = sys.float_info.max
@@ -144,9 +150,10 @@ class ClassifierRNN:
                 # Cross-entropy error reduces to log(prediction-for-correct-label):
                 error += -np.log(self.y[np.argmax(labels)])
                 # Back-prop:
-                d_W_hy, d_W_hh, d_W_xh = self._backward_propagation(seq, labels)
+                d_W_hy, d_b, d_W_hh, d_W_xh = self._backward_propagation(seq, labels)
                 # Updates:
                 self.W_hy -= self.eta * d_W_hy
+                self.b -= self.eta * d_b
                 self.W_hh -= self.eta * d_W_hh
                 self.W_xh -= self.eta * d_W_xh
             iteration += 1
@@ -178,7 +185,7 @@ class ClassifierRNN:
         for t in range(1, len(seq)+1):
             word_rep = self.get_word_rep(seq[t-1])
             self.h[t] = np.tanh(word_rep.dot(self.W_xh) + self.h[t-1].dot(self.W_hh))
-        self.y = softmax(self.h[-1].dot(self.W_hy))
+        self.y = softmax(self.h[-1].dot(self.W_hy) + self.b)
 
     def _backward_propagation(self, seq, y_):
         """
@@ -194,16 +201,16 @@ class ClassifierRNN:
         Returns
         -------
         tuple
-            The matrices of derivatives (d_W_hy, d_W_hh, d_W_xh).
+            The matrices of derivatives (d_W_hy, d_b, d_W_hh, d_W_xh).
         
         """            
         # Output errors:
         y_err = self.y
         y_err[np.argmax(y_)] -= 1
-        # Output update:
         h_err = y_err.dot(self.W_hy.T) * d_tanh(self.h[-1])
+        d_W_hy = np.outer(self.h[-1], y_err)
+        d_b = y_err
         # For accumulating the gradients through time:
-        d_W_hy =  np.outer(self.h[-1], y_err)
         d_W_hh = np.zeros(self.W_hh.shape)
         d_W_xh = np.zeros(self.W_xh.shape)
         # Back-prop through time; the +1 is because the 0th
@@ -214,7 +221,7 @@ class ClassifierRNN:
             word_rep = self.get_word_rep(seq[t-1])
             d_W_xh += np.outer(word_rep, h_err)
             h_err = h_err.dot(self.W_hh.T) * d_tanh(self.h[t])
-        return (d_W_hy, d_W_hh, d_W_xh)
+        return (d_W_hy, d_b, d_W_hh, d_W_xh)
     
     def predict(self, seq):
         """
