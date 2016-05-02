@@ -223,7 +223,7 @@ class TfShallowNeuralNetwork:
         # be made into a user-supplied parameter to facilitate
         # exploration of other costs. See
         # https://www.tensorflow.org/versions/r0.7/api_docs/python/math_ops.html#reduction
-        cost = tf.reduce_sum(0.5 * (self.y_ - self.y)**2)
+        cost = tf.reduce_sum(0.5 * (self.y_ - self.y)**tf.constant(2.0))
         # Simple GradientDescent (as opposed to the stochastic version
         # used by `ShallowNeuralNetwork`). For more options, see
         # https://www.tensorflow.org/versions/r0.7/api_docs/python/train.html#optimizers
