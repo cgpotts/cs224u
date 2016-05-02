@@ -3,8 +3,12 @@ import copy
 import random
 import numpy as np
 from numpy import dot, outer
-import tensorflow as tf
 import utils
+
+try:
+    import tensorflow as tf    
+except ImportError:
+    print("Warning: TensorFlow is not installed, so you won't be able to use `TfShallowNeuralNetwork`.")
 
 
 __author__ = "Christopher Potts"
