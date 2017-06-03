@@ -23,7 +23,6 @@ CMD ["jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0"]
 #RUN conda env update -f /environment.yml
 
 # Install the spacy data (around 1GB of data)
-RUN python -m spacy.en.download all
 RUN python -m nltk.downloader all
 
 ENV TINI_VERSION v0.14.0
