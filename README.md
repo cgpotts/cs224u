@@ -7,7 +7,7 @@ Code for [the Stanford course](http://web.stanford.edu/class/cs224u/)
 * [Bill MacCartney](http://nlp.stanford.edu/~wcmac/)
 * [Christopher Potts](http://web.stanford.edu/~cgpotts/)
 
-# Instructions for use Docker
+# Instructions for use with Docker
 
 Docker image comes with all course requirements installed and starts a jupyter server that is ready to use.
 
