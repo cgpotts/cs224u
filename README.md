@@ -18,7 +18,9 @@ docker build . -t cs224:latest
 This will soon be unnecessary as the image will be hosted on docker hub. 
 
 * Step 2: 
+
 ```
-docker run -it --rm -p 8888:8888 -v $PWD:/notebooks --name cs224_container cs224
+docker run -it --rm -p 8888:8888 -v $PWD:/notebooks -v ~<your usename here>/Downloads:/data --name cs224_container cs224
 ```
+Download and unzip new datasets to default **~/Downloads** folder. This folder is available in the jupyter notebook as **/data**
 
