@@ -25,5 +25,5 @@ docker run -it --rm -p 8888:8888 -v $PWD:/notebooks -v ~<your usename here>/Down
 
 Download and unzip new datasets to default **~/Downloads** folder. This folder is available in the jupyter notebook as **/data**
 
-If you are using a custom image built in **Step 1**, replace "ai2160/cs224" with "<your image name>"
+If you are using a custom image built in **Step 1**, replace "ai2160/cs224" with "your_image_name>"
 
