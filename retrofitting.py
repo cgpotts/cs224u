@@ -88,14 +88,16 @@ class Retrofitter(object):
             changes = self._measure_changes(Y, Y_prev)
             if changes <= self.tol:
                 self._progress_bar(
-                    "Converged at iteration {}".format(iteration))
+                    "Converged at iteration {}; change was {:.4f} ".format(
+                        iteration, changes))
                 break
             else:
                 if self.introspecting:
                     self.all_Y.append(Y.copy())
                 Y_prev = Y.copy()
                 self._progress_bar(
-                    "Iteration {:d}; change was {:.4f}".format(iteration, changes))
+                    "Iteration {:d}; change was {:.4f}".format(
+                        iteration, changes))
         if index is not None:
             Y = pd.DataFrame(Y, index=index, columns=columns)
         self.Y = Y
