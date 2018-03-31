@@ -6,6 +6,7 @@ import sys
 import csv
 import random
 import numpy as np
+import codecs
 from sklearn.metrics import f1_score
 
 
@@ -39,7 +40,7 @@ def build(src_filename, delimiter=',', header=True, quoting=csv.QUOTE_MINIMAL):
        input file has no header. The row names are assumed always 
        to be present in the leftmost column.    
     """
-    reader = csv.reader(open(src_filename), delimiter=delimiter, quoting=quoting)
+    reader = csv.reader(codecs.open(src_filename, encoding='utf-8'), delimiter=delimiter, quoting=quoting)
     colnames = None
     if header:
         colnames = next(reader)
@@ -71,7 +72,7 @@ def glove2dict(src_filename):
         Mapping words to their GloVe vectors.
     
     """
-    reader = csv.reader(open(src_filename), delimiter=' ', quoting=csv.QUOTE_NONE)    
+    reader = csv.reader(codecs.open(src_filename, encoding='utf-8'), delimiter=' ', quoting=csv.QUOTE_NONE)    
     return {line[0]: np.array(list(map(float, line[1: ]))) for line in reader}
 
 
