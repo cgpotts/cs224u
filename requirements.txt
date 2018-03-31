@@ -1,9 +1,24 @@
-python >= 2.7.10
-numpy >= 1.10
-scipy >= 0.11.0
-matplotlib >= 1.5.1
-scikit-learn >= 0.17
-nltk >= 3.0
-python-dateutil >= 2.4
-unicodecsv >= 0.14
-tensorflow >= 0.7.1
+######################################################################
+# The requirements installed in this block are met by using Anaconda.
+# Only people working in their own virtual environments should install
+# them via this script.
+#
+# numpy==1.14.0
+# scipy==1.0.0
+# matplotlib==2.1.2
+# scikit-learn >= 0.19.1
+# nltk==3.2.5
+# python-dateutil==2.6.1
+# pytest==3.0.3
+# jupyter==1.0.0
+#
+######################################################################
+
+mittens>=0.1
+
+# For NLTK, the data distibution needs to be downloaded separately:
+# https://www.nltk.org/data.html
+
+# Tensorflow is also required. It should be installed via the
+# instructions provided by the TensorFlow team, which depend on your
+# computing environment: https://www.tensorflow.org/install/
