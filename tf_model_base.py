@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import random
 import sys
 import tensorflow as tf
 
@@ -29,14 +30,17 @@ class TfModelBase(object):
         Tracks loss from each iteration during training.
     """
     def __init__(self, hidden_dim=50, hidden_activation=tf.nn.tanh,
-            max_iter=100, eta=0.01, tol=1e-4, display_progress=1):
+            batch_size=1028, max_iter=100, eta=0.01, tol=1e-4, display_progress=1):
         self.hidden_dim = hidden_dim
         self.hidden_activation = tf.nn.tanh
+        self.batch_size = batch_size
         self.max_iter = max_iter
         self.eta = eta
         self.tol = tol
         self.display_progress = display_progress
         self.errors = []
+        self.params = [
+            'hidden_dim', 'hidden_activation', 'max_iter', 'eta']
 
     def build_graph(self):
         """Define the computation graph. This needs to define
@@ -111,9 +115,12 @@ class TfModelBase(object):
 
         # Training, full dataset for each iteration:
         for i in range(1, self.max_iter+1):
-            _, loss = self.sess.run(
-                [self.optimizer, self.cost],
-                feed_dict=self.train_dict(X, y))
+            loss = 0
+            for X_batch, y_batch in self.batch_iterator(X, y):
+                _, batch_loss = self.sess.run(
+                    [self.optimizer, self.cost],
+                    feed_dict=self.train_dict(X_batch, y_batch))
+                loss += batch_loss
             self.errors.append(loss)
             if loss < self.tol:
                 self._progressbar("stopping with loss < self.tol", i)
@@ -122,13 +129,21 @@ class TfModelBase(object):
                 self._progressbar("loss: {}".format(loss), i)
         return self
 
+    def batch_iterator(self, X, y):
+        dataset = list(zip(X, y))
+        random.shuffle(dataset)
+        for i in range(0, len(dataset), self.batch_size):
+            batch = dataset[i: i+self.batch_size]
+            X_batch, y_batch = zip(*batch)
+            yield X_batch, y_batch
+
     def get_cost_function(self, **kwargs):
         """Uses `softmax_cross_entropy_with_logits` so the
         input should *not* have a softmax activation
         applied to it.
         """
         return tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(
+            tf.nn.softmax_cross_entropy_with_logits_v2(
                 logits=self.model, labels=self.outputs))
 
     def get_optimizer(self):
@@ -218,3 +233,21 @@ class TfModelBase(object):
         self.output_dim = len(self.classes)
         y = self._onehot_encode(y)
         return y
+
+    def get_params(self, deep=True):
+        """Gets the hyperparameters for the model, as given by the
+        `self.params` attribute. This is called `get_params` for
+        compatibility with sklearn.
+
+        Returns
+        -------
+        dict
+            Map from attribute names to their values.
+
+        """
+        return {p: getattr(self, p) for p in self.params}
+
+    def set_params(self, **params):
+        for key, val in params.items():
+            setattr(self, key, val)
+        return self

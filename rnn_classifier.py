@@ -1,15 +1,14 @@
 import sys
 import numpy as np
 import random
-from collections import defaultdict
-import copy
-from utils import randvec, randmatrix, d_tanh, softmax, progress_bar
+from nn_model_base import NNModelBase
+from utils import randvec, d_tanh, softmax
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2018"
 
 
-class RNNClassifier:
+class RNNClassifier(NNModelBase):
     """Simple Recurrent Neural Network for classification problems.
     The structure of the network is as follows:
 
@@ -36,14 +35,7 @@ class RNNClassifier:
     The network will work for any kind of classification task.
 
     """
-    def __init__(self,
-            vocab,
-            embedding,
-            hidden_dim=20,
-            eta=0.01,
-            max_iter=100,
-            tol=1.5e-8,
-            display_progress=True):
+    def __init__(self, vocab, hidden_dim=20, **kwargs):
         """
         Parameters
         ----------
@@ -51,52 +43,38 @@ class RNNClassifier:
             This should be the vocabulary. It needs to be aligned with
             `embedding` in the sense that the ith element of vocab
             should be represented by the ith row of `embedding`.
-        embedding : np.array
+        embedding : np.array or None
             Each row represents a word in `vocab`, as described above.
-        hidden_dim : int (default: 10)
+        embed_dim : int
+            Dimensionality for the initial embeddings. This is ignored
+            if `embedding` is not None, as a specified value there
+            determines this value.
+        hidden_dim : int
             Dimensionality for the hidden layer.
-        eta : float (default: 0.05)
+        eta : float
             Learning rate.
-        max_iter : int (default: 100)
+        max_iter : int
             Maximum number of training epochs for SGD.
-        tol : float (default: 1.5e-8)
+        tol : float
             Training terminates if the error reaches this point (or
             `max_iter` is met).
-        display_progress : bool (default: True)
+        display_progress : bool
             Whether to print progress reports to stderr.
 
-        All of the above are set as attributes. In addition, `self.word_dim`
+        All of the above are set as attributes. In addition, `self.embed_dim`
         is set to the dimensionality of the input representations.
 
         """
-        self.vocab = dict(zip(vocab, range(len(vocab))))
-        self.embedding = embedding
-        self.hidden_dim = hidden_dim
-        self.eta = eta
-        self.max_iter = max_iter
-        self.tol = tol
-        self.display_progress = display_progress
-        self.word_dim = len(embedding[0])
+        super(RNNClassifier, self).__init__(
+            vocab, hidden_dim=hidden_dim, **kwargs)
 
-    def get_word_rep(self, w):
-        """For getting the input representation of word `w` from `self.embedding`."""
-        word_index = self.vocab[w]
-        return self.embedding[word_index]
-
-    def fit(self, X, y):
-        """Train the network.
-
-        Parameters
-        ----------
-        X : list of lists
-           Each element should be a list of elements in `self.vocab`.
-        y : list
-           The one-hot label vector.
-
+    def initialize_parameters(self):
+        """
         Attributes
         ----------
         self.output_dim : int
             Set based on the length of the labels in `training_data`.
+            This happens in `self.prepare_output_data`.
         self.W_xh : np.array
             Dense connections between the word representations
             and the hidden layers. Random initialization.
@@ -110,74 +88,48 @@ class RNNClassifier:
             Output bias. Initialized to all 0.
 
         """
-        y = self.prepare_output_data(y)
-        self.W_xh = self.weight_init(self.word_dim, self.hidden_dim)
+        self.W_xh = self.weight_init(self.embed_dim, self.hidden_dim)
         self.W_hh = self.weight_init(self.hidden_dim, self.hidden_dim)
         self.W_hy = self.weight_init(self.hidden_dim, self.output_dim)
         self.b = np.zeros(self.output_dim)
-        # Unified view for training
-        training_data = list(zip(X, y))
-        # SGD:
-        iteration = 0
-        error = sys.float_info.max
-        while error > self.tol and iteration < self.max_iter:
-            error = 0.0
-            random.shuffle(training_data)
-            for seq, labels in training_data:
-                self._forward_propagation(seq)
-                # Cross-entropy error reduces to log(prediction-for-correct-label):
-                error += -np.log(self.y[np.argmax(labels)])
-                # Back-prop:
-                d_W_hy, d_b, d_W_hh, d_W_xh = self._backward_propagation(seq, labels)
-                # Updates:
-                self.W_hy -= self.eta * d_W_hy
-                self.b -= self.eta * d_b
-                self.W_hh -= self.eta * d_W_hh
-                self.W_xh -= self.eta * d_W_xh
-            iteration += 1
-            if self.display_progress:
-                # Report the average error:
-                error /= len(training_data)
-                progress_bar("Finished epoch {} of {}; error is {}".format(
-                    iteration, self.max_iter, error))
-        if self.display_progress:
-            sys.stderr.write('\n')
 
-    def _forward_propagation(self, seq):
+    def forward_propagation(self, seq):
         """
         Parameters
         ----------
         seq : list
             Variable length sequence of elements in the vocabulary.
 
-        Attributes
+        Returns
         ----------
-        self.h : np.array
+        h : np.array
             Each row is for a hidden representation. The first row
             is an all-0 initial state. The others correspond to
             the inputs in seq.
-
-        self.y : np.array
+        y : np.array
             The vector of predictions.
         """
-        self.h = np.zeros((len(seq)+1, self.hidden_dim))
+        h = np.zeros((len(seq)+1, self.hidden_dim))
         for t in range(1, len(seq)+1):
             word_rep = self.get_word_rep(seq[t-1])
-            self.h[t] = np.tanh(
-                word_rep.dot(self.W_xh) + self.h[t-1].dot(self.W_hh))
-        self.y = softmax(self.h[-1].dot(self.W_hy) + self.b)
+            h[t] = np.tanh(
+                word_rep.dot(self.W_xh) + h[t-1].dot(self.W_hh))
+        y = softmax(h[-1].dot(self.W_hy) + self.b)
+        return h, y
 
-    def _backward_propagation(self, seq, y_):
+    def backward_propagation(self, h, predictions, seq, labels):
         """
         Parameters
         ----------
-        seq : list
-            Variable length sequence of elements in the vocabulary. This
-            is needed both for its lengths and for its input representations.
-
-        y_ : list
-            The label vector.
-
+        h : np.array, shape (m, self.hidden_dim)
+            Matrix of hidden states. `m` is the shape of the current
+            example (which is allowed to vary).
+        predictions : np.array, dimension `len(self.classes)`
+            Vector of predictions.
+        seq : list  of lists
+            The original example.
+        labels : np.array, dimension `len(self.classes)`
+            One-hot vector giving the true label.
         Returns
         -------
         tuple
@@ -185,10 +137,10 @@ class RNNClassifier:
 
         """
         # Output errors:
-        y_err = self.y
-        y_err[np.argmax(y_)] -= 1
-        h_err = y_err.dot(self.W_hy.T) * d_tanh(self.h[-1])
-        d_W_hy = np.outer(self.h[-1], y_err)
+        y_err = predictions
+        y_err[np.argmax(labels)] -= 1
+        h_err = y_err.dot(self.W_hy.T) * d_tanh(h[-1])
+        d_W_hy = np.outer(h[-1], y_err)
         d_b = y_err
         # For accumulating the gradients through time:
         d_W_hh = np.zeros(self.W_hh.shape)
@@ -197,114 +149,22 @@ class RNNClassifier:
         # hidden state is the all-0s initial state.
         num_steps = len(seq)+1
         for t in reversed(range(1, num_steps)):
-            d_W_hh += np.outer(self.h[t], h_err)
+            d_W_hh += np.outer(h[t], h_err)
             word_rep = self.get_word_rep(seq[t-1])
             d_W_xh += np.outer(word_rep, h_err)
-            h_err = h_err.dot(self.W_hh.T) * d_tanh(self.h[t])
+            h_err = h_err.dot(self.W_hh.T) * d_tanh(h[t])
         return (d_W_hy, d_b, d_W_hh, d_W_xh)
 
-    def predict_one_proba(self, seq):
-        """Softmax predictions for a single example.
-
-        Parameters
-        ----------
-        seq : list
-            Variable length sequence of elements in the vocabulary.
-
-        Returns
-        -------
-        np.array
-
-        """
-        self._forward_propagation(seq)
-        return self.y
-
-    def predict_proba(self, X):
-        """Softmax predictions for a list of examples.
-
-        Parameters
-        ----------
-        X : list of lists
-            List of examples, each of which should be a list of items
-            from `self.vocab`.
-
-        Returns
-        -------
-        list of np.array
-
-        """
-        return [self.predict_one_proba(seq) for seq in X]
-
-    def predict(self, X):
-        """Predictions for a list of examples.
-
-        Parameters
-        ----------
-        X : list of lists
-            List of examples, each of which should be a list of items
-            from `self.vocab`.
-
-        Returns
-        -------
-        list
-
-        """
-        return [self.predict_one(seq) for seq in X]
-
-    def predict_one(self, seq):
-        """Predictions for a single example.
-
-        Parameters
-        ----------
-        seq : list
-            Variable length sequence of elements in the vocabulary.
-
-        Returns
-        -------
-        int
-            The index of the highest probability class according to
-            the model.
-
-        """
-        probs = self.predict_one_proba(seq)
-        return self.classes[np.argmax(self.y)]
-
-    @staticmethod
-    def weight_init(m, n):
-        """Uses the Xavier Glorot method for initializing the weights
-        of an `m` by `n` matrix.
-        """
-        x = np.sqrt(6.0/(m+n))
-        return randmatrix(m, n, lower=-x, upper=x)
-
-    def prepare_output_data(self, y):
-        """Format `y` into a vector of one-hot encoded vectors.
-
-        Parameters
-        ----------
-        y : list
-
-        Returns
-        -------
-        np.array with length the same as y and each row the
-        length of the number of classes
-
-        """
-        self.classes = sorted(set(y))
-        self.output_dim = len(self.classes)
-        y = self._onehot_encode(y)
-        return y
-
-    def _onehot_encode(self, y):
-        classmap = dict(zip(self.classes, range(self.output_dim)))
-        y_ = np.zeros((len(y), self.output_dim))
-        for i, cls in enumerate(y):
-            y_[i][classmap[cls]] = 1.0
-        return y_
+    def update_parameters(self, gradients):
+        d_W_hy, d_b, d_W_hh, d_W_xh = gradients
+        self.W_hy -= self.eta * d_W_hy
+        self.b -= self.eta * d_b
+        self.W_hh -= self.eta * d_W_hh
+        self.W_xh -= self.eta * d_W_xh
 
 
 def simple_example():
-    vocab = ['a', 'b']
+    vocab = ['a', 'b', '$UNK']
 
     train = [
         [list('ab'), 'good'],
@@ -320,12 +180,7 @@ def simple_example():
         [list('aaab'), 'good'],
         [list('baaa'), 'bad']]
 
-    embedding = np.array([randvec(10) for _ in vocab])
-
-    mod = RNNClassifier(
-        vocab=vocab,
-        embedding=embedding,
-        max_iter=100)
+    mod = RNNClassifier(vocab=vocab, max_iter=100)
 
     X, y = zip(*train)
     mod.fit(X, y)

@@ -26,6 +26,14 @@ class TfShallowNeuralClassifier(TfModelBase):
         hidden = relu(xW_xh + b_h)
         model = softmax(hW_hy + b_y)
         """
+        self.define_parameters()
+
+        # The graph:
+        self.hidden = self.hidden_activation(
+            tf.matmul(self.inputs, self.W_xh) + self.b_h)
+        self.model = tf.matmul(self.hidden, self.W_hy) + self.b_y
+
+    def define_parameters(self):
         # Input and output placeholders
         self.inputs = tf.placeholder(
             tf.float32, shape=[None, self.input_dim])
@@ -41,11 +49,6 @@ class TfShallowNeuralClassifier(TfModelBase):
             self.hidden_dim, self.output_dim, name='W_hy')
         self.b_y = self.bias_init(
             self.output_dim, name='b_y')
-
-        # The graph:
-        self.hidden = self.hidden_activation(
-            tf.matmul(self.inputs, self.W_xh) + self.b_h)
-        self.model = tf.matmul(self.hidden, self.W_hy) + self.b_y
 
     def train_dict(self, X, y):
         return {self.inputs: X, self.outputs: y}

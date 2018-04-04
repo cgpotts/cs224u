@@ -3,6 +3,8 @@ import pytest
 import tensorflow as tf
 import utils
 
+import sgd_classifier
+from sgd_classifier import BasicSGDClassifier
 import rnn_classifier
 from rnn_classifier import RNNClassifier
 import shallow_neural_network
@@ -13,6 +15,8 @@ import tf_shallow_neural_classifier
 from tf_shallow_neural_classifier import TfShallowNeuralClassifier
 import tf_rnn_classifier
 from tf_rnn_classifier import TfRNNClassifier
+import tree_nn
+from tree_nn import TreeNN
 
 
 @pytest.fixture
@@ -26,7 +30,7 @@ def X_xor():
 
 @pytest.fixture
 def X_sequence():
-    vocab = ['a', 'b']
+    vocab = ['a', 'b', '$UNK']
     train = [
         [list('ab'), 'good'],
         [list('aab'), 'good'],
@@ -139,3 +143,39 @@ def test_tf_autoencoder():
 
 def test_tf_autoencoder_simple_example():
     tf_autoencoder.simple_example()
+
+
+def test_sgd_classifier():
+    sgd_classifier.simple_example()
+
+
+@pytest.mark.parametrize("model, params", [
+    [
+        BasicSGDClassifier(max_iter=10, eta=0.1),
+        {'max_iter': 100, 'eta': 1.0}
+    ],
+    [
+        RNNClassifier(vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
+        {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
+    ],
+    [
+        TfRNNClassifier(vocab=[], max_iter=10, hidden_dim=5, eta=0.1, max_length=5),
+        {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100, 'max_length': 10}
+    ],
+    [
+        TreeNN(vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
+        {'embed_dim': 5, 'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
+    ],
+    [
+        TfShallowNeuralClassifier(hidden_dim=5, hidden_activation=tf.nn.tanh, max_iter=1, eta=1.0),
+        {'hidden_dim': 10, 'hidden_activation': tf.nn.relu, 'max_iter': 10, 'eta': 0.1}
+    ],
+    [
+        TfAutoencoder(hidden_dim=5, hidden_activation=tf.nn.tanh, max_iter=1, eta=1.0),
+        {'hidden_dim': 10, 'hidden_activation': tf.nn.relu, 'max_iter': 10, 'eta': 0.1}
+    ]
+])
+def test_parameter_setting(model, params):
+    model.set_params(**params)
+    for p, val in params.items():
+        assert getattr(model, p) == val
