@@ -110,17 +110,9 @@ class TfRNNClassifier(TfModelBase):
         #
         # self.last = self._get_last_non_masked(outputs, self.ex_lengths)
         #
-        # If the cell is LSTMCell, then `state` is an `LSTMStateTuple`
-        # and we want the second (output) Tensor -- see
-        # https://www.tensorflow.org/api_docs/python/tf/contrib/rnn/LSTMStateTuple
-        #
-        if isinstance(self.cell, tf.nn.rnn_cell.LSTMCell):
-            self.last = state[1]
-        else:
-            # For other cell types, it seems we can just do this. I assume
-            # that `state` is the last *true* state, not one of the
-            # zero-padded ones (?).
-            self.last = state
+        # This option is more reliable, but is it definitely getting
+        # the final true state?
+        self.last = self._get_final_state(self.cell, state)
 
         # Softmax classifier on the final hidden state:
         self.W_hy = self.weight_init(
@@ -165,11 +157,42 @@ class TfRNNClassifier(TfModelBase):
         return {self.inputs: X, self.ex_lengths: ex_lengths}
 
     @staticmethod
+    def _get_final_state(cell, state):
+        """Get the final state from an RNN, managing differences in
+        the TensorFlow API for cells.
+
+        Parameters
+        ----------
+        cell : tf.nn.rnn_cell instance
+        state : second argument returned by `tf.nn.dynamic_rnn`
+
+        Returns
+        -------
+        Tensor
+
+        """
+        # If the cell is LSTMCell, then `state` is an `LSTMStateTuple`
+        # and we want the second (output) Tensor -- see
+        # https://www.tensorflow.org/api_docs/python/tf/contrib/rnn/LSTMStateTuple
+        #
+        if isinstance(cell, tf.nn.rnn_cell.LSTMCell):
+            return state[1]
+        else:
+            # For other cell types, it seems we can just do this. I assume
+            # that `state` is the last *true* state, not one of the
+            # zero-padded ones (?).
+            return state
+
+    @staticmethod
     def _get_last_non_masked(outputs, lengths):
         """This method finds the last hidden state that is based on a
         non-null sequence element. It is adapted from
 
         https://danijar.com/variable-sequence-lengths-in-tensorflow/
+
+        It's not currently being used, but it *might* be a more surefire
+        way of ensuring that one retrieves the last true state. Compare
+        with `_get_final_state.
 
         Parameters
         ----------
