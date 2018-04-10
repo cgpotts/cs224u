@@ -71,8 +71,9 @@ def glove2dict(src_filename):
         Mapping words to their GloVe vectors.
 
     """
-    reader = csv.reader(open(src_filename), delimiter=' ', quoting=csv.QUOTE_NONE)
-    return {line[0]: np.array(list(map(float, line[1: ]))) for line in reader}
+    with open(src_filename, encoding='utf8') as f:
+        reader = csv.reader(f, delimiter=' ', quoting=csv.QUOTE_NONE)
+        return {line[0]: np.array(list(map(float, line[1: ]))) for line in reader}
 
 
 def d_tanh(z):

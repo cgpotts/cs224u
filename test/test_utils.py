@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pytest
 import random
 import utils
@@ -55,3 +56,8 @@ def test_log_of_array_ignoring_zeros(arg, expected):
 def test_sequence_length_report():
     X = [['a'] * random.choice((1,2,3,4)) for _ in range(10)]
     utils.sequence_length_report(X)
+
+
+def test_glove2dict():
+    src_filename = os.path.join("vsmdata", "glove.6B", "glove.6B.50d.txt")
+    utils.glove2dict(src_filename)
