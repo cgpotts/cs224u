@@ -17,6 +17,7 @@ import tf_rnn_classifier
 from tf_rnn_classifier import TfRNNClassifier
 import tree_nn
 from tree_nn import TreeNN
+import tf_snorkel_lite
 
 
 @pytest.fixture
@@ -179,3 +180,13 @@ def test_parameter_setting(model, params):
     model.set_params(**params)
     for p, val in params.items():
         assert getattr(model, p) == val
+
+
+def test_snorkel_generative():
+    result = tf_snorkel_lite.simple_example_generative()
+    expected = ['disease', 'disease', 'cheese', 'cheese', 'cheese', 'cheese']
+    assert result == expected
+
+
+def test_snorkel_logistic_regression():
+    tf_snorkel_lite.simple_example_logistic_regression()
