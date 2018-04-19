@@ -60,4 +60,5 @@ def test_sequence_length_report():
 
 def test_glove2dict():
     src_filename = os.path.join("vsmdata", "glove.6B", "glove.6B.50d.txt")
-    utils.glove2dict(src_filename)
+    data = utils.glove2dict(src_filename)
+    assert len(data) == 400000
