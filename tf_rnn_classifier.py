@@ -251,7 +251,8 @@ class TfRNNClassifier(TfModelBase):
         index = dict(zip(self.vocab, range(len(self.vocab))))
         unk_index = index['$UNK']
         for i in range(new_X.shape[0]):
-            ex_lengths.append(len(X[i]))
+            ex_len = min([len(X[i]), self.max_length])
+            ex_lengths.append(ex_len)
             vals = X[i][-self.max_length: ]
             vals = [index.get(w, unk_index) for w in vals]
             temp = np.zeros((self.max_length,), dtype='int')
