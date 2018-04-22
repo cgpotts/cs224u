@@ -73,11 +73,11 @@ def glove2dict(src_filename):
     """
     data = {}
     with open(src_filename,  encoding='utf8') as f:
-        reader = csv.reader(f, delimiter=' ', quoting=csv.QUOTE_NONE)
         while True:
             try:
-                line = next(reader)
-                data[line[0]] = np.array(list(map(float, line[1: ])))
+                line = next(f)
+                line = line.strip().split()
+                data[line[0]] = np.array(line[1: ], dtype=np.float)
             except StopIteration:
                 break
             except UnicodeDecodeError:
