@@ -63,6 +63,5 @@ vsmdata/*
 snli_1.0/*
 nli-data/*
 nlidata/*
+rel_ext_data*
 *_solved.ipynb
-
-
