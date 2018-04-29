@@ -39,6 +39,7 @@ class TfModelBase(object):
         self.tol = tol
         self.display_progress = display_progress
         self.errors = []
+        self.dev_predictions = []
         self.params = [
             'hidden_dim', 'hidden_activation', 'max_iter', 'eta']
 
@@ -92,6 +93,11 @@ class TfModelBase(object):
         if isinstance(X, pd.DataFrame):
             X = X.values
 
+        # Incremental performance:
+        X_dev = kwargs.get('X_dev')
+        if X_dev is not None:
+            dev_iter = kwargs.get('test_iter', 10)
+
         # One-hot encoding of target `y`, and creation
         # of a class attribute.
         y = self.prepare_output_data(y)
@@ -122,6 +128,8 @@ class TfModelBase(object):
                     feed_dict=self.train_dict(X_batch, y_batch))
                 loss += batch_loss
             self.errors.append(loss)
+            if X_dev is not None and i > 0 and i % dev_iter == 0:
+                self.dev_predictions.append(self.predict(X_dev))
             if loss < self.tol:
                 self._progressbar("stopping with loss < self.tol", i)
                 break
