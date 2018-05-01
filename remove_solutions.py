@@ -17,6 +17,16 @@ def main(src_filename):
             if cell['cell_type'] == 'code':
                 cell_start = cell['source'][0]
                 if not re.search(r"^#+\s*SOLUTION", cell_start):
+                    removing = False
+                    new_source = []
+                    for line in cell['source']:
+                        if "# <<<<<<<<<< TO BE COMPLETED" in line:
+                            removing = True
+                        if not removing:
+                            new_source.append(line)
+                        if "# >>>>>>>>>>" in line:
+                            removing = False
+                        cell['source'] = new_source
                     new_cells.append(cell)
             else:
                 new_cells.append(cell)
