@@ -171,8 +171,9 @@ class TfModelBase(object):
         of X and n is the number of classes
 
         """
+        self.probs = tf.nn.softmax(self.model)
         return self.sess.run(
-            self.model, feed_dict=self.test_dict(X))
+            self.probs, feed_dict=self.test_dict(X))
 
     def predict(self, X):
         """Return classifier predictions, as the class with the
