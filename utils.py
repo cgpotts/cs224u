@@ -1,13 +1,15 @@
-__author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2016"
-
-
-import sys
+from collections import Counter
 import csv
-import random
+import logging
 import numpy as np
+import random
+from scipy import stats
 from sklearn.metrics import f1_score
+from sklearn.model_selection import GridSearchCV
+import sys
 
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
 def build(src_filename, delimiter=',', header=True, quoting=csv.QUOTE_MINIMAL):
@@ -95,6 +97,12 @@ def softmax(z):
     t = np.exp(z - np.max(z))
     return t / np.sum(t)
 
+def relu(z):
+    return np.maximum(0, z)
+
+def d_relu(z):
+    return np.where(z > 0, 1, 0)
+
 def randvec(n=50, lower=-0.5, upper=0.5):
     """Returns a random vector of length `n`. `w` is ignored."""
     return np.array([random.uniform(lower, upper) for i in range(n)])
@@ -173,3 +181,129 @@ def evaluate_rnn(y, preds):
     data['accuracy'] = flat_accuracy_score(y, new_preds)
     data['sequence_accuracy_score'] = sequence_accuracy_score(y, new_preds)
     return data
+
+
+def mcnemar(y_true, pred_a, pred_b):
+    """McNemar's test using the chi2 distribution.
+
+    Parameters
+    ----------
+    y_true : list of actual labels
+    pred_a, pred_b : lists
+        Predictions from the two systems being evaluated.
+        Assumed to have the same length as `y_true`.
+
+    Returns
+    -------
+    float, float (the test statistic and p value)
+
+    """
+    c01 = 0
+    c10 = 0
+    for y, a, b in zip(y_true, pred_a, pred_b):
+        if a == y and b != y:
+            c01 += 1
+        elif a != y and b == y:
+            c10 += 1
+    stat = ((np.abs(c10 - c01) - 1.0)**2) / (c10 + c01)
+    df = 1
+    pval = stats.chi2.sf(stat, df)
+    return stat, pval
+
+
+def fit_classifier_with_crossvalidation(
+        X, y, basemod, cv, param_grid, scoring='f1_macro', verbose=True):
+    """Fit a classifier with hyperparameters set via cross-validation.
+
+    Parameters
+    ----------
+    X : 2d np.array
+        The matrix of features, one example per row.
+    y : list
+        The list of labels for rows in `X`.
+    basemod : an sklearn model class instance
+        This is the basic model-type we'll be optimizing.
+    cv : int
+        Number of cross-validation folds.
+    param_grid : dict
+        A dict whose keys name appropriate parameters for `basemod` and
+        whose values are lists of values to try.
+    scoring : value to optimize for (default: f1_macro)
+        Other options include 'accuracy' and 'f1_micro'. See
+        http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    verbose : bool
+        Whether to print some summary information to standard output.
+
+    Prints
+    ------
+    To standard output (if `verbose=True`)
+        The best parameters found.
+        The best macro F1 score obtained.
+
+    Returns
+    -------
+    An instance of the same class as `basemod`.
+        A trained model instance, the best model found.
+
+    """
+    # Find the best model within param_grid:
+    crossvalidator = GridSearchCV(basemod, param_grid, cv=cv, scoring=scoring)
+    crossvalidator.fit(X, y)
+    # Report some information:
+    if verbose:
+        print("Best params: {}".format(crossvalidator.best_params_))
+        print("Best score: {0:0.03f}".format(crossvalidator.best_score_))
+    # Return the best model found:
+    return crossvalidator.best_estimator_
+
+
+def get_vocab(X, n_words=None):
+    """Get the vocabulary for an RNN example matrix `X`,
+    adding $UNK$ if it isn't already present.
+
+    Parameters
+    ----------
+    X : list of lists of str
+    n_words : int or None
+        If this is `int > 0`, keep only the top `n_words` by frequency.
+
+    Returns
+    -------
+    list of str
+
+    """
+    wc = Counter([w for ex in X for w in ex])
+    wc = wc.most_common(n_words) if n_words else wc.items()
+    vocab = {w for w, c in wc}
+    vocab.add("$UNK")
+    return sorted(vocab)
+
+
+def create_pretrained_embedding(lookup, vocab):
+    """Create an embedding matrix from a lookup and a specified vocab.
+
+    Parameters
+    ----------
+    lookup : dict
+        Must map words to their vector representations.
+    vocab : list of str
+        Words to create embeddings for.
+
+    Returns
+    -------
+    np.array, list
+        The np.array is an embedding for `vocab`, restricted to words
+        that are in in `lookup`, and sorted alphabetically. The last
+        vector is for $UNK if it is not already in both `lookup`
+        and `vocab`. The list is the updated vocabulary. The words are
+        sorted alphabetically, to align with the embedding, and $UNK is
+        appended the end if it was not already in in both `lookup` and
+        `vocab`.
+
+    """
+    vocab = sorted(set(lookup) & set(vocab))
+    embedding = np.array([lookup[w] for w in vocab])
+    if '$UNK' not in vocab:
+        vocab.append("$UNK")
+        embedding = np.vstack((embedding, randvec(embedding.shape[1])))
+    return embedding, vocab
