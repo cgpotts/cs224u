@@ -12,6 +12,9 @@ import scipy.spatial.distance
 import sys
 import utils
 
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2019"
+
 
 def euclidean(u, v):
     return scipy.spatial.distance.euclidean(u, v)
@@ -231,7 +234,8 @@ def lsa(df, k=100):
 
 def glove(df, n=100, xmax=100, alpha=0.75, max_iter=100, eta=0.05,
         tol=1e-4, display_progress=True):
-    """Basic GloVe.
+    """Basic GloVe. This is mainly here as a reference implementation.
+    We recommend using `mittens.GloVe` instead.
 
     Parameters
     ----------

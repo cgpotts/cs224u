@@ -57,6 +57,7 @@ target/
 
 
 # Data
+data/*
 trees/*
 glove.6B/*
 vsmdata/*

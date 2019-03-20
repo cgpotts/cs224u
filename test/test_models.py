@@ -1,32 +1,39 @@
 import numpy as np
+import os
+import pandas as pd
 import pytest
-import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import string
+import torch.nn as nn
 import utils
 
-import sgd_classifier
-from sgd_classifier import BasicSGDClassifier
-import rnn_classifier
-from rnn_classifier import RNNClassifier
-import shallow_neural_network
-from shallow_neural_network import ShallowNeuralNetwork
-import tf_autoencoder
-from tf_autoencoder import TfAutoencoder
-import tf_shallow_neural_classifier
-from tf_shallow_neural_classifier import TfShallowNeuralClassifier
-import tf_rnn_classifier
-from tf_rnn_classifier import TfRNNClassifier
-import tree_nn
-from tree_nn import TreeNN
-import tf_snorkel_lite
+import np_sgd_classifier
+import np_shallow_neural_classifier
+import np_rnn_classifier
+import np_autoencoder
+import np_tree_nn
+
+import torch_shallow_neural_classifier
+import torch_rnn_classifier
+import torch_autoencoder
+import torch_tree_nn
+
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
 @pytest.fixture
-def X_xor():
-    return [
-        ([1.,1.], 1),
-        ([1.,0.], 0),
-        ([0.,1.], 0),
-        ([0.,0.], 1)]
+def XOR():
+    dataset = [
+        ([1.,1.], True),
+        ([1.,0.], False),
+        ([0.,1.], False),
+        ([0.,0.], True)]
+    X, y = zip(*dataset)
+    X = np.array(X)
+    y = list(y)
+    return X, y
 
 
 @pytest.fixture
@@ -47,17 +54,37 @@ def X_sequence():
     return train, test, vocab
 
 
-def test_shallow_neural_network(X_xor):
+@pytest.fixture
+def cheese_disease_dataset():
+    X = []
+    y = []
+    src_filename = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "cheeseDisease.train.txt")
+    with open(src_filename) as f:
+        for line in f:
+            label, ex = line.split("\t", 1)
+            label = "cheese" if label.strip() == "1" else "disease"
+            ex = list(ex.lower().strip())
+            X.append(ex)
+            y.append(label)
+    vocab = list(string.ascii_lowercase) + ["$UNK"]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.33, random_state=42)
+    return {'X_train': X_train, 'X_test': X_test,
+            'y_train': y_train, 'y_test': y_test,
+            'vocab': vocab}
+
+
+def test_np_shallow_neural_classifier(XOR):
     """Just makes sure that this code will run; it doesn't check that
     it is creating good models.
     """
-    X, y = zip(*X_xor)
-    X = np.array(X)
-    y = np.array([[x] for x in y])
-    model = ShallowNeuralNetwork(
+    X, y = XOR
+    model = np_shallow_neural_classifier.ShallowNeuralClassifier(
         hidden_dim=4,
-        afunc=np.tanh,
-        d_afunc=utils.d_tanh,
+        hidden_activation=np.tanh,
+        d_hidden_activation=utils.d_tanh,
         eta=0.05,
         tol=1.5e-8,
         display_progress=True,
@@ -66,38 +93,38 @@ def test_shallow_neural_network(X_xor):
     model.predict(X)
 
 
-def test_shallow_neural_network_simple_example():
-    shallow_neural_network.simple_example()
+def test_np_shallow_neural_classifier_simple_example():
+    acc = np_shallow_neural_classifier.simple_example()
+    assert acc >= 0.90
 
 
-def test_tf_shallow_neural_classifier(X_xor):
+def test_torch_shallow_neural_classifier(XOR):
     """Just makes sure that this code will run; it doesn't check that
     it is creating good models.
     """
-    X, y = zip(*X_xor)
-    model = TfShallowNeuralClassifier(
+    X, y = XOR
+    model = torch_shallow_neural_classifier.TorchShallowNeuralClassifier(
         hidden_dim=4,
-        hidden_activation=tf.nn.tanh,
+        hidden_activation=nn.ReLU(),
         max_iter=100,
-        eta=0.01,
-        tol=1e-4,
-        display_progress=1)
+        eta=0.01)
     model.fit(X, y)
     model.predict(X)
     model.predict_proba(X)
 
 
-def test_tf_shallow_neural_classifier_simple_example():
-    tf_shallow_neural_classifier.simple_example()
+def test_torch_shallow_neural_classifier_simple_example():
+    acc = torch_shallow_neural_classifier.simple_example()
+    assert acc >= 0.90
 
 
-def test_rnn_classifier(X_sequence):
+def test_np_rnn_classifier(X_sequence):
     """Just makes sure that this code will run; it doesn't check that
     it is creating good models.
     """
     train, test, vocab = X_sequence
     embedding = np.array([utils.randvec(10) for _ in vocab])
-    mod = RNNClassifier(
+    mod = np_rnn_classifier.RNNClassifier(
         vocab=vocab,
         embedding=embedding,
         hidden_dim=20,
@@ -111,16 +138,17 @@ def test_rnn_classifier(X_sequence):
     mod.predict_one_proba(X_test[0])
 
 
-def test_rnn_classifier_simple_example():
-    rnn_classifier.simple_example()
+def test_np_rnn_classifier_simple_example():
+    np_rnn_classifier.simple_example()
 
 
-def test_tf_rnn_classifier(X_sequence):
+def test_torch_rnn_classifier(X_sequence):
     """Just makes sure that this code will run; it doesn't check that
     it is creating good models.
     """
     train, test, vocab = X_sequence
-    mod = TfRNNClassifier(vocab=vocab, max_iter=100, max_length=4)
+    mod = torch_rnn_classifier.TorchRNNClassifier(
+        vocab=vocab, max_iter=100)
     X, y = zip(*train)
     X_test, _ = zip(*test)
     mod.fit(X, y)
@@ -128,65 +156,156 @@ def test_tf_rnn_classifier(X_sequence):
     mod.predict_proba(X_test)
 
 
-def test_tf_rnn_classifier_simple_example():
-    tf_rnn_classifier.simple_example()
+def test_torch_rnn_classifier_cheese_disease(cheese_disease_dataset):
+    mod = np_rnn_classifier.RNNClassifier(
+        vocab=cheese_disease_dataset['vocab'],
+        embed_dim=20,
+        hidden_dim=20,
+        max_iter=20)
+    mod.fit(cheese_disease_dataset['X_train'], cheese_disease_dataset['y_train'])
+    pred = mod.predict(cheese_disease_dataset['X_test'])
+    assert accuracy_score(cheese_disease_dataset['y_test'], pred) > 0.80
 
 
-def test_tf_autoencoder():
+def test_torch_rnn_classifier_cheese_disease(cheese_disease_dataset):
+    mod = torch_rnn_classifier.TorchRNNClassifier(
+        vocab=cheese_disease_dataset['vocab'],
+        embed_dim=20,
+        hidden_dim=20,
+        max_iter=20)
+    mod.fit(cheese_disease_dataset['X_train'], cheese_disease_dataset['y_train'])
+    pred = mod.predict(cheese_disease_dataset['X_test'])
+    assert accuracy_score(cheese_disease_dataset['y_test'], pred) > 0.80
+
+
+@pytest.mark.parametrize("initial_embedding", [True, False])
+def test_torch_rnn_classifier_simple_example(initial_embedding):
+    torch_rnn_classifier.simple_example(initial_embedding)
+
+
+@pytest.mark.parametrize("pandas", [True, False])
+def test_np_autoencoder(pandas):
     """Just makes sure that this code will run; it doesn't check that
     it is creating good models.
     """
     X = utils.randmatrix(20, 50)
-    ae = TfAutoencoder(hidden_dim=5, max_iter=100)
-    ae.fit(X)
+    if pandas:
+        X = pd.DataFrame(X)
+    ae = np_autoencoder.Autoencoder(hidden_dim=5, max_iter=100)
+    H = ae.fit(X)
     ae.predict(X)
+    H_is_pandas = isinstance(H, pd.DataFrame)
+    assert H_is_pandas == pandas
 
 
-def test_tf_autoencoder_simple_example():
-    tf_autoencoder.simple_example()
+@pytest.mark.parametrize("pandas", [True, False])
+def test_torch_autoencoder(pandas):
+    """Just makes sure that this code will run; it doesn't check that
+    it is creating good models.
+    """
+    X = utils.randmatrix(20, 50)
+    if pandas:
+        X = pd.DataFrame(X)
+    ae = torch_autoencoder.TorchAutoencoder(hidden_dim=5, max_iter=100)
+    H = ae.fit(X)
+    ae.predict(X)
+    H_is_pandas = isinstance(H, pd.DataFrame)
+    assert H_is_pandas == pandas
+
+
+def test_np_autoencoder_simple_example():
+    mse = np_autoencoder.simple_example()
+    assert mse < 0.003
+
+
+def test_torch_autoencoder_simple_example():
+    mse = torch_autoencoder.simple_example()
+    assert mse < 0.0001
+
+
+def test_np_tree_nn_simple_example():
+    np_tree_nn.simple_example()
+
+
+@pytest.mark.parametrize("initial_embedding", [True, False])
+def test_torch_tree_nn_simple_example(initial_embedding):
+    torch_tree_nn.simple_example(initial_embedding)
 
 
 def test_sgd_classifier():
-    sgd_classifier.simple_example()
+    acc = np_sgd_classifier.simple_example()
+    assert acc >= 0.89
 
 
 @pytest.mark.parametrize("model, params", [
     [
-        BasicSGDClassifier(max_iter=10, eta=0.1),
+        np_sgd_classifier.BasicSGDClassifier(max_iter=10, eta=0.1),
         {'max_iter': 100, 'eta': 1.0}
     ],
     [
-        RNNClassifier(vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
+        np_rnn_classifier.RNNClassifier(
+            vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
         {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
     ],
     [
-        TfRNNClassifier(vocab=[], max_iter=10, hidden_dim=5, eta=0.1, max_length=5),
-        {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100, 'max_length': 10}
+        torch_rnn_classifier.TorchRNNClassifier(
+            vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
+        {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
     ],
     [
-        TreeNN(vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
+        np_tree_nn.TreeNN(
+            vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
         {'embed_dim': 5, 'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
     ],
     [
-        TfShallowNeuralClassifier(hidden_dim=5, hidden_activation=tf.nn.tanh, max_iter=1, eta=1.0),
-        {'hidden_dim': 10, 'hidden_activation': tf.nn.relu, 'max_iter': 10, 'eta': 0.1}
+        torch_tree_nn.TorchTreeNN(
+            vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
+        {
+            'embed_dim': 5,
+            'hidden_dim': 10,
+            'hidden_activation': nn.ReLU(),
+            'eta': 1.0,
+            'max_iter': 100
+        }
     ],
     [
-        TfAutoencoder(hidden_dim=5, hidden_activation=tf.nn.tanh, max_iter=1, eta=1.0),
-        {'hidden_dim': 10, 'hidden_activation': tf.nn.relu, 'max_iter': 10, 'eta': 0.1}
+        np_shallow_neural_classifier.ShallowNeuralClassifier(
+            hidden_dim=5, max_iter=1, eta=1.0),
+        {
+            'hidden_dim': 10,
+            # Reset to ReLU:
+            'hidden_activation': lambda z: np.maximum(0, z),
+            'd_hidden_activation': lambda z: np.where(z > 0, 1, 0),
+            'max_iter': 10,
+            'eta': 0.1
+        }
+    ],
+    [
+        torch_shallow_neural_classifier.TorchShallowNeuralClassifier(
+            hidden_dim=5, hidden_activation=nn.ReLU(), max_iter=1, eta=1.0),
+        {
+            'hidden_dim': 10,
+            'hidden_activation': nn.ReLU(),
+            'max_iter': 10,
+            'eta': 0.1
+        }
+    ],
+    [
+        np_autoencoder.Autoencoder(hidden_dim=5, max_iter=1, eta=1.0),
+        {'hidden_dim': 10, 'max_iter': 10, 'eta': 0.1}
+    ],
+    [
+        torch_autoencoder.TorchAutoencoder(
+            hidden_dim=5, hidden_activation=nn.ReLU(), max_iter=1, eta=1.0),
+        {
+            'hidden_dim': 10,
+            'hidden_activation': nn.ReLU(),
+            'max_iter': 10,
+            'eta': 0.1
+        }
     ]
 ])
 def test_parameter_setting(model, params):
     model.set_params(**params)
     for p, val in params.items():
         assert getattr(model, p) == val
-
-
-def test_snorkel_generative():
-    result = tf_snorkel_lite.simple_example_generative()
-    expected = ['disease', 'disease', 'cheese', 'cheese', 'cheese', 'cheese']
-    assert result == expected
-
-
-def test_snorkel_logistic_regression():
-    tf_snorkel_lite.simple_example_logistic_regression()

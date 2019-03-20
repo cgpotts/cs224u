@@ -4,6 +4,9 @@ import pandas as pd
 from scipy.spatial.distance import euclidean
 import utils
 
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2019"
+
 
 class Retrofitter(object):
     """Implements the baseline retrofitting method of Faruqui et al.

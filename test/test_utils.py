@@ -4,6 +4,8 @@ import pytest
 import random
 import utils
 
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -52,13 +54,12 @@ def test_log_of_array_ignoring_zeros(arg, expected):
     return np.array_equal(result, expected)
 
 
-
 def test_sequence_length_report():
     X = [['a'] * random.choice((1,2,3,4)) for _ in range(10)]
     utils.sequence_length_report(X)
 
 
 def test_glove2dict():
-    src_filename = os.path.join("vsmdata", "glove.6B", "glove.6B.50d.txt")
+    src_filename = os.path.join("data", "glove.6B", "glove.6B.50d.txt")
     data = utils.glove2dict(src_filename)
     assert len(data) == 400000

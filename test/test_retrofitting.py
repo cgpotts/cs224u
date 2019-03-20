@@ -4,6 +4,9 @@ import pytest
 import retrofitting
 from retrofitting import Retrofitter
 
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2019"
+
 
 @pytest.fixture
 def retrofitter():
