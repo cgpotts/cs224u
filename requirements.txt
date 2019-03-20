@@ -3,22 +3,38 @@
 # Only people working in their own virtual environments should install
 # them via this script.
 #
-# numpy==1.14.0
-# scipy==1.0.0
-# matplotlib==2.1.2
-# scikit-learn >= 0.19.1
-# nltk==3.2.5
-# python-dateutil==2.6.1
-# pytest==3.0.3
+# numpy>=1.15.0
+# scipy>=1.1.0
+# matplotlib>=3.0.0
+# scikit-learn >= 0.20.0
+# nltk>=3.4.0
+# python-dateutil>=2.7.0
+# pytest==4.0.0
 # jupyter==1.0.0
 #
 ######################################################################
 
 mittens>=0.1
 
+######################################################################
 # For NLTK, the data distibution needs to be downloaded separately:
+#
 # https://www.nltk.org/data.html
 
-# Tensorflow is also required. It should be installed via the
-# instructions provided by the TensorFlow team, which depend on your
-# computing environment: https://www.tensorflow.org/install/
+######################################################################
+# PyTorch is required. For installation instructions, see
+#
+# If you're using Anaconda, we suggest
+#
+# conda install -c pytorch pytorch
+
+######################################################################
+# Tensorflow is required. It should be installed via the instructions
+# provided by the TensorFlow team, which depend on your computing
+# environment:
+#
+# https://www.tensorflow.org/install/
+#
+# If you're using Anaconda, we suggest
+#
+# conda install -c conda-forge tensorflow
