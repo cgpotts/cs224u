@@ -1,0 +1,1765 @@
+2	Back Pain
+2	Dissociative Disorders
+2	Lipoma
+1	Blue Rathgore
+2	Gallstones
+1	Chevrotin des Aravis
+2	Pulmonary Embolism
+2	Gastroenteritis
+2	Ornithine Carbamoyltransferase Deficiency Disease
+2	Eisenmenger Complex
+2	WiskottAldrich Syndrome
+1	Dunsyre Blue
+2	Dysphonia, Spasmodic
+1	Fresh Ricotta
+1	Finn
+2	Leptospirosis
+2	Poland Syndrome
+1	Pave de Chirac
+2	Tracheoesophageal Fistula
+2	Hemophilia A
+1	Civray
+1	Scamorza
+1	Swiss
+1	Mozzarella Fresh, in water
+2	Myocardial Ischemia
+2	Herpes Genitalis
+2	Myelofibrosis
+2	Larsen Syndrome
+2	Evans Syndrome
+2	Craniosynostoses
+1	Munster
+2	Complementary Therapies
+2	Zoonoses
+2	Myopia
+2	Sepsis
+1	Reblochon
+1	Herve
+1	Toma
+1	Heidi Gruyere
+2	StevensJohnson Syndrome
+2	Gingivitis
+2	Kartagener Syndrome
+1	Stilton
+1	Bosworth
+2	Endocarditis, Bacterial
+2	Granuloma Annulare
+2	Hemorrhagic Disease of Newborn
+2	Crouzon Syndrome
+2	Bird Diseases
+2	Urticaria
+2	Hypervitaminosis A
+1	Selles sur Cher
+2	WolfHirschhorn Syndrome
+2	Fecal Incontinence
+2	Antithrombin III Deficiency
+2	Adenomyosis
+2	Scabies
+2	Furunculosis
+2	Marasmusp
+2	Atelectasis
+1	Rabacal
+2	Anencephaly
+1	Boeren Leidenkaas
+1	Charolais
+2	Neuromuscular Diseases (Nervous System Diseases)
+1	Toscanello
+2	Anemia, IronDeficiency
+2	Encopresis
+2	Leg Ulcer
+2	Psittacosis in humans
+1	Boursin
+2	Dyspraxia
+2	Pica Syndrome
+2	Nails, Ingrown
+1	Cotija
+1	Emlett
+1	Lavistown
+2	Neuroma, Acoustic
+2	Sanfilippo Syndrome
+2	Hernia, Hiatal
+2	Sarcoidosis
+2	Desmoplastic Small Round Cell Tumor
+2	Sciatica
+2	Syphilis, Congenital
+1	Tourmalet
+1	Serra da Estrela
+1	Siraz
+2	Kawasaki Disease
+1	Pressato
+1	Langres
+2	Fractures
+2	Barrett Esophagus
+2	Chlamydia Infections
+1	Poivre d'Ane
+1	Vacherin-Fribourgeois
+1	Dessertnyj Belyj
+2	Cochlear Aqueduct
+1	Brin d' Amour
+2	Myelitis
+2	SmithMagenis Syndrome
+2	Reinke's Edema
+2	Hyperacusis
+2	LeggPerthes Disease
+1	Crescenza
+2	Supraglottitis
+1	Balaton
+1	Celtic Promise
+2	Myositis Ossificans
+1	Curworthy
+2	Olivopontocerebellar Atrophies
+2	Heart Failure, Congestive
+2	Cellulitis
+1	Ricotta
+2	Memory Disorders
+2	Epiglottitis
+1	Lajta
+2	Cyclothymic Disorder
+2	Torture
+1	Greve
+2	Varicose Veins
+2	Blood Coagulation Disorders
+2	Pierre Robin Syndrome
+1	Oaxaca
+2	Fasciitis
+1	Jubilee Blue
+2	Fibromuscular Dysplasia
+2	Craniocerebral Trauma
+2	Pseudogout
+2	Labyrinth Diseases
+2	Bruxism
+2	Multiple Chemical Sensitivity
+2	Periodic Disease
+1	Bergader
+2	Temporomandibular Joint Disorders (Stomatognathic Diseases)
+2	Stargardt Disease
+1	San Simon
+2	Cartilage Diseases
+2	Pseudomyxoma Peritonei
+2	Paraganglioma
+2	Otorhinolaryngologic Neoplasms
+2	Thrombosis
+2	Panniculitis
+2	Testicular Cancer
+1	Feta
+2	Edward Syndrome
+2	Wegener's Granulomatosis
+1	Cougar Gold
+1	Brin
+2	CarbohydrateDeficient Glycoprotein Syndrome
+1	Aubisque Pyrenees
+1	Babybel
+1	Butte
+2	Dehydration
+2	Cornelia de Lange Syndrome
+1	Fontainebleau
+2	Attention Deficit Disorder with Hyperactivity
+2	Pregnancy Complications
+2	Anoxia
+2	Protein S Deficiency
+2	Hemiplegia
+1	Fribourgeois
+1	Yarra Valley Pyramid
+1	Cold Pack
+1	Menallack Farmhouse
+1	Leyden
+1	Iberico
+1	Mamirolle
+1	Blue Castello
+2	Infertility (.. Male Genital Diseases)
+2	Dentigerous Cyst
+2	Dysphagia
+2	Adiposis Dolorosa
+2	NailPatella Syndrome
+2	Hypoxia
+2	Hyphema
+2	Myeloid Metaplasia
+2	Periodic Paralysis
+2	Keloid
+1	Neufchatel
+2	Hives
+2	Death
+2	Behcet's Syndrome
+2	Jacobsen Syndrome
+2	Myiasis
+1	P'tit Berrichon
+2	Christmas Disease
+2	Tularemia
+2	Sezary Syndrome
+2	Anemia, Megaloblastic
+2	Fragile X Syndrome
+2	Kala Azar
+2	Fasciitis, Necrotizing
+1	Gabriel
+1	Caciocavallo
+2	Hypercalcemia
+1	Abbaye de Belloc
+2	Adrenal Hyperplasia, Congenital
+1	Danbo
+1	Xynotyro
+2	Exfoliation Syndrome
+2	Lichen Planus
+2	Hemangioma
+1	Tamie
+2	Scheie Syndrome
+2	Yellow Fever
+1	Duddleswell
+1	Peekskill Pyramid
+1	Picodon de Chevre
+2	Arteriovenous Malformations
+2	Tinnitus
+2	PortWine Stain
+2	Hashimoto's Disease
+1	Chabis de Gatine
+1	Cheddar
+1	Spenwood
+1	Bleu Des Causses
+1	Brillat-Savarin
+2	Menkes Kinky Hair Syndrome
+2	Glossitis, Benign Migratory
+2	Stress
+2	Diabetic Neuropathies
+2	Diplopia
+2	Cryoglobulinemia
+2	SubstanceRelated Disorders
+2	Sarcoidosis, Pulmonary
+2	Trichotillomania
+1	Sirene
+2	Ventricular Fibrillation
+2	Paraphilias
+1	Anthoriro
+2	Penile Induration
+2	Bursitis
+2	Edema
+2	Syringomyelia
+2	Proteinuria
+2	Rhinitis
+2	Diphtheria
+1	Queso Blanco
+2	Gaucher Disease
+2	Ophthalmoplegia
+2	Esophageal Diseases
+2	Pneumothorax
+1	Devon Blue
+1	Tomme Brulee
+2	Histiocytosis, Sinus
+2	Usher Syndrome
+2	Dysmorphophobia
+2	Listeria Infections
+2	Chromosome Disorders
+2	Purpura
+2	Synesthesia
+2	Hematospermia
+2	Hernia
+1	Gubbeen
+1	Brie de Meaux
+2	Diabetic Ketoacidosis
+1	Fourme de Haute Loire
+1	Double Gloucester
+2	Cerebral Hemorrhage
+1	Cypress Grove Chevre
+2	Loiasis
+2	Leishmaniasis
+1	Romans Part Dieu
+1	Zanetti Grana Padano
+2	Darier Disease
+1	Coeur de Camembert au Calvados
+2	Fournier Gangrene
+2	Lichen Sclerosus et Atrophicus
+2	Whipworm Infections
+2	Bourneville's Disease
+1	Queso Fresco
+2	Metabolic Syndrome X
+2	Hepatic Vein Thrombosis
+2	StuartPrower Deficiency
+2	Retropharyngeal Abscesser
+2	Hand, Foot and Mouth Disease
+2	Pituitary Diseases
+1	Tibet
+1	Roquefort
+2	Glomerulonephritis
+1	Beyaz Peynir
+2	Leigh Disease
+2	Genital Neoplasms, Female
+2	Ecchymosis
+1	Carre de l'Est
+1	Bavarian Bergkase
+2	Central Pain Syndrome
+1	Mycella
+1	Havarti
+1	Olivet Bleu
+2	LouisBar Syndrome
+1	Bra
+2	Urinary Tract Infections
+2	Hartnup Disease
+1	Golden Cross
+1	Gammelost
+2	Syncope
+2	SmithLemli-Opitz Syndrome
+2	Inflammatory Bowel Diseases
+1	Dolcelatte
+1	Vieux Corse
+1	Ubriaco
+2	Incontinentia Pigmenti
+2	Eye Hemorrhage
+2	Rhabdomyosarcoma
+2	Mumps
+2	LennoxGastaut Syndrome
+2	Onchocerciasis
+2	Aggression
+2	Scrub Typhus
+2	Periodontal Diseases
+2	Uterine Fibroids
+2	Floaters
+2	Paget Disease of Bone
+2	Tourette Syndrome
+2	Gyrate Atrophy
+1	Baby Swiss
+2	Strabismus
+2	Bullying
+2	Eye Neoplasms
+2	Keratosis, Actinic
+2	Acne Vulgaris
+2	Schistosomiasis
+2	Fasciculation
+2	Frostbite
+2	Acrodynia
+2	CHARGE Syndrome
+2	Pulmonary Alveolar Proteinosis
+2	Osteoarthritis
+2	Alkalosis
+1	Buxton Blue
+2	Tietze's Syndrome (Costochondritis)
+1	Filetta
+2	TickBorne Diseases (Parasitic Diseases)
+1	Cambazola
+1	Kadchgall
+2	Vibrio Infections
+2	Sarcoma
+1	Croghan
+1	Cheshire
+1	Crowdie
+2	Choroideremia
+2	Hermaphroditism
+2	Berger's Disease
+1	Margotin
+1	Le Roule
+1	Bath Cheese
+2	Chagas Disease
+2	Munchausen Syndrome
+2	Vasospasm, Intracranial
+2	Balanitis
+1	Rustinu
+2	Sty
+1	Queso Fresco (Adobera)
+1	Beer Cheese
+2	Morton's Neuroma
+1	Texas Goat Cheese
+2	Aniridia
+2	Herpes Zoster Oticus
+2	Oculocerebrorenal (Lowe) Sydrome
+2	Meningitis, Viral
+2	Hematuria
+2	AdamsStokes Disease
+2	Twins, Conjoined
+2	Myopathies, Structural, Congenital
+1	Saanenkaese
+2	Allergy
+2	Schizencephaly
+2	Mitral Valve Prolapse
+1	Baguette Laonnaise
+2	Fucosidosis
+1	Le Lacandou
+2	Arteriosclerosis
+2	Epilepsy
+2	Pelvic Inflammatory Disease
+2	Spasmodic Torticollis
+1	Kikorangi
+2	Fistula
+2	Williams Syndrome
+2	SturgeWeber Syndrome
+2	Cytosporidiosis
+2	Legionellosis
+1	Chabichou
+2	Tonsillitis
+2	Glucosephosphate Dehydrogenase Deficiency
+2	StiffPerson Syndrome
+2	Lacrimal Duct Obstruction
+2	XLinked Myotubular Myopathy
+1	Leerdammer
+1	Romano
+2	Airway Obstruction
+2	Lung Diseases, Interstitial
+1	Mozzarella Rolls
+2	Tic Disorders
+2	Motion Sickness
+2	Botulism
+1	Acorn
+2	Uveitis
+1	Le Fium Orbo
+2	Presbycusis
+2	Ovarian Cysts
+1	Blarney
+2	Altitude Sickness
+2	Hypoplastic Left Heart Syndrome
+1	Braudostur
+2	Zygomycosis
+2	Retinal Detachment
+2	BannayanZonana Syndrome
+1	Pecorino Romano
+2	Hyperostosis
+2	Cyclosporiasis
+2	Robinow Syndrome (Foetal Face Syndrome)
+2	LaurenceMoon Syndrome
+2	Central Cord Syndrome
+1	Brick
+2	Factor V Leiden
+2	Urethral Stricture
+2	Coxsackievirus Infections
+2	Dyspareunia
+2	Erysipelas
+1	Fleur du Maquis
+1	Ile d'Yeu
+2	Mastalgia
+2	Pulmonary Emphysema
+2	Anophthalmos
+2	Human Endogenous Retrovirus
+2	Hyperhidrosis
+2	Salivary Gland Diseases
+1	Fresh Jack
+2	Neutropenia
+2	Placenta Diseases
+2	Ellisvan Creveld Syndrome
+2	Lyme Disease
+2	Chondritis, Costal
+2	Cancer
+2	Nervous System Neoplasms
+2	Neurofibromatoses
+1	Bleu de Septmoncel
+1	Tillamook Cheddar
+1	Manchego
+2	Snoring
+1	Daralagjazsky
+2	Uterine Prolapse
+1	Castelleno
+2	Aphasia
+2	Neurocysticercosis
+1	Grabetto
+2	Leiomyoma
+2	Kidney, Sponge
+2	Dermatitis, Exfoliative
+1	Kaseri
+2	Apert Syndrome
+2	Otitis
+2	Insomnia, Fatal Familial
+2	Thyroid Nodule
+2	Cystitis, Interstitial
+2	Gorlin's Syndrome
+2	Fibrous Dysplasia of Bone
+1	Brebis du Lochois
+2	Adnexitis
+2	Hodgkin Disease
+2	Gastrointestinal Hemorrhage
+2	Leiomyosarcoma
+1	Fromage de Montagne de Savoie
+2	Pupil Disorders
+1	Le Brin
+2	Canker Sores
+2	Spinal Stenosis
+2	Hepatitis
+2	Compartment Syndromes
+2	Melanoma
+2	Homocystinuria
+2	Magnesium Deficiency
+2	Alopecia
+2	Fibrocystic Disease of Breast
+2	Hemianopsia (Hemianopia)
+2	Refsum Disease
+1	Boursault
+2	DejerineSottas Disease
+2	Antiphospholipid Syndrome
+1	Morbier
+2	Thrush
+2	WerdnigHoffmann Disease
+2	Depression, Postpartum
+2	Spina Bifida Occulta
+2	Babesiosis
+2	Dyslexia
+2	Osteonecrosis
+2	Impotence
+2	Social Behavior
+1	Liptauer
+2	Empty Sella Syndrome
+1	Halloumy (Australian)
+1	Orkney Extra Mature Cheddar
+2	Myelodysplastic Syndromes
+2	Wilson's Disease
+2	Exanthema Subitum
+2	Ramsay Hunt (Paralysis) Syndrome
+2	Drug Toxicity
+1	Friesekaas
+2	Bone Diseases, Metabolic
+2	Pulmonary Atresia
+2	Dysthymic Disorder
+2	Dysentery
+2	Pharyngeal Diseases
+2	Multiple System Atrophy
+2	Chondromalacia
+2	Chromosome 16 Abnormalities
+2	Peyronie's Disease
+1	Torta del Casar
+1	Montasio
+2	Keratosis, Seborrheic
+2	Mucopolysaccharidoses
+2	Temporomandibular Joint Dysfuntion Syndrome (Musculoskeletal Diseases)
+1	Flower Marie
+2	Giant Lymph Node Hyperplasia
+2	Trigeminal Neuralgia
+2	Myasthenia Gravis
+1	Shelburne Cheddar
+2	Empyema, Pleural
+1	Teifi
+1	Tronchon
+2	Burning Mouth Syndrome
+2	Kraurosis Vulvae
+2	Ataxia Telangiectasia
+1	Danablu (Danish Blue)
+2	Paralysis
+2	Dry Eye Syndromes
+2	Russell Silver Syndrome
+2	Diseases of Invertebrates
+1	Mixte
+2	IgA Nephropathy
+2	KlippelTrenaunay-Weber Syndrome
+2	Raccoon Diseases
+2	Rabies
+2	Pancreatic Neoplasms
+2	Still's Disease
+2	Treacher Collins Syndrome
+1	Fromage Corse
+2	Scotoma
+1	Pelardon des Cevennes
+1	Broccio Demi-Affine
+2	Laryngeal Neoplasms
+2	Urination Disorders
+2	Lissencephaly
+2	Dermatitis
+2	Iritis
+2	German Measles
+2	Mental Retardation
+1	Bonchester
+2	Athetosis
+2	Pemphigus
+1	Butterkase
+1	Aisy Cendre
+2	Bechterew Disease
+2	Coma
+2	Down Syndrome
+1	Leicester
+2	Fabry Disease
+1	Oxford Blue
+1	Fourme de Montbrison
+2	Hydronephrosis
+2	Fusobacterium Infections
+2	Leukemia
+2	Chorea
+2	Berylliosis
+2	Carnitine Palmitoyl Transferase Deficinecy
+2	HippelLindau Disease
+2	Hughe's Syndrome
+1	Emental Grand Cru
+2	Croup
+2	Lou Gehrig's Disease
+2	Spinal Muscular Atrophies of Childhood
+2	Hurler's Syndrome
+2	Agnosia
+2	Hypothyroidism
+1	Olde York
+2	Tricuspid Atresia
+2	ObsessiveCompulsive Disorder
+1	Sharpam
+2	Ecthyma, Contagious
+2	Myocarditis
+2	Pemphigoid, Bullous
+2	Emetophobia
+2	de Quervain's Tendinitis
+2	Holoprosencephaly
+2	Tinea Pedis (Athlete's Foot; > Dermatomycoses)
+2	Vasculitis
+2	Seasonal Affective Disorder
+2	Hemorrhagic Fevers, Viral
+2	Nystagmus, Pathologic
+2	Dracunculiasis
+2	Syndrome X
+2	Meniere's Disease
+1	Crowley
+2	XYY Karyotype
+2	Pearson's Syndrome
+2	CreutzfeldtJakob Syndrome
+2	Foot and Mouth Disease
+2	Phenylketonurias
+2	Osteomalacia
+2	Vertigo
+2	Osteomyelitis
+2	Bites and Stings
+2	Pterygium
+1	Lanark Blue
+2	Starvation
+1	Gaperon a l'Ail
+2	Konzo
+1	Dunbarra
+1	Yorkshire Blue
+2	Nephrosis
+2	Epidermolysis Bullosa
+2	Fetal Death
+1	Frinault
+1	Cabrales
+2	Pseudotumor Cerebri
+2	Zellweger Syndrome
+2	Thrombasthenia
+2	Firesetting Behavior
+2	Phlebotomus Fever
+1	Durrus
+1	Comte
+1	Gorgonzola
+1	Goutu
+1	Colby
+2	Spondylolisthesis
+2	Ramsay Hunt Auricular Syndrome
+2	Yersinia Enterocolitica Infection
+2	Pectus Excavatum
+1	Edelpilz
+1	Cotherstone
+2	Causalgia
+1	Niolo
+2	Stridor
+1	Cottage Cheese
+2	Liver Diseases
+2	Hammertoes
+2	Melanosis (Freckles)
+2	Renal Osteodystrophy
+2	Methemoglobinemia
+1	Mothais a la Feuille
+2	Lymphangiomyomatosis
+2	Lung Cancer
+1	Podhalanski
+2	Tennis Elbow
+2	Mannosidosis
+2	Impulse Control Disorders
+1	Royalp Tilsit
+2	Acquired Hyperostosis Syndrome
+2	Angelman Syndrome
+2	Mandibulofacial Dysostosis
+1	Cream Cheese
+2	Arthritis, Rheumatoid (Musculoskeletal Diseases)
+1	La Taupiniere
+1	Broccio
+2	Infectious Mononucleosis
+2	Dog Diseases
+1	Brebis du Lavort
+2	Diverticulitis
+2	Cyanosis
+1	Caboc
+1	Mozzarella (Australian)
+2	Polyarteritis Nodosa
+1	Plateau de Herve
+2	Alpers Disease
+2	Coccidioidomycosis
+2	Cryptococcosis
+2	Enchondromatosis
+1	Cure Nantais
+2	Central Core Disease
+2	Rift Valley Fever
+2	Tyrosinemia
+2	Gastroparesis
+2	Granulomatous Disease, Chronic
+2	PraderWilli Syndrome
+1	Jarlsberg
+2	Telangiectasis
+2	Prognathism
+1	Delice des Fiouves
+2	Attitude to Death
+2	Influenza
+2	Telangiectasia, Hereditary Hemorrhagic
+1	Gratte-Paille
+1	Ardi Gasna
+2	Cestode infections
+2	Myocardial Infarction
+2	Sudden Infant Death
+2	Clubfoot
+2	Leber's Congenital Amaurosis
+2	Anemia, Aplastic
+2	Hamartoma
+2	Lactation Disorders
+1	Quark
+1	Raclette
+1	Quark (Australian)
+2	Mixed Connective Tissue Disease
+2	SelfInjurious Behavior
+1	Fresh Truffles
+2	Macroglossia
+2	Meige Syndrome
+1	Esbareich
+1	Tyn Grug
+2	Wallenberg's Syndrome
+2	Osteoporosis
+2	Anus Diseases
+1	Testouri
+1	Kervella Affine
+2	Mite Infestations
+2	Lassa Fever
+2	Ulnar Nerve Compression Syndromes
+2	Hypertension, Pulmonary
+2	Hemoptysis
+1	Bergere Bleue
+1	Beauvoorde
+1	Maasdam
+2	Laryngomalacia
+1	Ricotta Salata
+1	Somerset Brie
+2	Impetigo
+2	Achondroplasia
+1	Samso
+1	Grataron d' Areches
+2	Stroke
+1	Lyonnais
+2	Intermittent Claudication
+2	Bradycardia
+2	ChediakHigashi Syndrome
+2	SAPHO Syndrome
+1	Meira
+2	Aphakia
+1	Galette Lyonnaise
+1	Lairobell
+2	Sotos Syndrome
+2	Muscular Atrophy, Spinal
+1	Bleu de Laqueuille
+2	Chromosome 5 deletion
+2	Refsum Disease, Infantile
+2	Occupational Diseases
+2	Oculomotor Nerve Diseases
+2	Hypoglycemia
+1	Manouri
+2	Appendicitis
+2	Corneal Ulcer
+2	Fatty Liver
+2	BlochSulzberger/Siemens Syndrome
+2	Neuronal CeroidLipofuscinosis
+1	Neufchatel (Australian)
+1	Brusselae Kaas (Fromage de Bruxelles)
+2	Brain Ischemia
+2	Anthrax
+2	Ebstein's Anomaly
+2	Neurilemmoma
+2	Adie Syndrome
+1	Provolone (Australian)
+2	Arachnoid Cysts
+2	Mal de Debarquement
+2	Pheochromocytoma
+2	Pruritus Vulvae
+2	Ear Neoplasms
+2	Dyspepsia
+2	Anxiety Disorders
+2	Hypertension
+2	Warthin's Tumor
+1	Plymouth Cheese
+2	Cryptorchidism
+1	Castelo Branco
+2	Chromosome 18 Abnormalities
+1	Airedale
+2	Angiofibroma
+2	Depressive Disorder
+1	Anejo Enchilado
+2	Cretinism
+2	Uterine Inversion
+2	Stress Disorders, PostTraumatic
+2	General Fibrosis Syndrome
+2	Crohn Disease
+2	BeckwithWiedemann Syndrome
+2	Velocardiofacial Syndrome
+1	Brie de Melun
+2	Asperger Syndrome
+2	Hypogonadism
+2	Hemophilia B
+2	Best Disease
+1	Beenleigh Blue
+2	Vitamin B 12 Deficiency
+2	Ebola Virus Infection
+1	Roule
+2	Basedow's Disease
+1	Saaland Pfarr
+2	Takayasu's Arteritis
+2	Contraception
+2	Erythema
+2	Reflex Sympathetic Dystrophy
+2	West Syndrome
+2	Fascial Paralysis
+1	Weichkaese
+2	von Willebrand Disease
+2	Blepharoptosis
+2	Baker's Cyst
+2	Sick Building Syndrome
+2	Intestinal Obstruction
+2	Bartonella Infections
+1	Dutch Mimolette (Commissiekaas)
+1	Esrom
+2	Pulmonary Fibrosis
+2	Werner Syndrome
+1	Limburger
+2	Krabbe's Disease
+1	Asadero
+1	Seriously Strong Cheddar
+2	Trisomy 13
+2	Diarrhea
+1	Petit Morin
+2	Marfan Syndrome
+2	Hyperglycemic Hyperosmolar Nonketotic Coma
+2	HemolyticUremic Syndrome (Hemic .. Diseases)
+1	Dreux a la Feuille
+2	Hirsutism
+1	Pave d'Affinois
+1	Tete de Moine
+2	Crabs
+2	Blood Platelet Disorders
+2	Ascites
+2	Endocrine Gland Neoplasms
+2	Root Canal Therapy
+2	Thalassemia
+2	Erb's Palsy
+2	Keratitis
+2	Polyendocrinopathies, Autoimmune
+2	Pellagra
+2	Adrenal Gland Diseases
+2	Prion Diseases
+2	Chondroma
+2	Acquired Immunodeficiency Syndrome, AIDS
+2	SeptoOptic Dysplasia
+2	Lateral Medullary Syndrome
+2	Dystocia
+2	Cridu-Chat Syndrome
+2	NiemannPick Diseases
+2	Cardiac Tamponade
+2	Halitosis
+1	Capriole Banon
+2	Poisoning
+1	Laruns
+2	Hypersensitivity
+2	Fetal Membranes, Premature Rupture
+2	Galactorrhea
+2	Chancroid
+2	Sexual Dysfunctions, Psychological
+1	Mine-Gabhar
+2	Kuru
+2	Goodpasture Syndrome
+2	Tetralogy of Fallot
+2	Cafeau-Lait Spots
+2	Fibromatosis, Aggressive
+2	Choledochal Cyst
+2	Headache
+2	Poliomyelitis
+2	Romberg's Disorder
+1	Bandal
+1	Ossau Fermier
+2	Sexually Transmitted Diseases (, Bacterial)
+1	Penbryn
+1	Orla
+1	Fin-de-Siecle
+1	Olivet Cendre
+1	Telemea
+2	Hemoglobinopathies
+2	Plague
+2	Ectropion
+2	Dermatomyositis
+2	Chickenpox
+2	Disseminated Intravascular Coagulation
+2	Anemia, Hemolytic, Congenital Nonspherocytic
+2	Ross River Virus Infection
+1	Trou du Cru
+2	Varicocele
+2	TripleX Females
+1	Postel
+1	Shropshire Blue
+2	Cerebral Palsy
+2	Smallpox
+2	Measles
+1	Brie
+2	Graft vs Host Disease
+2	Pyoderma Gangrenosum
+2	Spherocytosis, Hereditary
+2	Polymyositis
+2	Mitochondrial Disorders
+2	Optic Atrophies, Hereditary
+1	Mozzarella di Bufala
+1	Chabichou du Poitou
+2	Respiratory Syncytial Virus Infections
+2	Burns
+2	Muscle Cramp
+2	Blepharitis
+2	Decubitus Ulcer
+1	Brousse du Rove
+1	Fresh Mozzarella
+2	Obesity
+2	Tumor, Warthin
+1	La Vache Qui Rit
+1	Juustoleipa
+2	Polycystic Ovary Syndrome
+1	Maroilles
+2	Pick's Disease
+2	Acromegaly
+1	Pave d'Auge
+1	Tala
+2	Digestive System Neoplasms
+2	Primary Lateral Sclerosis
+2	Schmidt's Syndrome
+1	Parmesan (Parmigiano)
+2	Dermatitis Herpetiformis
+1	Chaource
+2	Hyperaldosteronism
+2	Molluscum Contagiosum
+2	Fatigue Syndrome, Chronic
+2	Anisocoria
+2	Heart Valve Diseases
+1	Richelieu
+2	Shwachman(Diamond) Syndrome
+2	Hip Dislocation, Congenital
+1	Galloway Goat's Milk Gems
+2	Tuberous Sclerosis
+1	Northumberland
+1	Bougon
+2	Diabetes Insipidus
+2	RosaiDorfman Disease
+1	Ami du Chambertin
+2	Triosephosphate Isomerase Deficiency
+2	Cholelithiasis
+2	Carpal Tunnel Syndrome
+2	Roseola
+2	Huntington Disease
+2	Leucine Metabolism Disorders
+2	Thrombocytopenia
+2	Neuroblastoma
+2	Ileus
+2	Mycoplasma Infection
+2	Demyelinating Diseases
+1	Hushallsost
+2	Basal Cell Nevus Syndrome
+1	Abbaye du Mont des Cats
+2	Postpoliomyelitis Syndrome
+1	Lingot Saint Bousquet d'Orb
+2	Common Cold
+2	Seizures
+1	Xanadu
+2	Scleritis
+1	Asiago
+2	Glycogen Storage Disease
+2	Nephrotic Syndrome
+2	Addison's Disease
+2	Candidiasis
+2	Meningitis, Bacterial
+2	Papilloma
+2	Echinococcosis
+1	Mascares
+2	Sprengel's Deformity
+2	McCuneAlbright Syndrome
+1	Port Nicholson
+2	LeschNyhan Syndrome
+2	Hyperemesis Gravidarum
+1	Cerney
+2	Scimitar Syndrome
+2	Short Bowel Syndrome
+2	Hair Diseases
+1	Capricorn Goat
+2	Flatfoot
+2	Relapsing Fever
+2	Migraine
+2	Aicardi Syndrome
+2	Spinal Cord Injuries
+2	MELAS Syndrome
+1	L'Ecir de l'Aubrac
+1	Allgauer Emmentaler
+1	Regal de la Dombes
+2	Gonorrhea
+2	Condylomata Acuminata
+2	Kidney Tubular Necrosis, Acute
+2	TickBorne Diseases (Bacterial .. Infections)
+1	Dauphin
+1	Picos de Europa
+2	Cutis Laxa
+1	Button (Innes)
+1	Dorset Blue Vinney
+2	Meckel's Diverticulum
+2	XXY Males
+2	Goldenhar Syndrome
+2	Lymphangioma
+1	Leafield
+1	Livarot
+2	CharcotMarie-Tooth Disease
+1	Chaumes
+2	Disease
+2	Corticobasal Ganglionic Degeneration
+2	Maple Syrup Urine Disease
+2	Nerve Compression Syndromes
+2	Carcinoma, Merkel Cell
+1	Timboon Brie
+2	Rickets
+1	Hubbardston Blue Cow
+1	Avaxtskyr
+2	Arthrogryposis
+2	Diseases of Insectivores
+2	Prosopagnosia
+1	Epoisses de Bourgogne
+2	Pathologic Processes
+1	Longhorn
+2	Abscess
+2	Enuresis
+2	Salpingitis
+2	Burkholderia Infections
+1	Mascarpone
+1	Flor de Guia
+1	Doppelrhamstufel
+2	Voice Disorders
+1	Friesian
+2	Samters Syndrome
+1	Tomme des Chouans
+2	Volvulus
+1	Corleggy
+2	Bronchitis
+2	Cystinosis
+2	Raynaud's Disease
+2	Keratoconus
+2	Cerebellar Ataxia
+1	Schloss
+2	Kwashiorkor
+2	Acidosis
+2	Cholera
+1	Rollot
+2	Unconsciousness
+1	Swaledale
+2	MachadoJoseph Disease
+2	Myeloproliferative Disorders
+2	Blastocystis hominis infection
+1	Tomme de Romans
+2	Chondromalacia Patellae
+1	Piora
+2	Fetal Distress
+2	Xerostomia
+2	Encephalitis
+2	Charles Bonnet Syndrome
+1	Doolin
+2	Anosmia
+2	Bright's Disease
+2	Diphyllobothriasis
+1	Pecorino
+2	Pityriasis
+2	Endometriosis
+2	Subacute Sclerosing Panencephalitis
+1	Ossau-Iraty
+2	Respiratory Distress Syndrome
+2	Hiccup
+2	Blister
+2	Costochondritis
+2	Felty Syndrome
+2	Cataract
+1	Appenzell
+2	Progeria
+2	Popliteal Cyst
+2	Carcinoid Tumor
+2	Buruli Ulcer
+2	Blepharospasm
+2	Ornithosis
+2	WeberChristian disease
+1	Morbier Cru de Montagne
+2	Otosclerosis
+2	Immersion Foot
+1	Herrgardsost
+2	Glandular Fever
+1	Sussex Slipcote
+2	Wernicke Encephalopathy
+1	Waimata Farmhouse Blue
+1	Pithtviers au Foin
+2	Jaundice
+1	Woodside Cabecou
+2	Skin Diseases, Infectious
+1	St. Agur Blue Cheese
+2	Cross Infection
+2	Retinoblastoma
+2	DiGeorge Syndrome
+2	Flatulence
+2	Paraplegia
+1	Queso del Montsec
+2	Sex Chromosome Aberrations
+2	Albinism (Skin Diseases ..)
+2	Fibromyalgia
+2	Rectal Diseases
+2	Retroperitoneal Fibrosis
+2	Alzheimer Disease
+1	Taupiniere
+1	Dunlop
+2	Olfaction Disorders
+2	Parkinson Disease
+2	Ischemic Attack, Transient (TIA)
+2	Tardive Dyskinesia
+1	Serat
+2	Erythroblastosis, Fetal
+2	Hyperthyroidism
+2	Kidney Calculi
+1	Alverca
+2	LandauKleffner Syndrome
+2	Mitochondrial Myopathies
+2	Wounds, Penetrating and Nonpenetrating
+1	Four Herb Gouda
+1	Remedou
+2	Miller Fisher Syndrome
+2	Primate Diseases
+2	Hemosiderosis
+2	Beriberi
+2	Corneal Edema
+1	Selva
+2	Osteitis Deformans
+1	Chevres
+1	Loddiswell Avondale
+2	Nasal Polyps
+2	Quincke's Edema
+2	EhlersDanlos Syndrome
+2	Buerger's Disease
+2	Autoimmune Diseases
+2	Dermatofibroma
+1	Petit-Suisse
+1	Rocamadour
+2	Temporal Arteritis
+2	RatBite Fever
+2	Tachycardia
+2	Intervertebral Disk Displacement
+1	Harbourne Blue
+2	Embolism, Cholesterol
+1	Fromage a Raclette
+1	Murol
+1	Fontina Val d'Aosta
+2	Urogenital Neoplasms
+1	Tilsit
+1	Pant ys Gawn
+1	Adelost
+1	Gippsland Blue
+2	Hemoglobinuria, Paroxysmal
+2	PallisterKillian Syndrome
+1	Pencarreg
+2	Autonomic Nervous System Diseases
+2	Xeroderma Pigmentosum
+2	CriglerNajjar Syndrome
+2	Fifth Disease
+2	Pruritus
+2	Tenosynovitis
+2	Ludwig's Angina
+2	FreemanSheldon Syndrome
+2	Heart Defects, Congenital (Cardiovascular Diseases)
+1	Sainte Maure
+2	Myotubular Myopathy
+2	Injury
+2	Hantavirus Infections
+2	Alport's Syndrome
+2	Frigidity
+2	Cleft Lip
+2	Esophageal Achalasia
+2	Dientamoebiasis
+2	Blastomycosis (in dogs)
+2	Undulant Fever
+1	Halloumi
+2	Schizophrenia
+1	Zanetti Parmigiano Reggiano
+2	Gastroesophageal Reflux
+2	Diabetes, Bronze
+1	Ridder
+2	Costello Syndrome
+1	Patefine Fort
+2	Cholesteatoma, Middle Ear
+1	Truffe
+1	Grand Vatel
+2	Klinefelter Syndrome
+1	Lancashire
+2	Factor XII Deficiency
+2	Hyponatremia
+2	Cysticercosis
+1	Passendale
+2	LangerGiedion Syndrome
+1	Queso de Murcia
+2	Bladder Neoplasms
+1	Quercy Petit
+2	Sore Throat
+2	Onychomycosis
+2	Yaws
+2	Sjogren's Syndrome
+2	Situs Inversus
+2	Dupuytren's Contracture
+2	Barth Syndrome
+1	Cooleney
+2	Spinal Diseases
+2	Eclampsia
+2	Dyshidrosis
+2	Lupus Erythematosus, Systemic
+1	Devon Garland
+2	Leber's Hereditary Optic Neuropathy
+1	Salers
+2	Kidney Diseases
+2	Tuberculosis
+2	Ferret Diseases
+2	Osteogenesis Imperfecta
+2	Pseudomonas Infections
+2	Milroy Disease
+2	Agammaglobulinemia
+1	Pate de Fromage
+2	Deafness, Sudden
+2	Trismus
+2	DandyWalker Syndrome
+2	Rocky Mountain Spotted Fever
+2	Hemorrhoids
+2	Mutism
+2	Hyperlipidemia
+2	Reptile Diseases
+2	Hydrocephalus
+2	Factor X Deficiency
+2	Miliaria
+2	Behavioral Symptoms
+2	Sneddon Syndrome
+2	Asthma
+2	Isaac's Syndrome
+1	Affidelice au Chablis
+1	Sveciaost
+1	Derby
+2	McArdle Disease
+1	Prince-Jean
+2	Thyroiditis, Autoimmune
+2	Toxoplasmosis
+2	Salmonella Infections
+2	Anisakiasis
+2	Xanthomatosis
+2	Chalazion
+2	Peptic Ulcer
+2	Vitiligo
+2	WilliamBeuren Syndrome
+2	Tetanus
+2	Nephritis, Hereditary
+2	Hemochromatosis
+2	Giardiasis
+1	Vulscombe
+1	Lebbene
+1	Buffalo
+2	Long QT Syndrome
+1	Double Worcester
+2	Stuttering
+2	Puberty, Precocious
+2	Cardiomyopathy, Hypertrophic
+2	Celiac Disease
+1	Pouligny-Saint-Pierre
+2	Mucocutaneous Lymph Node Syndrome
+1	Gloucester
+2	Paraproteinemias
+2	Bipolar Disorder
+1	Boule Du Roves
+1	Mimolette
+1	Kugelkase
+2	Latex Hypersensitivity
+2	Colonic Diseases, Functional
+2	PeutzJeghers Syndrome
+2	Suicidal Behavior
+2	Corneal Dystrophies
+2	Gout
+2	Anemia
+2	Lymphedema
+1	Fontal
+2	Prune Belly Syndrome
+2	Thygeson's Superficial Punctate Keratopathy
+1	Myzithra
+2	Tremor
+2	Larva Migrans
+2	Fuchs' Endothelial Dystrophy
+2	Neuroma, Morton's
+2	Myopathies, Nemaline
+1	Feta (Australian)
+1	Mahoe Aged Gouda
+2	Stomatitis, Aphthous
+2	Job's Syndrome
+1	Geitost
+1	Graddost
+2	Lipomatosis, Multiple Symmetrical
+1	Brinza (Burduf Brinza)
+2	ShyDrager Syndrome
+2	Hyperkalemia
+1	Metton (Cancoillotte)
+2	HermanskiPudlak Syndrome
+2	Dysautonomia, Familial
+2	Spondylitis, Ankylosing
+2	Toxic Shock Syndrome
+1	Kefalotyri
+2	Rodent Diseases
+1	Queso del Tietar
+2	Stickler/Marshall Syndrome
+2	Cholangitis
+2	Epidermal Cyst
+2	Trypanosomiasis, African
+2	Retinal Vein Occlusion
+1	Pourly
+2	Aortic Valve Stenosis
+2	Narcolepsy
+1	Trappe (Veritable)
+1	Camembert de Normandie
+2	Kidney Failure, Acute
+2	Hematoma, Epidural
+2	Pompe's Disease
+2	Porphyria
+2	Fibrodysplasia Ossificans Progressiva
+2	Hyperprolactinemia
+2	Communication Disorders
+2	Blastomycosis (in humans)
+2	Skin Neoplasms
+1	Meredith Blue
+2	Fish Diseases
+1	Dry Jack
+2	Nevus
+1	Grana Padano
+2	Spinal Dysraphism
+1	Bouyssou
+2	Congenital Central Hypoventilation Syndrome
+2	Muscular Dystrophies
+1	Provolone
+2	Dementia
+2	Escherichia coli Infections
+2	Amyotrophic Lateral Sclerosis (ALS)
+2	Amebiasis
+2	Amniotic Band Syndrome
+1	Brebis du Puyfaucon
+1	Cabecou
+2	Epididymitis
+2	Campylobacter Infections
+2	Elephantiasis
+1	Herriot Farmhouse
+2	Factor V Deficiency
+2	Entropion
+2	Wolfram Syndrome
+2	Insulin Resistance
+2	Adhesions, Pelvic
+2	Electric Injuries
+1	King Island Cape Wickham Brie
+2	Reye Syndrome
+2	Moyamoya Disease
+2	Astigmatism
+2	Polyneuropathies
+2	Biliary Atresia
+2	Multiple Sclerosis
+2	Familial Mediterranean Fever
+1	Wigmore
+2	Scheuermann's Disease
+1	Greuilh
+1	Taleggio
+2	Kennedy's Disease
+2	Cervix Dysplasia
+2	Exostoses
+1	Burgos
+2	Nocardia Infections
+1	Figue
+1	Casciotta di Urbino
+2	Erythema Infectiosum
+1	Crayeux de Roncq
+2	Ankyloglossia
+2	Swine Diseases
+1	Cornish Pepper
+1	Cwmtawe Pecorino
+1	Cachaille
+2	VesicoUreteral Reflux
+1	Idiazabal
+2	Dystonia
+1	Bel Paese
+2	Hematoma, Subdural
+2	Lymphoma, NonHodgkin
+2	Sweet's Syndrome
+2	Kearns Syndrome
+1	Sancerre
+2	CATCH22 Syndrome
+2	Polymyalgia Rheumatica
+2	Splenic Diseases
+2	Cherubism
+1	Tomme d'Abondance
+2	Laryngitis
+2	Breast Neoplasms
+2	PreEclampsia
+1	Hipi Iti
+2	Dermatomycoses
+1	Finlandia Swiss
+2	Kallmann Syndrome
+2	Esophageal Atresia
+2	Brucellosis
+1	Llanboidy
+1	Canadian Cheddar
+1	Penamellera
+2	Thoracic Neoplasms
+1	Bresse Bleu
+2	Scarlet Fever
+1	Bierkase
+2	Kissing Disease
+2	Head and Neck Neoplasms
+2	Lewy Body Disease
+2	Streptococcal Infections
+1	Gjetost
+1	Graviera
+1	Sbrinz
+2	Bell Palsy
+2	Cat Diseases
+2	Intestinal Neoplasms
+1	Yarg Cornish
+2	GuillainBarre Syndrome
+2	Cerebrovascular Disorders
+1	Reggianito
+1	Cantal
+2	Pemphigus, Benign Familial
+2	Clostridium Infections
+2	Leukodystrophy, Globoid Cell
+1	Oszczypek
+2	Shingles
+2	Hyperoxaluria
+2	Kienboecks Disease
+1	Tymsboro
+1	Emmental
+2	Lupus Erythematosus, Cutaneous
+2	Fibrous Dysplasia, Polyostotic
+2	Granuloma
+2	HoltOram Syndrome
+1	Malvern
+2	Multicystic Dysplastic Kidney
+2	Bronchiectasis
+2	Whooping Cough
+2	Pediculosis
+2	Piriformis Syndrome
+1	Gospel Green
+2	WolffParkinson-White Syndrome
+2	Tinea
+2	Hypoxia, Brain
+1	Waterloo
+1	Castigliano
+2	Mucolipidoses
+2	Trichomonas Infections
+2	Macular Degeneration
+2	Sleep Disorders
+1	Calenzana
+2	Dizziness (Nervous System Diseases)
+1	Cuajada
+2	Purpura, Thrombotic Thrombocytopenic
+2	Tinea Versicolor
+2	Hypohidrosis
+2	Hidradenitis Suppurativa
+2	Trichothiodystrophy
+2	Parapsoriasis
+1	Saint-Nectaire
+2	Polychondritis, Relapsing
+2	Supranuclear Palsy, Progressive
+1	Evora De L'Alentejo
+2	Galactosemias
+2	Motor Neuron Disease
+2	Bacteremia
+2	Hallucinations
+2	TolosaHunt Syndrome
+2	Bunion
+2	Amblyopia
+1	Baylough
+1	Aragon
+1	Ackawi
+2	Typhus, Epidemic LouseBorne
+2	Lymphoma
+2	Arrhythmogenic Right Ventricular Dysplasia
+2	Trypanosomiasis
+2	AntiGlomerular Basement Membrane Disease
+2	Rectal Prolapse
+2	Brown (Tendon Sheath) Syndrome
+1	Manur
+1	Pelardon des Corbieres
+2	RomanoWard Syndrome
+2	Anemia, Pernicious
+2	HemolyticUremic Syndrome (Urologic .. Diseases)
+2	Mastocytosis
+2	Tracheal Stenosis
+2	Hypotension
+1	Creme Fraiche
+2	Favism
+2	Beaver Fever
+2	Meconium Aspiration
+2	Reiter Disease
+1	Tyning
+2	Graves' Disease
+2	Herpes Simplex (Shingles)
+2	Thoracic Outlet Syndrome
+2	Eosinophilia
+2	Actinomycosis
+2	Gilbert Disease
+2	Wolman Disease
+2	Labyrinthitis
+2	Granuloma Inguinale
+2	Necrosis, Avascular, of Bone
+1	Perail de Brebis
+2	Albinism, Ocular
+1	Fromage Frais
+2	Anemia, Sickle Cell
+1	Whitestone Farmhouse
+2	Hyperinsulinemia
+2	Mercury Poisoning
+2	Rickettsia Infections
+2	HELLP Syndrome
+2	Purpura, Thrombocytopenic
+1	Haloumi-Style Cheese
+2	Lysosomal Storage Diseases
+1	Evansdale Farmhouse Brie
+2	Somatoform Disorders
+2	Colitis, Ulcerative
+2	Diffuse Cerebral Sclerosis of Schilder
+2	Presbyopia
+2	Canavan Disease
+1	Tasmania Highland Chevre Log
+2	Shock
+2	Diabetic Retinopathy
+2	Osgood Schlatter Disease
+2	Funnel Chest
+2	Encephalitis, Arbovirus
+1	Valencay
+2	Facial Asymmetry
+1	Beaufort
+2	Brain Abscess
+1	Galette du Paludier
+1	Coverdale
+1	Isle of Mull
+1	Mascarpone Torta
+2	Malignant Hyperthermia
+2	Ectodermal Dysplasia
+2	Hypertension, Portal
+1	Sardo Egyptian
+1	Grafton Village Cheddar
+2	Hepatolenticular Degeneration
+2	Chordoma
+2	Warts
+1	Fiore Sardo
+2	Tetrahydrobiopterin Deficiency
+1	Fougerus
+2	Aspergillosis
+2	Superior Vena Cava Syndrome
+2	Priapism
+2	Barotrauma
+2	Arthropathy, Neurogenic
+2	Silicosis
+1	Rouleau De Beaulieu
+2	Eating Disorders
+2	Pancreatitis
+2	KlippelFeil Syndrome
+1	Zamorano
+2	Dependent Personality Disorder
+1	Mihalic Peynir
+2	Adrenoleukodystrophy
+2	Pharyngitis
+2	Nephroblastoma
+2	Restless Legs Syndrome
+2	Acrocephalosyndactylia
+2	Moebius Syndrome
+2	Diabetes Insipidus, Nephrogenic
+2	Alagille Syndrome
+2	Esophagitis
+1	Brin d'Amour
+1	Soumaintrain
+2	Optic Neuropathy, Ischemic
+2	Parathyroid Diseases
+2	Craniofacial Dysostosis
+2	TaySachs Disease
+2	Gynecomastia
+2	Sheep and Goat Diseases
+2	Gangrene
+2	Hookworm Infections
+2	Polyradiculoneuropathy
+1	Tetilla
+2	Pneumonia
+1	Tomme de Savoie
+2	Adenoma
+2	Cryptosporidiosis
+1	Gris de Lille
+2	Glioblastoma
+2	Rheumatic Fever
+1	Sage Derby
+2	Bloom Syndrome
+1	Raschera
+2	Pertussis
+1	Bleu d'Auvergne
+2	Hirschsprung Disease
+2	Pigmentation Disorders
+2	Horse Diseases
+2	Mycobacterium Infections
+2	Fever
+1	Castellano
+2	Afibrinogenemia
+1	Pyengana Cheddar
+2	Intestinal Neuronal Dysplasia
+2	Protein C Deficiency
+1	Lou Pevre
+1	Denhany Dorset Drum
+2	Keratosis Follicularis
+1	Fourme d' Ambert
+1	Lou Palou
+2	von Recklinghausen Disease
+1	Nokkelost
+2	Melioidosis
+2	Alcoholism
+2	Manipulation, Chiropractic
+2	Monosomy 9p syndrome
+1	King River Gold
+2	Proteus Syndrome
+1	Berkswell
+1	Abondance
+2	Hemifacial Microsomia
+1	Jibneh Arabieh
+2	Acute Zonal Occult Outer Retinopathy
+2	Cat Eye Syndrome
+1	Olivet au Foin
+1	Bryndza
+2	Glaucoma
+1	Bocconcini (Australian)
+2	Noonan Syndrome
+2	Vestibular Neuronitis
+2	Cattle Diseases
+2	Diseases of Leporidae and Rodents
+2	Bronchiolitis Obliterans Organizing Pneumonia (BOOP)
+2	RubinsteinTaybi Syndrome
+2	BernardSoulier Syndrome
+2	Waardenburg's Syndrome
+2	Arthritis
+2	Rhabdomyolysis
+2	Spasmodic Dysphonia
+1	Rubens
+1	Cashel Blue
+2	Freiberg's Disease
+1	Buchette d'Anjou
+2	Mouth Neoplasms
+2	Meningioma
+2	Pyelonephritis
+2	Cholecystitis
+2	Papilledema
+1	Bleu de Gex
+2	Ondine Curse
+2	Vocal Cord Paralysis
+2	Irritable Bowel Syndrome
+2	Liver Cirrhosis
+2	Nasal Obstruction
+2	Fetofetal Transfusion
+1	Aromes au Gene de Marc
+2	Friedreich Ataxia
+1	Guerbigny
+2	Amyloidosis
+1	Fondant de Brebis
+2	GerstmannStraussler-Scheinker Disease
+2	Convulsions
+1	Mahon
+2	Thromboangiitis Obliterans
+1	Polkolbin
+1	Loch Arthur Farmhouse
+2	Trichinosis
+2	Hyperopia
+1	Laguiole
+2	Lemierre's Syndrome
+1	Sonoma Jack
+2	Hepatitis, Chronic
+2	Waldenstrom Macroglobulinemia
+2	AZOOR
+2	Puerperal Infection
+2	Hypospadias
+2	Retinitis Pigmentosa
+2	Filariasis
+2	Lentigo
+2	Orf
+2	Cystic Fibrosis
+2	Fibrosis
+2	Alphavirus Infections
+2	Malaria
+2	Phobic Disorders
+2	Cytomegalovirus Infections
+2	Pseudoxanthoma Elasticum
+1	Matocq
+1	Wellington
+1	Saint-Marcellin
+1	Port-Salut
+2	Nail Diseases
+2	Syphilis
+2	Apraxias
+1	Cairnsmore
+1	Exmoor Blue
+1	Sraffordshire Organic
+2	Rett Syndrome
+1	Ragusano
+2	Phlebitis
+2	Mastoiditis
+2	Proctitis
+1	Afuega'l Pitu
+2	Horner Syndrome
+1	Wensleydale
+2	Multiple Myeloma
+1	Bruder Basil
+2	Enterocolitis, Pseudomembranous
+1	Jindi Brie
+2	SteinLeventhal Syndrome
+1	Queso Iberico
+2	Pleural Effusion
+1	Canestrato
+2	Tethered Cord Syndrome
+1	Il Boschetto al Tartufo
+2	Myoclonus
+1	L'Aveyronnais
+1	Vendomois
+2	Microphthalmos
+2	Hypokalemia
+2	Coloboma
+2	Tympanic Membrane Perforation
+1	Mesost
+2	Fissure in Ano
+2	Spasms, Infantile (West Syndrome)
+1	Llanglofan Farmhouse
+2	Spasm
+1	Airag
+2	Ehrlichiosis
+2	Bladder Diseases
+2	Polycythemia Vera
+2	Foot Deformities
+1	Mont D'or Lyonnais
+2	Severe Combined Immunodeficiency
+1	Touree de L'Aubier
+2	Klebsiella Infections
+2	Phimosis
+2	Candidiasis, Vulvovaginal
+1	Pannerone
+2	HallervordenSpatz Syndrome
+2	POEMS Syndrome
+2	Lymphoproliferative Disorders
+1	Mondseer
+1	Coquetdale
+2	Microcephaly
+1	Explorateur
+1	Milleens
+1	Little Rydings
+2	Dengue
+2	West Nile Fever
+2	Diabetes, Gestational
+2	Pilonidal Sinus
+2	Geographic Tounge
+1	Paneer
+1	Briquette du Forez
+2	Fatty Acid Oxidation Disorders
+2	BrownSequard Syndrome
+2	Rh Isoimmunization
+2	Hernia, Diaphragmatic
+2	Glutaric Acidemia
+2	Bladder Exstrophy
+1	Petit Pardou
+2	Neoplasm, Residual
+2	Osteochondritis
+2	Fibromatosis, Juvenile Hyaline
+1	Bishop Kennedy
+1	Gowrie
+1	Venaco
+1	Marble Cheddar
+1	Coolea
+2	Borderline Personality Disorder
+1	Garrotxa
+1	Pyramide
+2	Diabetes Mellitus
+1	Etorki
+1	Barry's Bay Cheddar
+2	White Dot Syndrome
+2	BattenSpielmeyer-Vogt Disease

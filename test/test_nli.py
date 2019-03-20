@@ -5,12 +5,15 @@ import numpy as np
 import os
 import pytest
 from sklearn.linear_model import LogisticRegression
-from tf_shallow_neural_classifier import TfShallowNeuralClassifier
+from torch_shallow_neural_classifier import TorchShallowNeuralClassifier
+
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
 @pytest.fixture
 def wordentail_data():
-    nlidata_home = 'nlidata'
+    nlidata_home = os.path.join('data', 'nlidata')
     wordentail_filename = os.path.join(
         nlidata_home, 'nli_wordentail_bakeoff_data.json')
     with open(wordentail_filename) as f:
@@ -18,19 +21,22 @@ def wordentail_data():
     return data
 
 
-@pytest.mark.parametrize("key", nli.BAKEOFF_CONDITION_NAMES)
-def test_build_bakeoff_dataset(wordentail_data, key):
-    dataset = nli.build_bakeoff_dataset(
-        wordentail_data,
+@pytest.mark.parametrize("condition, split",[
+    ("edge_disjoint", "train"), ("edge_disjoint", "dev"),
+    ("word_disjoint", "train"), ("word_disjoint", "dev")
+])
+def test_word_entail_featurize(wordentail_data, condition, split):
+    data = wordentail_data[condition][split]
+    nli.word_entail_featurize(
+        data,
         vector_func=lambda x: np.ones(10),
         vector_combo_func=lambda u, v: np.concatenate((u, v)))
-    assert key in dataset
+
 
 
 @pytest.mark.parametrize("split, count", [
     ["edge_disjoint", 0],
-    ["word_disjoint", 0],
-    ["word_disjoint_balanced", 0]
+    ["word_disjoint", 0]
 ])
 def test_edge_overlap_size(wordentail_data, split, count):
     result = nli.get_edge_overlap_size(wordentail_data, split)
@@ -38,22 +44,24 @@ def test_edge_overlap_size(wordentail_data, split, count):
 
 
 @pytest.mark.parametrize("split, count", [
-    ["edge_disjoint", 4769],
-    ["word_disjoint", 0],
-    ["word_disjoint_balanced", 0]
+    ["edge_disjoint", 2916],
+    ["word_disjoint", 0]
 ])
 def test_vocab_overlap_size(wordentail_data, split, count):
     result = nli.get_vocab_overlap_size(wordentail_data, split)
     assert result == count
 
 
-def test_bakeoff_experiment(wordentail_data):
-    dataset = nli.build_bakeoff_dataset(
-        wordentail_data,
+@pytest.mark.parametrize("condition", [
+    "edge_disjoint", "word_disjoint"
+])
+def test_wordentail_experiment(wordentail_data, condition):
+    nli.wordentail_experiment(
+        train_data=wordentail_data[condition]['train'],
+        assess_data=wordentail_data[condition]['dev'],
         vector_func=lambda x: np.ones(10),
-        vector_combo_func=lambda u, v: np.concatenate((u, v)))
-    net = TfShallowNeuralClassifier(hidden_dim=5, max_iter=1)
-    nli.bakeoff_experiment(dataset, net)
+        vector_combo_func=lambda u, v: np.concatenate((u, v)),
+        model=TorchShallowNeuralClassifier(hidden_dim=5, max_iter=1))
 
 
 @pytest.mark.parametrize("s, expected", [
@@ -71,17 +79,27 @@ def test_str2tree(s, expected):
     assert result == expected
 
 
-@pytest.mark.parametrize("reader_class, count", [
-    [nli.SNLITrainReader, 550152],
-    [nli.SNLIDevReader, 10000],
-    [nli.MultiNLITrainReader, 392702],
-    [nli.MultiNLIMatchedDevReader, 10000],
-    [nli.MultiNLIMismatchedDevReader, 10000]
+data_home = os.path.join("data", "nlidata")
+
+snli_home = os.path.join(data_home, "snli_1.0")
+
+multinli_home = os.path.join(data_home, "multinli_1.0")
+
+annotations_home = os.path.join(data_home, "multinli_1.0_annotations")
+
+
+@pytest.mark.parametrize("reader_class, corpus_home, count", [
+    [nli.SNLITrainReader, snli_home, 550152],
+    [nli.SNLIDevReader, snli_home, 10000],
+    [nli.MultiNLITrainReader, multinli_home, 392702],
+    [nli.MultiNLIMatchedDevReader, multinli_home, 10000],
+    [nli.MultiNLIMismatchedDevReader, multinli_home, 10000]
 
 ])
 @pytest.mark.slow
-def test_nli_readers(reader_class, count):
-    reader = reader_class(samp_percentage=None, filter_unlabeled=False)
+def test_nli_readers(reader_class, corpus_home, count):
+    reader = reader_class(
+        corpus_home, samp_percentage=None, filter_unlabeled=False)
     result = len([1 for _ in reader.read()])
     assert result == count
 
@@ -91,30 +109,32 @@ def test_nli_readers(reader_class, count):
     "multinli_1.0_mismatched_annotations.txt"
 ])
 def test_read_annotated_subset(src_filename):
-    annotations_home = os.path.join(
-        "nlidata", "multinli_1.0_annotations")
     src_filename = os.path.join(
         annotations_home, src_filename)
-    data = nli.read_annotated_subset(src_filename)
+    data = nli.read_annotated_subset(src_filename, multinli_home)
     assert len(data) == 495
 
 
 def test_build_dataset():
     nli.build_dataset(
-        reader=nli.SNLITrainReader(samp_percentage=0.01),
+        reader=nli.SNLITrainReader(snli_home, samp_percentage=0.01),
         phi=lambda x, y: {"$UNK": 1},
         vectorizer=None,
         vectorize=True)
 
 
-def test_experiment():
+@pytest.mark.parametrize("assess_reader", [
+    None,
+    nli.SNLIDevReader(snli_home)
+])
+def test_experiment(assess_reader):
     def fit_maxent(X, y):
-        mod = LogisticRegression()
+        mod = LogisticRegression(solver='liblinear', multi_class='auto')
         mod.fit(X, y)
         return mod
     nli.experiment(
-        train_reader=nli.SNLITrainReader(samp_percentage=0.01),
+        train_reader=nli.SNLITrainReader(snli_home, samp_percentage=0.01),
         phi=lambda x, y: {"$UNK": 1},
         train_func=fit_maxent,
-        assess_reader=None,
+        assess_reader=assess_reader,
         random_state=42)
