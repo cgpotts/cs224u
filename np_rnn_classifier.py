@@ -1,11 +1,9 @@
-import sys
 import numpy as np
-import random
-from nn_model_base import NNModelBase
-from utils import randvec, d_tanh, softmax
+from np_model_base import NNModelBase
+from utils import softmax
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2018"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
 class RNNClassifier(NNModelBase):
@@ -35,7 +33,7 @@ class RNNClassifier(NNModelBase):
     The network will work for any kind of classification task.
 
     """
-    def __init__(self, vocab, hidden_dim=20, **kwargs):
+    def __init__(self, vocab, embedding=None, embed_dim=50, **kwargs):
         """
         Parameters
         ----------
@@ -49,24 +47,19 @@ class RNNClassifier(NNModelBase):
             Dimensionality for the initial embeddings. This is ignored
             if `embedding` is not None, as a specified value there
             determines this value.
-        hidden_dim : int
-            Dimensionality for the hidden layer.
-        eta : float
-            Learning rate.
-        max_iter : int
-            Maximum number of training epochs for SGD.
-        tol : float
-            Training terminates if the error reaches this point (or
-            `max_iter` is met).
-        display_progress : bool
-            Whether to print progress reports to stderr.
 
         All of the above are set as attributes. In addition, `self.embed_dim`
         is set to the dimensionality of the input representations.
 
         """
-        super(RNNClassifier, self).__init__(
-            vocab, hidden_dim=hidden_dim, **kwargs)
+        self.vocab = dict(zip(vocab, range(len(vocab))))
+        if embedding is None:
+            embedding = self._define_embedding_matrix(
+                len(self.vocab), embed_dim)
+        self.embedding = embedding
+        self.embed_dim = self.embedding.shape[1]
+        super(RNNClassifier, self).__init__(**kwargs)
+        self.params += ['embedding', 'embed_dim']
 
     def initialize_parameters(self):
         """
@@ -112,7 +105,7 @@ class RNNClassifier(NNModelBase):
         h = np.zeros((len(seq)+1, self.hidden_dim))
         for t in range(1, len(seq)+1):
             word_rep = self.get_word_rep(seq[t-1])
-            h[t] = np.tanh(
+            h[t] = self.hidden_activation(
                 word_rep.dot(self.W_xh) + h[t-1].dot(self.W_hh))
         y = softmax(h[-1].dot(self.W_hy) + self.b)
         return h, y
@@ -139,7 +132,7 @@ class RNNClassifier(NNModelBase):
         # Output errors:
         y_err = predictions
         y_err[np.argmax(labels)] -= 1
-        h_err = y_err.dot(self.W_hy.T) * d_tanh(h[-1])
+        h_err = y_err.dot(self.W_hy.T) * self.d_hidden_activation(h[-1])
         d_W_hy = np.outer(h[-1], y_err)
         d_b = y_err
         # For accumulating the gradients through time:
@@ -152,7 +145,7 @@ class RNNClassifier(NNModelBase):
             d_W_hh += np.outer(h[t], h_err)
             word_rep = self.get_word_rep(seq[t-1])
             d_W_xh += np.outer(word_rep, h_err)
-            h_err = h_err.dot(self.W_hh.T) * d_tanh(h[t])
+            h_err = h_err.dot(self.W_hh.T) * self.d_hidden_activation(h[t])
         return (d_W_hy, d_b, d_W_hh, d_W_xh)
 
     def update_parameters(self, gradients):
@@ -166,6 +159,7 @@ class RNNClassifier(NNModelBase):
 def simple_example():
     vocab = ['a', 'b', '$UNK']
 
+    # No b before an a
     train = [
         [list('ab'), 'good'],
         [list('aab'), 'good'],
@@ -174,19 +168,37 @@ def simple_example():
         [list('ba'), 'bad'],
         [list('baa'), 'bad'],
         [list('bba'), 'bad'],
-        [list('bbaa'), 'bad']]
+        [list('bbaa'), 'bad'],
+        [list('aba'), 'bad']
+    ]
 
     test = [
+        [list('baaa'), 'bad'],
+        [list('abaa'), 'bad'],
+        [list('bbaa'), 'bad'],
         [list('aaab'), 'good'],
-        [list('baaa'), 'bad']]
+        [list('aaabb'), 'good']
+    ]
 
-    mod = RNNClassifier(vocab=vocab, max_iter=100)
+    mod = RNNClassifier(
+        vocab=vocab,
+        max_iter=100,
+        embed_dim=50,
+        hidden_dim=50)
 
     X, y = zip(*train)
     mod.fit(X, y)
 
-    X_test, _ = zip(*test)
-    print('\nPredictions:', mod.predict(X_test))
+    X_test, y_test = zip(*test)
+
+    preds = mod.predict(X_test)
+
+    print("\nPredictions:")
+
+    for ex, pred, gold in zip(X_test, preds, y_test):
+        score = "correct" if pred == gold else "incorrect"
+        print("{0:>6} - predicted: {1:>4}; actual: {2:>4} - {3}".format(
+            "".join(ex), pred, gold, score))
 
 
 if __name__ == '__main__':

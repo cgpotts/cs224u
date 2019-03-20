@@ -2,10 +2,10 @@ import numpy as np
 import random
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2018 term"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
-class BasicSGDClassifier:
+class BasicSGDClassifier(object):
     """Basic implementation hinge-loss stochastic sub-gradient descent
     optimization, intended to illustrate the basic concepts of classifier
     optimization in code."""
@@ -152,8 +152,8 @@ def simple_example():
     """
     from sklearn.datasets import load_digits
     from sklearn.model_selection import train_test_split
-    from sklearn.metrics import classification_report
-    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import classification_report, accuracy_score
+
 
     digits = load_digits()
     X = digits.data
@@ -162,16 +162,17 @@ def simple_example():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.33, random_state=42)
 
-    models = [
-        BasicSGDClassifier(max_iter=500),
-        LogisticRegression()
-    ]
+    mod = BasicSGDClassifier(max_iter=500)
 
-    for mod in models:
-        print(mod)
-        mod.fit(X_train, y_train)
-        predictions = mod.predict(X_test)
-        print(classification_report(y_test, predictions))
+    print(mod)
+
+    mod.fit(X_train, y_train)
+
+    predictions = mod.predict(X_test)
+
+    print(classification_report(y_test, predictions))
+
+    return accuracy_score(y_test, predictions)
 
 
 if __name__ == '__main__':

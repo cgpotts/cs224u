@@ -1,35 +1,28 @@
 import numpy as np
 import random
-import sys
-from utils import randmatrix, progress_bar
+from utils import randvec, randmatrix, progress_bar, d_tanh
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2018"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
 class NNModelBase(object):
     def __init__(self,
-            vocab,
-            embedding=None,
-            embed_dim=10,
-            hidden_dim=20,
+            hidden_dim=50,
+            hidden_activation=np.tanh,
+            d_hidden_activation=d_tanh,
             eta=0.01,
             max_iter=100,
             tol=1e-6,
             display_progress=True):
-        self.vocab = dict(zip(vocab, range(len(vocab))))
-        if embedding is None:
-            embedding = self._define_embedding_matrix(
-                len(self.vocab), embed_dim)
-        self.embedding = embedding
-        self.embed_dim = self.embedding.shape[1]
         self.hidden_dim = hidden_dim
+        self.hidden_activation = hidden_activation
+        self.d_hidden_activation = d_hidden_activation
         self.eta = eta
         self.max_iter = max_iter
         self.tol = tol
         self.display_progress = display_progress
-        self.params = [
-            'embedding', 'embed_dim', 'hidden_dim', 'eta', 'max_iter']
+        self.params = ['hidden_dim', 'eta', 'max_iter']
 
     def initialize_parameters(self):
         raise NotImplementedError
@@ -65,8 +58,7 @@ class NNModelBase(object):
             random.shuffle(training_data)
             for ex, labels in training_data:
                 hidden_states, predictions = self.forward_propagation(ex)
-                # Cross-entropy error reduces to -log(prediction-for-correct-label):
-                error += -np.log(predictions[np.argmax(labels)])
+                error += self.get_error(predictions, labels)
                 # Back-prop:
                 gradients = self.backward_propagation(
                     hidden_states, predictions, ex, labels)
@@ -83,6 +75,11 @@ class NNModelBase(object):
                     progress_bar(
                         "Finished epoch {} of {}; error is {}".format
                         (iteration, self.max_iter, error))
+
+    @staticmethod
+    def get_error(predictions, labels):
+         # Cross-entropy error reduces to -log(prediction-for-correct-label).
+        return -np.log(predictions[np.argmax(labels)])
 
     @staticmethod
     def _define_embedding_matrix(vocab_size, embed_dim):
@@ -189,8 +186,15 @@ class NNModelBase(object):
         np.array, shape `(m, n)`
 
         """
-        x = np.sqrt(6.0/(m+n))
+        #x = np.sqrt(6.0/(m+n))
+        x = np.sqrt(1.0 / n)
         return randmatrix(m, n, lower=-x, upper=x)
+
+    @staticmethod
+    def bias_init(n):
+        """Uses the current PyTorch default `nn.Linear`."""
+        x = np.sqrt(1.0 / n)
+        return randvec(n, lower=-x, upper=x)
 
     def prepare_output_data(self, y):
         """Format `y` into a vector of one-hot encoded vectors.
@@ -266,3 +270,8 @@ class NNModelBase(object):
         for key, val in params.items():
             setattr(self, key, val)
         return self
+
+    def __repr__(self):
+        param_str = ["{}={}".format(a, getattr(self, a)) for a in self.params]
+        param_str = ",\n\t".join(param_str)
+        return "{}(\n\t{})".format(self.__class__.__name__, param_str)
