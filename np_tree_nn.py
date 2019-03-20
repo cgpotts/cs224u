@@ -1,16 +1,20 @@
-import sys
-import random
 import numpy as np
-from nn_model_base import NNModelBase
-from utils import randvec, d_tanh, softmax
+from np_model_base import NNModelBase
+from utils import softmax
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2018"
+__version__ = "CS224u, Stanford, Spring 2019"
 
 
 class TreeNN(NNModelBase):
-    def __init__(self, vocab, **kwargs):
-        super(TreeNN, self).__init__(vocab, **kwargs)
+    def __init__(self, vocab, embedding=None, embed_dim=50, **kwargs):
+        self.vocab = dict(zip(vocab, range(len(vocab))))
+        if embedding is None:
+            embedding = self._define_embedding_matrix(
+                len(self.vocab), embed_dim)
+        self.embedding = embedding
+        self.embed_dim = self.embedding.shape[1]
+        super(TreeNN, self).__init__(**kwargs)
         self.hidden_dim = self.embed_dim * 2
 
     def initialize_parameters(self):
@@ -84,7 +88,7 @@ class TreeNN(NNModelBase):
             right_rep = self._get_vector_tree_root(right_vectree)
             # Concatenate and create the hidden representation:
             combined = np.concatenate((left_rep, right_rep))
-            root_rep = np.tanh(combined.dot(self.W) + self.b)
+            root_rep = self.hidden_activation(combined.dot(self.W) + self.b)
             # Return the full subtree of vectors:
             return (root_rep, left_vectree, right_vectree)
 
@@ -117,7 +121,7 @@ class TreeNN(NNModelBase):
         # Internal error accumulation:
         d_W = np.zeros_like(self.W)
         d_b = np.zeros_like(self.b)
-        h_err = y_err.dot(self.W_hy.T) * d_tanh(root)
+        h_err = y_err.dot(self.W_hy.T) * self.d_hidden_activation(root)
         d_W, d_b = self._tree_backprop(vectree, h_err, d_W, d_b)
         return d_W_hy, d_b_y, d_W, d_b
 
@@ -136,7 +140,7 @@ class TreeNN(NNModelBase):
             combined = np.concatenate((left_rep, right_rep))
             d_W += np.outer(combined, h_err)
             # Get the gradients for both child nodes:
-            h_err = h_err.dot(self.W.T) * d_tanh(combined)
+            h_err = h_err.dot(self.W.T) * self.d_hidden_activation(combined)
             # Split the gradients between the children and continue
             # backpropagation down each subtree:
             l_err = h_err[: self.embed_dim]
@@ -157,10 +161,14 @@ class TreeNN(NNModelBase):
         self.hidden_dim = self.embed_dim * 2
 
 
-if __name__ == '__main__':
+def simple_example():
     from nltk.tree import Tree
 
     train = [
+        ["(N 1)", "odd"],
+        ["(N 2)", "even"],
+        ["(N (N 1))", "odd"],
+        ["(N (N 2))", "even"],
         ["(N (N 1) (B (F +) (N 1)))", "even"],
         ["(N (N 1) (B (F +) (N 2)))", "odd"],
         ["(N (N 2) (B (F +) (N 1)))", "odd"],
@@ -168,11 +176,33 @@ if __name__ == '__main__':
         ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 2)))))", "even"]
     ]
 
+    test = [
+        ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 1)))))", "odd"],
+        ["(N (N 2) (B (F +) (N (N 2) (B (F +) (N 2)))))", "even"],
+        ["(N (N 2) (B (F +) (N (N 2) (B (F +) (N 1)))))", "odd"],
+        ["(N (N 1) (B (F +) (N (N 2) (B (F +) (N 1)))))", "odd"],
+        ["(N (N 2) (B (F +) (N (N 1) (B (F +) (N 2)))))", "odd"]
+    ]
+
     vocab = ["1", "+", "2"]
 
-    X, y = zip(*train)
-    X = [Tree.fromstring(x) for x in X]
-    model = TreeNN(vocab, embed_dim=20, max_iter=5000)
-    model.fit(X, y)
+    X_train, y_train = zip(*train)
+    X_train = [Tree.fromstring(x) for x in X_train]
 
-    print(model.predict(X))
+    X_test, y_test = zip(*test)
+    X_test = [Tree.fromstring(x) for x in X_test]
+
+    model = TreeNN(vocab, embed_dim=50, hidden_dim=50, max_iter=1000)
+
+    model.fit(X_train, y_train)
+
+    print("\nTest predictions:")
+
+    preds = model.predict(X_test)
+
+    for tree, label, pred in zip(X_test, y_test, preds):
+        print("{}\n\tPredicted: {}\n\tActual: {}".format(tree, pred, label))
+
+
+if __name__ == '__main__':
+    simple_example()
