@@ -307,3 +307,10 @@ def create_pretrained_embedding(lookup, vocab):
         vocab.append("$UNK")
         embedding = np.vstack((embedding, randvec(embedding.shape[1])))
     return embedding, vocab
+
+
+def tf_train_progress_logging():
+    logging.getLogger('tensorflow').setLevel(logging.INFO)
+    def info_filter(logrec):
+        return int('loss' in logrec.getMessage().lower())
+    logging.getLogger('tensorflow').addFilter(info_filter)
