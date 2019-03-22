@@ -27,11 +27,11 @@ def kb():
 
 
 def test_corpus_length(corpus):
-    assert len(corpus) == 414123
+    assert len(corpus) == 331696
 
 
 def test_kb_length(kb):
-    assert len(kb) == 56575
+    assert len(kb) == 45884
 
 
 def test_dataset_build_dataset(corpus, kb):

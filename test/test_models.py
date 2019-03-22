@@ -5,6 +5,7 @@ import pytest
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import string
+import tensorflow as tf
 import torch.nn as nn
 import utils
 
@@ -13,6 +14,10 @@ import np_shallow_neural_classifier
 import np_rnn_classifier
 import np_autoencoder
 import np_tree_nn
+
+import tf_shallow_neural_classifier
+import tf_rnn_classifier
+import tf_autoencoder
 
 import torch_shallow_neural_classifier
 import torch_rnn_classifier
@@ -118,6 +123,26 @@ def test_torch_shallow_neural_classifier_simple_example():
     assert acc >= 0.90
 
 
+def test_tf_shallow_neural_classifier(XOR):
+    """Just makes sure that this code will run; it doesn't check that
+    it is creating good models.
+    """
+    X, y = XOR
+    model = tf_shallow_neural_classifier.TfShallowNeuralClassifier(
+        hidden_dim=4,
+        hidden_activation=tf.nn.tanh,
+        max_iter=100,
+        eta=0.01)
+    model.fit(X, y)
+    model.predict(X)
+    model.predict_proba(X)
+
+
+def test_tf_shallow_neural_classifier_simple_example():
+    acc = tf_shallow_neural_classifier.simple_example()
+    assert acc >= 0.90
+
+
 def test_np_rnn_classifier(X_sequence):
     """Just makes sure that this code will run; it doesn't check that
     it is creating good models.
@@ -157,17 +182,6 @@ def test_torch_rnn_classifier(X_sequence):
 
 
 def test_torch_rnn_classifier_cheese_disease(cheese_disease_dataset):
-    mod = np_rnn_classifier.RNNClassifier(
-        vocab=cheese_disease_dataset['vocab'],
-        embed_dim=20,
-        hidden_dim=20,
-        max_iter=20)
-    mod.fit(cheese_disease_dataset['X_train'], cheese_disease_dataset['y_train'])
-    pred = mod.predict(cheese_disease_dataset['X_test'])
-    assert accuracy_score(cheese_disease_dataset['y_test'], pred) > 0.80
-
-
-def test_torch_rnn_classifier_cheese_disease(cheese_disease_dataset):
     mod = torch_rnn_classifier.TorchRNNClassifier(
         vocab=cheese_disease_dataset['vocab'],
         embed_dim=20,
@@ -181,6 +195,36 @@ def test_torch_rnn_classifier_cheese_disease(cheese_disease_dataset):
 @pytest.mark.parametrize("initial_embedding", [True, False])
 def test_torch_rnn_classifier_simple_example(initial_embedding):
     torch_rnn_classifier.simple_example(initial_embedding)
+
+
+def test_tf_rnn_classifier(X_sequence):
+    """Just makes sure that this code will run; it doesn't check that
+    it is creating good models.
+    """
+    train, test, vocab = X_sequence
+    mod = tf_rnn_classifier.TfRNNClassifier(
+        vocab=vocab, max_iter=100)
+    X, y = zip(*train)
+    X_test, _ = zip(*test)
+    mod.fit(X, y)
+    mod.predict(X_test)
+    mod.predict_proba(X_test)
+
+
+def test_tf_rnn_classifier_cheese_disease(cheese_disease_dataset):
+    mod = tf_rnn_classifier.TfRNNClassifier(
+        vocab=cheese_disease_dataset['vocab'],
+        embed_dim=20,
+        hidden_dim=20,
+        max_iter=20)
+    mod.fit(cheese_disease_dataset['X_train'], cheese_disease_dataset['y_train'])
+    pred = mod.predict(cheese_disease_dataset['X_test'])
+    assert accuracy_score(cheese_disease_dataset['y_test'], pred) > 0.80
+
+
+@pytest.mark.parametrize("initial_embedding", [True, False])
+def test_tf_rnn_classifier_simple_example(initial_embedding):
+    tf_rnn_classifier.simple_example(initial_embedding)
 
 
 @pytest.mark.parametrize("pandas", [True, False])
@@ -212,6 +256,20 @@ def test_torch_autoencoder(pandas):
     H_is_pandas = isinstance(H, pd.DataFrame)
     assert H_is_pandas == pandas
 
+@pytest.mark.parametrize("pandas", [True, False])
+def test_tf_autoencoder(pandas):
+    """Just makes sure that this code will run; it doesn't check that
+    it is creating good models.
+    """
+    X = utils.randmatrix(20, 50)
+    if pandas:
+        X = pd.DataFrame(X)
+    ae = tf_autoencoder.TfAutoencoder(hidden_dim=5, max_iter=100)
+    H = ae.fit(X)
+    ae.predict(X)
+    H_is_pandas = isinstance(H, pd.DataFrame)
+    assert H_is_pandas == pandas
+
 
 def test_np_autoencoder_simple_example():
     mse = np_autoencoder.simple_example()
@@ -220,6 +278,10 @@ def test_np_autoencoder_simple_example():
 
 def test_torch_autoencoder_simple_example():
     mse = torch_autoencoder.simple_example()
+    assert mse < 0.0001
+
+def test_tf_autoencoder_simple_example():
+    mse = tf_autoencoder.simple_example()
     assert mse < 0.0001
 
 
@@ -249,6 +311,11 @@ def test_sgd_classifier():
     ],
     [
         torch_rnn_classifier.TorchRNNClassifier(
+            vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
+        {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
+    ],
+    [
+        tf_rnn_classifier.TfRNNClassifier(
             vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
         {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
     ],
@@ -300,6 +367,26 @@ def test_sgd_classifier():
         {
             'hidden_dim': 10,
             'hidden_activation': nn.ReLU(),
+            'max_iter': 10,
+            'eta': 0.1
+        }
+    ],
+    [
+        tf_shallow_neural_classifier.TfShallowNeuralClassifier(
+            hidden_dim=5, hidden_activation=tf.nn.tanh, max_iter=1, eta=1.0),
+        {
+            'hidden_dim': 10,
+            'hidden_activation': tf.nn.relu,
+            'max_iter': 10,
+            'eta': 0.1
+        }
+    ],
+    [
+        tf_autoencoder.TfAutoencoder(
+            hidden_dim=5, hidden_activation=tf.nn.tanh, max_iter=1, eta=1.0),
+        {
+            'hidden_dim': 10,
+            'hidden_activation': tf.nn.relu,
             'max_iter': 10,
             'eta': 0.1
         }

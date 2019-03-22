@@ -25,28 +25,6 @@ def test_readers(reader, count):
     assert result == count
 
 
-@pytest.mark.parametrize("X, n_words, expected", [
-    [
-        [["a", "b", "c"], ["b", "c", "d"]],
-        None,
-        ["$UNK", "a", "b", "c", "d"]
-    ],
-    [
-        [["a", "b", "c"], ["b", "c", "d"]],
-        2,
-        ["$UNK", "b", "c"]
-    ],
-    [
-        [],
-        2,
-        ["$UNK"]
-    ]
-])
-def test_get_vocab(X, n_words, expected):
-    result = sst.get_vocab(X, n_words=n_words)
-    assert result == expected
-
-
 def test_build_dataset_vectorizing():
     phi = lambda tree: Counter(tree.leaves())
     class_func = None

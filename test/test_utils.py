@@ -63,3 +63,24 @@ def test_glove2dict():
     src_filename = os.path.join("data", "glove.6B", "glove.6B.50d.txt")
     data = utils.glove2dict(src_filename)
     assert len(data) == 400000
+
+@pytest.mark.parametrize("X, n_words, expected", [
+    [
+        [["a", "b", "c"], ["b", "c", "d"]],
+        None,
+        ["$UNK", "a", "b", "c", "d"]
+    ],
+    [
+        [["a", "b", "c"], ["b", "c", "d"]],
+        2,
+        ["$UNK", "b", "c"]
+    ],
+    [
+        [],
+        2,
+        ["$UNK"]
+    ]
+])
+def test_get_vocab(X, n_words, expected):
+    result = utils.get_vocab(X, n_words=n_words)
+    assert result == expected
