@@ -1,3 +1,4 @@
+from nltk.tree import Tree
 import numpy as np
 import os
 import pandas as pd
@@ -57,6 +58,24 @@ def X_sequence():
         [list('aaab'), 'good'],
         [list('baaa'), 'bad']]
     return train, test, vocab
+
+
+@pytest.fixture
+def X_tree():
+    vocab = ["1", "+", "2", "$UNK"]
+    train = [
+        ["(N 1)", "odd"],
+        ["(N 2)", "even"],
+        ["(N (N 1))", "odd"],
+        ["(N (N 2))", "even"],
+        ["(N (N 1) (B (F +) (N 1)))", "even"],
+        ["(N (N 1) (B (F +) (N 2)))", "odd"],
+        ["(N (N 2) (B (F +) (N 1)))", "odd"],
+        ["(N (N 2) (B (F +) (N 2)))", "even"],
+        ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 2)))))", "even"]]
+    X_train, y_train = zip(*train)
+    X_train = [Tree.fromstring(x) for x in X_train]
+    return X_train, y_train, vocab
 
 
 @pytest.fixture
@@ -123,6 +142,19 @@ def test_torch_shallow_neural_classifier_simple_example():
     assert acc >= 0.90
 
 
+def test_torch_shallow_neural_classifier_incremental(XOR):
+    X, y = XOR
+    model = torch_shallow_neural_classifier.TorchShallowNeuralClassifier(
+        hidden_dim=4,
+        hidden_activation=nn.ReLU(),
+        max_iter=100,
+        eta=0.01)
+    model.fit(X, y, X_dev=X, dev_iter=1)
+    epochs = list(model.dev_predictions.keys())
+    assert epochs == list(range(1, 101))
+    assert all(len(v)==len(X) for v in model.dev_predictions.values())
+
+
 def test_tf_shallow_neural_classifier(XOR):
     """Just makes sure that this code will run; it doesn't check that
     it is creating good models.
@@ -179,6 +211,18 @@ def test_torch_rnn_classifier(X_sequence):
     mod.fit(X, y)
     mod.predict(X_test)
     mod.predict_proba(X_test)
+
+
+def test_torch_rnn_classifier_incremental(X_sequence):
+    train, test, vocab = X_sequence
+    model = torch_rnn_classifier.TorchRNNClassifier(
+        vocab=vocab, max_iter=100)
+    X, y = zip(*train)
+    X_test, _ = zip(*test)
+    model.fit(X, y, X_dev=X_test, dev_iter=20)
+    epochs = list(model.dev_predictions.keys())
+    assert epochs == list(range(20, 101, 20))
+    assert all(len(v)==len(X_test) for v in model.dev_predictions.values())
 
 
 def test_torch_rnn_classifier_cheese_disease(cheese_disease_dataset):
@@ -292,6 +336,20 @@ def test_np_tree_nn_simple_example():
 @pytest.mark.parametrize("initial_embedding", [True, False])
 def test_torch_tree_nn_simple_example(initial_embedding):
     torch_tree_nn.simple_example(initial_embedding)
+
+
+def test_torch_tree_nn_incremental(X_tree):
+    X, y, vocab = X_tree
+    model = torch_tree_nn.TorchTreeNN(
+        vocab,
+        embed_dim=50,
+        hidden_dim=50,
+        max_iter=100,
+        embedding=None)
+    model.fit(X, y, X_dev=X, dev_iter=20)
+    epochs = list(model.dev_predictions.keys())
+    assert epochs == list(range(20, 101, 20))
+    assert all(len(v)==len(X) for v in model.dev_predictions.values())
 
 
 def test_sgd_classifier():
