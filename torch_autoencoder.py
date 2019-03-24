@@ -36,15 +36,17 @@ class TorchAutoencoder(TorchModelBase):
         optimizer = self.optimizer(self.model.parameters(), lr=self.eta)
         # Train:
         for iteration in range(1, self.max_iter+1):
+            epoch_error = 0.0
             for X_batch, y_batch in dataloader:
                 X_batch = X_batch.to(self.device)
                 y_batch = y_batch.to(self.device)
                 batch_preds = self.model(X_batch)
                 err = loss(batch_preds, y_batch)
-                # Backprop:
+                epoch_error += err.item()
                 optimizer.zero_grad()
                 err.backward()
                 optimizer.step()
+            self.errors.append(epoch_error)
             progress_bar(
                 "Finished epoch {} of {}; error is {}".format(
                     iteration, self.max_iter, err))

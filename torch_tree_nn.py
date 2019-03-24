@@ -82,7 +82,27 @@ class TorchTreeNN(TorchModelBase):
         self.params += ['embed_dim', 'embedding']
         self.device = 'cpu'
 
-    def fit(self, X, y):
+    def fit(self, X, y, **kwargs):
+        """Standard `fit` method.
+
+        Parameters
+        ----------
+        X : np.array
+        y : array-like
+        kwargs : dict
+            For passing other parameters. If 'X_dev' is included,
+            then performance is monitored every 10 epochs; use
+            `dev_iter` to control this number.
+
+        Returns
+        -------
+        self
+
+        """
+        # Incremental performance:
+        X_dev = kwargs.get('X_dev')
+        if X_dev is not None:
+            dev_iter = kwargs.get('dev_iter', 10)
         # Data prep:
         self.classes_ = sorted(set(y))
         self.n_classes_ = len(self.classes_)
@@ -118,6 +138,10 @@ class TorchTreeNN(TorchModelBase):
                 optimizer.zero_grad()
                 err.backward()
                 optimizer.step()
+            # Incremental predictions where possible:
+            if X_dev is not None and iteration > 0 and iteration % dev_iter == 0:
+                self.dev_predictions[iteration] = self.predict(X_dev)
+            self.errors.append(epoch_error)
             progress_bar(
                 "Finished epoch {} of {}; error is {}".format(
                     iteration, self.max_iter, epoch_error))

@@ -32,6 +32,8 @@ class TorchModelBase(object):
             'max_iter',
             'eta',
             'optimizer']
+        self.errors = []
+        self.dev_predictions = {}
 
     def get_params(self, deep=True):
         return {p: getattr(self, p) for p in self.params}
