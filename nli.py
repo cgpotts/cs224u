@@ -419,6 +419,7 @@ def experiment(
     -------
     dict with keys
         'model': trained model
+        'phi': the function used for featurization
         'train_dataset': a dataset as returned by `build_dataset`
         'assess_dataset': a dataset as returned by `build_dataset`
         'predictions': predictions on the assessment data
@@ -464,6 +465,7 @@ def experiment(
     # Return the overall score and experimental info:
     return {
         'model': mod,
+        'phi': phi,
         'train_dataset': train,
         'assess_dataset': assess,
         'predictions': predictions,
