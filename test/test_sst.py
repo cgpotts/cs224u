@@ -1,5 +1,6 @@
 from collections import Counter
 import os
+from sklearn.linear_model import LogisticRegression
 import sst
 from torch_rnn_classifier import TorchRNNClassifier
 import pytest
@@ -61,3 +62,21 @@ def test_build_binary_rnn_dataset():
     X, y = sst.build_binary_rnn_dataset(sst_home, sst.train_reader)
     assert len(X) == 6920
     assert len(y) == 6920
+
+
+@pytest.mark.parametrize("assess_reader", [
+    None,
+    sst.dev_reader
+])
+def test_experiment(assess_reader):
+    def fit_maxent(X, y):
+        mod = LogisticRegression(solver='liblinear', multi_class='auto')
+        mod.fit(X, y)
+        return mod
+    sst.experiment(
+        sst_home,
+        train_reader=sst.train_reader,
+        phi=lambda x: {"$UNK": 1},
+        train_func=fit_maxent,
+        assess_reader=assess_reader,
+        random_state=42)
