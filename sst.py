@@ -219,7 +219,8 @@ def experiment(
         class_func=binary_class_func,
         score_func=utils.safe_macro_f1,
         vectorize=True,
-        verbose=True):
+        verbose=True,
+        random_state=None):
     """Generic experimental framework for SST. Either assesses with a
     random train/test split of `train_reader` or with `assess_reader` if
     it is given.
@@ -265,6 +266,8 @@ def experiment(
     verbose : bool (default: True)
         Whether to print out the model assessment to standard output.
         Set to False for statistical testing via repeated runs.
+    random_state : int or None
+        Optionally set the random seed for consistent sampling.
 
     Prints
     -------
@@ -301,7 +304,7 @@ def experiment(
     if assess_reader == None:
         X_train, X_assess, y_train, y_assess, raw_train, raw_assess = train_test_split(
             X_train, y_train, raw_train,
-            train_size=train_size, test_size=None)
+            train_size=train_size, test_size=None, random_state=random_state)
         assess = {
             'X': X_assess,
             'y': y_assess,
