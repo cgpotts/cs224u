@@ -24,6 +24,7 @@ import torch_shallow_neural_classifier
 import torch_rnn_classifier
 import torch_autoencoder
 import torch_tree_nn
+import torch_subtree_nn
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2019"
@@ -64,18 +65,17 @@ def X_sequence():
 def X_tree():
     vocab = ["1", "+", "2", "$UNK"]
     train = [
-        ["(N 1)", "odd"],
-        ["(N 2)", "even"],
-        ["(N (N 1))", "odd"],
-        ["(N (N 2))", "even"],
-        ["(N (N 1) (B (F +) (N 1)))", "even"],
-        ["(N (N 1) (B (F +) (N 2)))", "odd"],
-        ["(N (N 2) (B (F +) (N 1)))", "odd"],
-        ["(N (N 2) (B (F +) (N 2)))", "even"],
-        ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 2)))))", "even"]]
-    X_train, y_train = zip(*train)
-    X_train = [Tree.fromstring(x) for x in X_train]
-    return X_train, y_train, vocab
+        "(odd 1)",
+        "(even 2)",
+        "(odd (pdd 1))",
+        "(even (even 2))",
+        "(even (odd 1) (neutral (neutral +) (odd 1)))",
+        "(odd (odd 1) (neutral (neutral +) (even 2)))",
+        "(odd (even 2) (neutral (neutral +) (odd 1)))",
+        "(even (even 2) (neutral (neutral +) (even 2)))",
+        "(even (odd 1) (neutralB (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"]
+    X_train = [Tree.fromstring(x) for x in train]
+    return X_train, vocab
 
 
 @pytest.fixture
@@ -339,17 +339,40 @@ def test_torch_tree_nn_simple_example(initial_embedding):
 
 
 def test_torch_tree_nn_incremental(X_tree):
-    X, y, vocab = X_tree
+    X, vocab = X_tree
     model = torch_tree_nn.TorchTreeNN(
         vocab,
         embed_dim=50,
         hidden_dim=50,
         max_iter=100,
         embedding=None)
-    model.fit(X, y, X_dev=X, dev_iter=20)
+    model.fit(X, X_dev=X, dev_iter=20)
     epochs = list(model.dev_predictions.keys())
     assert epochs == list(range(20, 101, 20))
     assert all(len(v)==len(X) for v in model.dev_predictions.values())
+
+
+def test_torch_subtree_nn_simple_example():
+    torch_subtree_nn.simple_example()
+
+
+@pytest.mark.parametrize("tree", [
+    "(special 1)",
+    "(special 2)",
+    "(special (odd 1))",
+    "(special (even 2))",
+    "(special (odd 1) (neutral (neutral +) (odd 1)))"
+])
+def test_subtree_supervision_root_label_alignment(tree):
+    tree = Tree.fromstring(tree)
+    model = torch_subtree_nn.TorchSubtreeNNModel(
+        vocab=["1", "+", "2", "$UNK"],
+        embed_dim=5,
+        embedding=None,
+        output_dim=2,
+        hidden_activation=nn.Tanh())
+    reps, labels = model.interpret(tree, reps=[], labels=[])
+    assert labels[-1] == 'special'
 
 
 def test_sgd_classifier():

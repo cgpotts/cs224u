@@ -26,6 +26,12 @@ def test_readers(reader, count):
     assert result == count
 
 
+def test_reader_labeling():
+    tree, label = next(sst.train_reader(sst_home, class_func=sst.ternary_class_func))
+    for subtree in tree.subtrees():
+        assert subtree.label() in {'negative', 'neutral', 'positive'}
+
+
 def test_build_dataset_vectorizing():
     phi = lambda tree: Counter(tree.leaves())
     class_func = None
@@ -58,8 +64,9 @@ def test_build_dataset_not_vectorizing():
     assert len(dataset['y']) == len(dataset['X'])
 
 
-def test_build_binary_rnn_dataset():
-    X, y = sst.build_binary_rnn_dataset(sst_home, sst.train_reader)
+def test_build_rnn_dataset():
+    X, y = sst.build_rnn_dataset(
+        sst_home, sst.train_reader, class_func=sst.binary_class_func)
     assert len(X) == 6920
     assert len(y) == 6920
 
