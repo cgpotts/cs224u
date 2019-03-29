@@ -102,6 +102,41 @@ class TorchRNNClassifierModel(nn.Module):
 
 
 class TorchRNNClassifier(TorchModelBase):
+    """LSTM-based Recurrent Neural Network for classification problems.
+    The network will work for any kind of classification task.
+
+    Parameters
+    ----------
+    vocab : list of str
+        This should be the vocabulary. It needs to be aligned with
+         `embedding` in the sense that the ith element of vocab
+        should be represented by the ith row of `embedding`.
+    embedding : np.array or None
+        Each row represents a word in `vocab`, as described above.
+    embed_dim : int
+        Dimensionality for the initial embeddings. This is ignored
+        if `embedding` is not None, as a specified value there
+        determines this value.
+    hidden_dim : int
+        Dimensionality of the hidden layer.
+    bidirectional : bool
+        If True, then the final hidden states from passes in both
+        directions are used.
+    hidden_activation : vectorized activation function
+        The non-linear activation function used by the network for the
+        hidden layer. Default `nn.Tanh()`.
+    max_iter : int
+        Maximum number of training epochs.
+    eta : float
+        Learning rate.
+    optimizer : PyTorch optimizer
+        Default is `torch.optim.Adam`.
+    l2_strength : float
+        L2 regularization strength. Default 0 is no regularization.
+    device : 'cpu' or 'cuda'
+        The default is to use 'cuda' iff available
+
+    """
     def __init__(self,
             vocab,
             embedding=None,
@@ -191,6 +226,17 @@ class TorchRNNClassifier(TorchModelBase):
         return self
 
     def predict_proba(self, X):
+        """Predicted probabilities for the examples in `X`.
+
+        Parameters
+        ----------
+        X : np.array
+
+        Returns
+        -------
+        np.array with shape (len(X), self.n_classes_)
+
+        """
         with torch.no_grad():
             X, seq_lengths = self._prepare_dataset(X)
             preds = self.model(X, seq_lengths)
@@ -198,6 +244,19 @@ class TorchRNNClassifier(TorchModelBase):
             return preds
 
     def predict(self, X):
+        """Predicted labels for the examples in `X`. These are converted
+        from the integers that PyTorch needs back to their original
+        values in `self.classes_`.
+
+        Parameters
+        ----------
+        X : np.array
+
+        Returns
+        -------
+        list of length len(X)
+
+        """
         probs = self.predict_proba(X)
         return [self.classes_[i] for i in probs.argmax(axis=1)]
 

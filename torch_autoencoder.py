@@ -10,6 +10,30 @@ __version__ = "CS224u, Stanford, Spring 2019"
 
 
 class TorchAutoencoder(TorchModelBase):
+    """A simple autoencoder. The graph and parameters are identical
+    to those of the `TorchShallowNeuralClassifier`. The changes are that
+    the outputs are identical to the inputs, and we use a squared-error
+    loss function.
+
+    Parameters
+    ----------
+    hidden_dim : int
+        Dimensionality of the hidden layer.
+    hidden_activation : vectorized activation function
+        The non-linear activation function used by the network for the
+        hidden layer. Default `nn.Tanh()`.
+    max_iter : int
+        Maximum number of training epochs.
+    eta : float
+        Learning rate.
+    optimizer : PyTorch optimizer
+        Default is `torch.optim.Adam`.
+    l2_strength : float
+        L2 regularization strength. Default 0 is no regularization.
+    device : 'cpu' or 'cuda'
+        The default is to use 'cuda' iff available
+
+    """
     def __init__(self, **kwargs):
         super(TorchAutoencoder, self).__init__(**kwargs)
 
@@ -20,6 +44,18 @@ class TorchAutoencoder(TorchModelBase):
             nn.Linear(self.hidden_dim, self.output_dim_))
 
     def fit(self, X):
+        """Returns the matrix of hidden representations.
+
+        Parameters
+        ----------
+        X : np.array or pd.DataFrame
+
+        Returns
+        -------
+        np.array or pd.DataFrame (depending on the nature of the input)
+        This will have shape `(len(X), self.hidden_dim)`.
+
+        """
         # Data prep:
         self.input_dim_ = X.shape[1]
         self.output_dim_ = X.shape[1]
@@ -56,6 +92,18 @@ class TorchAutoencoder(TorchModelBase):
             return self.convert_output(H, X)
 
     def predict(self, X):
+        """Returns the reconstructed matrix.
+
+        Parameters
+        ----------
+        X : np.array or pd.DataFrame
+
+        Returns
+        -------
+        np.array or pd.DataFrame (depending on the nature of the input)
+        This will have the same shape as `X`.
+
+        """
         with torch.no_grad():
             X_tensor = self.convert_input_to_tensor(X)
             X_pred = self.model(X_tensor)

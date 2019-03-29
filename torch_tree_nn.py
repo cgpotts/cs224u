@@ -9,25 +9,6 @@ __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2019"
 
 
-class TorchTreeDataset(torch.utils.data.Dataset):
-    def __init__(self, trees, y):
-        assert len(trees) == len(y)
-        self.trees = trees
-        self.y = y
-
-    def __len__(self):
-        return len(self.trees)
-
-    def __getitem__(self, idx):
-        return (self.trees[idx], self.y[idx])
-
-    @staticmethod
-    def collate_fn(batch):
-        X, y = zip(*batch)
-        y = torch.tensor(y, dtype=torch.long)
-        return X, y
-
-
 class TorchTreeNNModel(nn.Module):
     def __init__(self, vocab, embed_dim, embedding, output_dim, hidden_activation):
         super().__init__()
@@ -44,24 +25,38 @@ class TorchTreeNNModel(nn.Module):
 
     def _define_embedding(self, embedding):
         if embedding is None:
-           return nn.Embedding(self.vocab_size, self.embed_dim)
+            return nn.Embedding(self.vocab_size, self.embed_dim)
         else:
             embedding = torch.tensor(embedding, dtype=torch.float)
             return nn.Embedding.from_pretrained(embedding)
 
-    def forward(self, trees):
-        roots = torch.zeros([len(trees), self.embed_dim])
-        for i, tree in enumerate(trees):
-            roots[i] = self.interpret(tree)
-        return self.classifier_layer(roots)
+    def forward(self, tree):
+        """Recursively interprets `tree`, applying a classifier layer
+        to the final representation. The label comes from the root
+        of the tree itself.
+
+        Parameters
+        ----------
+        tree : nltk.tree.Tree
+
+        Returns
+        -------
+        torch.LongTensor, label (str)
+
+        """
+        root = self.interpret(tree)
+        return self.classifier_layer(root), tree.label()
 
     def interpret(self, subtree):
+        # Terminal nodes are str:
         if isinstance(subtree, str):
             i = self.vocab_lookup.get(subtree, self.vocab_lookup['$UNK'])
             ind = torch.tensor([i], dtype=torch.long)
             return self.embedding(ind)
+        # Non-branching nodes:
         elif len(subtree) == 1:
             return self.interpret(subtree[0])
+        # Branching nodes:
         else:
             left_subtree, right_subtree = subtree[0], subtree[1]
             left_subtree = self.interpret(left_subtree)
@@ -82,13 +77,21 @@ class TorchTreeNN(TorchModelBase):
         self.params += ['embed_dim', 'embedding']
         self.device = 'cpu'
 
-    def fit(self, X, y, **kwargs):
-        """Standard `fit` method.
+    def build_graph(self):
+        self.model = TorchTreeNNModel(
+            vocab=self.vocab,
+            embedding=self.embedding,
+            embed_dim=self.embed_dim,
+            output_dim=self.n_classes_,
+            hidden_activation=self.hidden_activation)
+
+    def fit(self, X, **kwargs):
+        """Fairly standard `fit` method except that the labels `y` are
+        presumed to come from the root nodes of the trees in `X`.
 
         Parameters
         ----------
-        X : np.array
-        y : array-like
+        X : list of `nltk.Tree` instances
         kwargs : dict
             For passing other parameters. If 'X_dev' is included,
             then performance is monitored every 10 epochs; use
@@ -104,26 +107,11 @@ class TorchTreeNN(TorchModelBase):
         if X_dev is not None:
             dev_iter = kwargs.get('dev_iter', 10)
         # Data prep:
-        self.classes_ = sorted(set(y))
+        self.classes_ = self.get_classes(X)
         self.n_classes_ = len(self.classes_)
-        class2index = dict(zip(self.classes_, range(self.n_classes_)))
-        y = [class2index[label] for label in y]
-        # Dataset:
-        dataset = TorchTreeDataset(X, y)
-        dataloader = torch.utils.data.DataLoader(
-            dataset,
-            batch_size=self.batch_size,
-            shuffle=True,
-            drop_last=False,
-            num_workers=0,
-            collate_fn=dataset.collate_fn)
+        self.class2index = dict(zip(self.classes_, range(self.n_classes_)))
         # Model:
-        self.model = TorchTreeNNModel(
-            vocab=self.vocab,
-            embedding=self.embedding,
-            embed_dim=self.embed_dim,
-            output_dim=self.n_classes_,
-            hidden_activation=self.hidden_activation)
+        self.build_graph()
         self.model.to(self.device)
         # Optimization:
         loss = nn.CrossEntropyLoss()
@@ -131,9 +119,11 @@ class TorchTreeNN(TorchModelBase):
         # Train:
         for iteration in range(1, self.max_iter+1):
             epoch_error = 0.0
-            for X_batch, y_batch in dataloader:
-                batch_preds = self.model(X_batch)
-                err = loss(batch_preds, y_batch)
+            random.shuffle(X)
+            for tree in X:
+                pred, label = self.model.forward(tree)
+                label = self.convert_label(label)
+                err = loss(pred, label)
                 epoch_error += err.item()
                 optimizer.zero_grad()
                 err.backward()
@@ -147,12 +137,70 @@ class TorchTreeNN(TorchModelBase):
                     iteration, self.max_iter, epoch_error))
         return self
 
+    @staticmethod
+    def get_classes(X):
+        """Classes as given by the root nodes in `X`.
+
+        Parameters
+        ----------
+        X : list of nltk.tree.Tree
+
+        Returns
+        -------
+        list
+
+        """
+        return sorted({t.label() for t in X})
+
+    def convert_label(self, label):
+        """Convert a class label to a format that PyTorch can handle.
+
+        Parameters
+        ----------
+        label : member of `self.classes_`
+
+        Returns
+        -------
+        torch.LongTensor of length 1
+
+        """
+        i = self.class2index[label]
+        return torch.LongTensor([i])
+
     def predict_proba(self, X):
+        """Predicted probabilities for the examples in `X`.
+
+        Parameters
+        ----------
+        X : list of nltk.tree.Tree
+
+        Returns
+        -------
+        np.array with shape (len(X), self.n_classes_)
+
+        """
         with torch.no_grad():
-            preds = self.model(X)
+            preds = []
+            for tree in X:
+                pred, _ = self.model.forward(tree)
+                preds.append(pred.squeeze())
+            preds = torch.stack(preds)
             return torch.softmax(preds, dim=1).numpy()
 
     def predict(self, X):
+        """Predicted labels for the examples in `X`. These are converted
+        from the integers that PyTorch needs back to their original
+        values in `self.classes_`.
+
+        Parameters
+        ----------
+        X : list of nltk.tree.Tree
+
+        Returns
+        -------
+        list of length len(X)
+
+        """
         probs = self.predict_proba(X)
         return [self.classes_[i] for i in probs.argmax(axis=1)]
 
@@ -161,32 +209,27 @@ def simple_example(initial_embedding=False):
     from nltk.tree import Tree
 
     train = [
-        ["(N 1)", "odd"],
-        ["(N 2)", "even"],
-        ["(N (N 1))", "odd"],
-        ["(N (N 2))", "even"],
-        ["(N (N 1) (B (F +) (N 1)))", "even"],
-        ["(N (N 1) (B (F +) (N 2)))", "odd"],
-        ["(N (N 2) (B (F +) (N 1)))", "odd"],
-        ["(N (N 2) (B (F +) (N 2)))", "even"],
-        ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 2)))))", "even"]
-    ]
+        "(odd 1)",
+        "(even 2)",
+        "(odd (odd 1))",
+        "(even (even 2))",
+        "(even (odd 1) (neutral (neutral +) (odd 1)))",
+        "(odd (odd 1) (neutral (neutral +) (even 2)))",
+        "(odd (even 2) (neutral (neutral +) (odd 1)))",
+        "(even (even 2) (neutral (neutral +) (even 2)))",
+        "(even (odd 1) (neutral (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"]
 
     test = [
-        ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 1)))))", "odd"],
-        ["(N (N 2) (B (F +) (N (N 2) (B (F +) (N 2)))))", "even"],
-        ["(N (N 2) (B (F +) (N (N 2) (B (F +) (N 1)))))", "odd"],
-        ["(N (N 1) (B (F +) (N (N 2) (B (F +) (N 1)))))", "odd"],
-        ["(N (N 2) (B (F +) (N (N 1) (B (F +) (N 2)))))", "odd"]
-    ]
+        "(odd (odd 1) (neutral (neutral +) (even (odd 1) (neutral (neutral +) (odd 1)))))",
+        "(even (even 2) (neutral (neutral +) (even (even 2) (neutral (neutral +) (even 2)))))",
+        "(odd (even 2) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
+        "(odd (odd 1) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
+        "(odd (even 2) (neutral (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"]
 
     vocab = ["1", "+", "2", "$UNK"]
 
-    X_train, y_train = zip(*train)
-    X_train = [Tree.fromstring(x) for x in X_train]
-
-    X_test, y_test = zip(*test)
-    X_test = [Tree.fromstring(x) for x in X_test]
+    X_train = [Tree.fromstring(x) for x in train]
+    X_test = [Tree.fromstring(x) for x in test]
 
     if initial_embedding:
         import numpy as np
@@ -199,14 +242,16 @@ def simple_example(initial_embedding=False):
         vocab,
         embed_dim=50,
         hidden_dim=50,
-        max_iter=1000,
+        max_iter=100,
         embedding=embedding)
 
-    mod.fit(X_train, y_train)
+    mod.fit(X_train)
 
     print("\nTest predictions:")
 
     preds = mod.predict(X_test)
+
+    y_test = [t.label() for t in X_test]
 
     for tree, label, pred in zip(X_test, y_test, preds):
         print("{}\n\tPredicted: {}\n\tActual: {}".format(tree, pred, label))
