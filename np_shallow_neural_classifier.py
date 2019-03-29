@@ -65,7 +65,7 @@ class ShallowNeuralClassifier(NNModelBase):
         return h, y
 
     def backward_propagation(self, h, predictions, x, labels):
-        y_err = predictions
+        y_err = predictions.copy()
         y_err[np.argmax(labels)] -= 1
         d_b_hy = y_err
         h_err = y_err.dot(self.W_hy.T) * self.d_hidden_activation(h)

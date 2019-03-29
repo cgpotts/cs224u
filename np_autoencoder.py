@@ -24,7 +24,7 @@ class Autoencoder(NNModelBase):
 
     @staticmethod
     def get_error(predictions, labels):
-         return (0.5 * (predictions - labels)**2).mean()
+        return (0.5 * (predictions - labels)**2).sum()
 
     def initialize_parameters(self):
         self.W_xh = self.weight_init(self.input_dim, self.hidden_dim)
@@ -41,11 +41,11 @@ class Autoencoder(NNModelBase):
 
     def forward_propagation(self, x):
         h = self.hidden_activation(x.dot(self.W_xh) + self.b_xh)
-        y = h.dot(self.W_hy + self.b_hy)
+        y = h.dot(self.W_hy) + self.b_hy
         return h, y
 
-    def backward_propagation(self, h, predictions, x, x_pred):
-        y_err = x_pred - x
+    def backward_propagation(self, h, predictions, x, labels):
+        y_err = predictions - labels
         d_b_hy = y_err
         h_err = y_err.dot(self.W_hy.T) * self.d_hidden_activation(h)
         d_W_hy = np.outer(h, y_err)

@@ -118,7 +118,7 @@ class TreeNN(NNModelBase):
     def backward_propagation(self, vectree, predictions, ex, labels):
         root = self._get_vector_tree_root(vectree)
         # Output errors:
-        y_err = predictions
+        y_err = predictions.copy()
         y_err[np.argmax(labels)] -= 1.0
         d_W_hy = np.outer(root, y_err)
         d_b_y = y_err
@@ -134,24 +134,18 @@ class TreeNN(NNModelBase):
         if isinstance(deep_tree, np.ndarray):
             return d_W, d_b
         else:
-            # Bias gradient:
-            d_b += h_err
-            # Get the left and right representations:
             left_subtree, right_subtree = deep_tree[0], deep_tree[1]
             left_rep = self._get_vector_tree_root(left_subtree)
             right_rep = self._get_vector_tree_root(right_subtree)
-            # Combine them and update d_W:
             combined = np.concatenate((left_rep, right_rep))
+            d_b += h_err
             d_W += np.outer(combined, h_err)
-            # Get the gradients for both child nodes:
-            h_err = h_err.dot(self.W.T) * self.d_hidden_activation(combined)
-            # Split the gradients between the children and continue
-            # backpropagation down each subtree:
-            l_err = h_err[: self.embed_dim]
-            r_err = h_err[self.embed_dim: ]
+            err = h_err.dot(self.W.T) * self.d_hidden_activation(combined)
+            l_err = err[: self.embed_dim]
+            r_err = err[self.embed_dim: ]
             d_W, d_b = self._tree_backprop(left_subtree, l_err, d_W, d_b)
             d_W, d_b = self._tree_backprop(right_subtree, r_err, d_W, d_b)
-        return d_W, d_b
+            return d_W, d_b
 
     def update_parameters(self, gradients):
         d_W_hy, d_b_y, d_W, d_b = gradients
@@ -167,12 +161,11 @@ class TreeNN(NNModelBase):
 
 def simple_example():
     from nltk.tree import Tree
+    import utils
 
     train = [
         "(odd 1)",
         "(even 2)",
-        "(odd (odd 1))",
-        "(even (even 2))",
         "(even (odd 1) (neutral (neutral +) (odd 1)))",
         "(odd (odd 1) (neutral (neutral +) (even 2)))",
         "(odd (even 2) (neutral (neutral +) (odd 1)))",
@@ -181,10 +174,12 @@ def simple_example():
     ]
 
     test = [
+        "(odd (odd 1))",
+        "(even (even 2))",
         "(odd (odd 1) (neutral (neutral +) (even (odd 1) (neutral (neutral +) (odd 1)))))",
         "(even (even 2) (neutral (neutral +) (even (even 2) (neutral (neutral +) (even 2)))))",
         "(odd (even 2) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
-        "(odd (odd 1) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
+        "(even (odd 1) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
         "(odd (even 2) (neutral (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"
     ]
 
@@ -194,7 +189,11 @@ def simple_example():
 
     X_test = [Tree.fromstring(x) for x in test]
 
-    model = TreeNN(vocab, embed_dim=50, hidden_dim=50, max_iter=1000)
+    model = TreeNN(
+        vocab,
+        embed_dim=50,
+        hidden_dim=50,
+        max_iter=100)
 
     model.fit(X_train)
 
@@ -204,8 +203,12 @@ def simple_example():
 
     y_test = [t.label() for t in X_test]
 
+    correct = 0
     for tree, label, pred in zip(X_test, y_test, preds):
+        if pred == label:
+            correct += 1
         print("{}\n\tPredicted: {}\n\tActual: {}".format(tree, pred, label))
+    print("{}/{} correct".format(correct, len(X_test)))
 
 
 if __name__ == '__main__':

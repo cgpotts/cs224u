@@ -211,8 +211,6 @@ def simple_example(initial_embedding=False):
     train = [
         "(odd 1)",
         "(even 2)",
-        "(odd (odd 1))",
-        "(even (even 2))",
         "(even (odd 1) (neutral (neutral +) (odd 1)))",
         "(odd (odd 1) (neutral (neutral +) (even 2)))",
         "(odd (even 2) (neutral (neutral +) (odd 1)))",
@@ -220,10 +218,12 @@ def simple_example(initial_embedding=False):
         "(even (odd 1) (neutral (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"]
 
     test = [
+        "(odd (odd 1))",
+        "(even (even 2))",
         "(odd (odd 1) (neutral (neutral +) (even (odd 1) (neutral (neutral +) (odd 1)))))",
         "(even (even 2) (neutral (neutral +) (even (even 2) (neutral (neutral +) (even 2)))))",
         "(odd (even 2) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
-        "(odd (odd 1) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
+        "(even (odd 1) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
         "(odd (even 2) (neutral (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"]
 
     vocab = ["1", "+", "2", "$UNK"]
@@ -242,7 +242,7 @@ def simple_example(initial_embedding=False):
         vocab,
         embed_dim=50,
         hidden_dim=50,
-        max_iter=100,
+        max_iter=50,
         embedding=embedding)
 
     mod.fit(X_train)
@@ -253,8 +253,12 @@ def simple_example(initial_embedding=False):
 
     y_test = [t.label() for t in X_test]
 
+    correct = 0
     for tree, label, pred in zip(X_test, y_test, preds):
+        if pred == label:
+            correct += 1
         print("{}\n\tPredicted: {}\n\tActual: {}".format(tree, pred, label))
+    print("{}/{} correct".format(correct, len(X_test)))
 
 
 if __name__ == '__main__':
