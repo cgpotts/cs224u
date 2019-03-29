@@ -17,6 +17,10 @@ class TreeNN(NNModelBase):
         super(TreeNN, self).__init__(**kwargs)
         self.hidden_dim = self.embed_dim * 2
 
+    def fit(self, X):
+        y = [t.label() for t in X]
+        return super(TreeNN, self).fit(X, y)
+
     def initialize_parameters(self):
         # Hidden parameters for semantic composition:
         self.W = self.weight_init(self.hidden_dim, self.embed_dim)
@@ -36,14 +40,14 @@ class TreeNN(NNModelBase):
         p = tanh([x_l; x_r]W + b)
 
         where x_l and x_r are the representations on the root of
-        left and right. and [x_l; x_r] is their concatenation.
+        left and right, and [x_l; x_r] is their concatenation.
 
         The representation on the root is then fed to a softmax
         classifier.
 
         Returns
         ----------
-        vectree :  np.array or tuple of tuples (of tuples ...) of np.array
+        vectree : np.array or tuple of tuples (of tuples ...) of np.array
             Predicted vector representation of the entire tree
         y : np.array
             The predictions made for this example, dimension
@@ -115,7 +119,7 @@ class TreeNN(NNModelBase):
         root = self._get_vector_tree_root(vectree)
         # Output errors:
         y_err = predictions
-        y_err[np.argmax(labels)] -= 1
+        y_err[np.argmax(labels)] -= 1.0
         d_W_hy = np.outer(root, y_err)
         d_b_y = y_err
         # Internal error accumulation:
@@ -130,7 +134,7 @@ class TreeNN(NNModelBase):
         if isinstance(deep_tree, np.ndarray):
             return d_W, d_b
         else:
-            # Biased gradient:
+            # Bias gradient:
             d_b += h_err
             # Get the left and right representations:
             left_subtree, right_subtree = deep_tree[0], deep_tree[1]
@@ -165,40 +169,40 @@ def simple_example():
     from nltk.tree import Tree
 
     train = [
-        ["(N 1)", "odd"],
-        ["(N 2)", "even"],
-        ["(N (N 1))", "odd"],
-        ["(N (N 2))", "even"],
-        ["(N (N 1) (B (F +) (N 1)))", "even"],
-        ["(N (N 1) (B (F +) (N 2)))", "odd"],
-        ["(N (N 2) (B (F +) (N 1)))", "odd"],
-        ["(N (N 2) (B (F +) (N 2)))", "even"],
-        ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 2)))))", "even"]
+        "(odd 1)",
+        "(even 2)",
+        "(odd (odd 1))",
+        "(even (even 2))",
+        "(even (odd 1) (neutral (neutral +) (odd 1)))",
+        "(odd (odd 1) (neutral (neutral +) (even 2)))",
+        "(odd (even 2) (neutral (neutral +) (odd 1)))",
+        "(even (even 2) (neutral (neutral +) (even 2)))",
+        "(even (odd 1) (neutral (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"
     ]
 
     test = [
-        ["(N (N 1) (B (F +) (N (N 1) (B (F +) (N 1)))))", "odd"],
-        ["(N (N 2) (B (F +) (N (N 2) (B (F +) (N 2)))))", "even"],
-        ["(N (N 2) (B (F +) (N (N 2) (B (F +) (N 1)))))", "odd"],
-        ["(N (N 1) (B (F +) (N (N 2) (B (F +) (N 1)))))", "odd"],
-        ["(N (N 2) (B (F +) (N (N 1) (B (F +) (N 2)))))", "odd"]
+        "(odd (odd 1) (neutral (neutral +) (even (odd 1) (neutral (neutral +) (odd 1)))))",
+        "(even (even 2) (neutral (neutral +) (even (even 2) (neutral (neutral +) (even 2)))))",
+        "(odd (even 2) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
+        "(odd (odd 1) (neutral (neutral +) (odd (even 2) (neutral (neutral +) (odd 1)))))",
+        "(odd (even 2) (neutral (neutral +) (odd (odd 1) (neutral (neutral +) (even 2)))))"
     ]
 
     vocab = ["1", "+", "2"]
 
-    X_train, y_train = zip(*train)
-    X_train = [Tree.fromstring(x) for x in X_train]
+    X_train = [Tree.fromstring(x) for x in train]
 
-    X_test, y_test = zip(*test)
-    X_test = [Tree.fromstring(x) for x in X_test]
+    X_test = [Tree.fromstring(x) for x in test]
 
     model = TreeNN(vocab, embed_dim=50, hidden_dim=50, max_iter=1000)
 
-    model.fit(X_train, y_train)
+    model.fit(X_train)
 
     print("\nTest predictions:")
 
     preds = model.predict(X_test)
+
+    y_test = [t.label() for t in X_test]
 
     for tree, label, pred in zip(X_test, y_test, preds):
         print("{}\n\tPredicted: {}\n\tActual: {}".format(tree, pred, label))

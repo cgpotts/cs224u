@@ -10,7 +10,7 @@ class ShallowNeuralClassifier(NNModelBase):
     """Fit a model
 
     h = f(xW1 + b1)
-    y = f(hW2 + b2)
+    y = softmax(hW2 + b2)
 
     with a cross entropy loss.
     """
