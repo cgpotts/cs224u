@@ -410,10 +410,9 @@ def experiment(
     Prints
     -------
     To standard output, if `verbose=True`
-        Model accuracy and a model precision/recall/F1 report. Accuracy is
-        reported because many SST papers report that figure, but the
-        precision/recall/F1 is better given the class imbalances and the
-        fact that performance across the classes can be highly variable.
+        Model precision/recall/F1 report. Accuracy is micro-F1 and is
+        reported because many NLI papers report that figure, but the
+        precision/recall/F1 are better given the slight class imbalances.
 
     Returns
     -------
@@ -460,7 +459,6 @@ def experiment(
     predictions = mod.predict(X_assess)
     # Report:
     if verbose:
-        print('Accuracy: {0:0.03f}'.format(accuracy_score(y_assess, predictions)))
         print(classification_report(y_assess, predictions, digits=3))
     # Return the overall score and experimental info:
     return {
