@@ -7,7 +7,7 @@ import random
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, accuracy_score, f1_score
+from sklearn.metrics import classification_report, f1_score
 import scipy.stats
 import utils
 
@@ -15,19 +15,9 @@ __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2019"
 
 
-def sentiment_treebank_reader(
-        src_filename,
-        include_subtrees=False,
-        replace_root_score=True,
-        class_func=None):
+def sentiment_treebank_reader(src_filename, class_func=None):
     """Iterator for the Penn-style distribution of the Stanford
     Sentiment Treebank. The iterator yields (tree, label) pairs.
-
-    The root node of the tree is the label, so the root node itself is
-    replaced with a string to ensure that it doesn't get used as a
-    predictor. The subtree labels are retained. If they are used, it can
-    feel like cheating (see `root_daughter_scores_phis` below), so take
-    care!
 
     The labels are strings. They do not make sense as a linear order
     because negative ('0', '1'), neutral ('2'), and positive ('3','4')
@@ -38,18 +28,10 @@ def sentiment_treebank_reader(
     ----------
     src_filename : str
         Full path to the file to be read.
-    include_subtrees : boolean (default: False)
-        Whether to yield all the subtrees with labels or just the full
-        tree. In both cases, the label is the root of the subtree.
-    replace_root_score : boolean (default: True)
-        The root node of the tree is the label, so, by default, the root
-        node itself is replaced with a string to ensure that it doesn't
-        get used as a predictor.
     class_func : None, or function mapping labels to labels or None
         If this is None, then the original 5-way labels are returned.
         Other options: `binary_class_func` and `ternary_class_func`
         (or you could write your own).
-
 
     Yields
     ------
@@ -62,21 +44,14 @@ def sentiment_treebank_reader(
     with open(src_filename) as f:
         for line in f:
             tree = Tree.fromstring(line)
-            if include_subtrees:
+            label = class_func(tree.label())
+            # As in the paper, if the root node doesn't fall into any
+            # of the classes for this version of the problem, then
+            # we drop the example:
+            if label:
                 for subtree in tree.subtrees():
-                    label = subtree.label()
-                    label = class_func(label)
-                    if label:
-                        if replace_root_score:
-                            subtree.set_label("X")
-                        yield (subtree, label)
-            else:
-                label = tree.label()
-                label = class_func(label)
-                if label:
-                    if replace_root_score:
-                        tree.set_label("S")
-                    yield (tree, label)
+                    subtree.set_label(class_func(subtree.label()))
+                yield (tree, label)
 
 
 def binary_class_func(y):
@@ -116,7 +91,7 @@ def ternary_class_func(y):
 def train_reader(sst_home, **kwargs):
     """Convenience function for reading the train file, full-trees only."""
     src = os.path.join(sst_home, 'train.txt')
-    return sentiment_treebank_reader(src,**kwargs)
+    return sentiment_treebank_reader(src, **kwargs)
 
 
 def dev_reader(sst_home, **kwargs):
@@ -132,18 +107,6 @@ def test_reader(sst_home, **kwargs):
     """
     src = os.path.join(sst_home, 'test.txt')
     return sentiment_treebank_reader(src, **kwargs)
-
-
-def allnodes_train_reader(sst_home, **kwargs):
-    """Convenience function for reading the train file, all nodes."""
-    src = os.path.join(sst_home, 'train.txt')
-    return sentiment_treebank_reader(src, include_subtrees=True, **kwargs)
-
-
-def allnodes_dev_reader(sst_home):
-    """Convenience function for reading the dev file, all nodes."""
-    src = os.path.join(sst_home, 'dev.txt')
-    return sentiment_treebank_reader(src, include_subtrees=True, **kwargs)
 
 
 def build_dataset(sst_home, reader, phi, class_func, vectorizer=None, vectorize=True):
@@ -216,7 +179,7 @@ def experiment(
         train_reader=train_reader,
         assess_reader=None,
         train_size=0.7,
-        class_func=binary_class_func,
+        class_func=ternary_class_func,
         score_func=utils.safe_macro_f1,
         vectorize=True,
         verbose=True,
@@ -232,7 +195,7 @@ def experiment(
     phi : feature function
         Any function that takes an `nltk.Tree` instance as input
         and returns a bool/int/float-valued dict as output.
-    train_func : model wrapper (default: `fit_maxent_classifier`)
+    train_func : model wrapper
         Any function that takes a feature matrix and a label list
         as its values and returns a fitted model with a `predict`
         function that operates on feature matrices.
@@ -272,8 +235,8 @@ def experiment(
     Prints
     -------
     To standard output, if `verbose=True`
-        Model accuracy and a model precision/recall/F1 report. Accuracy is
-        reported because many SST papers report that figure, but the
+        Model precision/recall/F1 report. Accuracy is micro-F1 and is
+        reported because many SST papers report that figure, but macro
         precision/recall/F1 is better given the class imbalances and the
         fact that performance across the classes can be highly variable.
 
@@ -326,7 +289,6 @@ def experiment(
     predictions = mod.predict(X_assess)
     # Report:
     if verbose:
-        print('Accuracy: {0:0.03f}'.format(accuracy_score(y_assess, predictions)))
         print(classification_report(y_assess, predictions, digits=3))
     # Return the overall score and experimental info:
     return {
@@ -395,11 +357,6 @@ def compare_models(
         The first two are the scores from each model (length `trials`),
         and the third is the p-value returned by stats_test.
 
-    TODO
-    ----
-    This function can easily be parallelized. The ParallelPython
-    makes this easy:http://www.parallelpython.com
-
     """
     if phi2 == None:
         phi2 = phi1
@@ -433,87 +390,16 @@ def compare_models(
     return (scores1, scores2, pval)
 
 
-def compare_models_mcnemar(
-        sst_home,
-        phi1,
-        train_func1,
-        phi2=None,
-        train_func2=None,
-        vectorize1=True,
-        vectorize2=True,
-        train_reader=train_reader,
-        assess_reader=dev_reader,
-        class_func=ternary_class_func):
-    """Wrapper for comparing models. The parameters are like those of
-    `experiment`, with the same defaults, except
+def build_rnn_dataset(sst_home, reader, class_func=ternary_class_func):
+    """Given an SST reader, return the `class_func` version of the
+    dataset as  (X, y) training pair.
 
     Parameters
     ----------
     sst_home : str
         Full path to the 'trees' directory for SST.
-    phi1, phi2
-        Just like `phi` for `experiment`. `phi1` defaults to
-        `unigrams_phi`. If `phi2` is None, then it is set equal
-        to `phi1`.
-    train_func1, train_func2
-        Just like `train_func` for `experiment`. If `train_func2`
-        is None, then it is set equal to `train_func`.
-    vectorize1, vectorize1 : bool
-        Whether to vectorize the respective inputs. Use `False` for
-        deep learning models that featurize their own input.
-    train_reader : SST iterator (default: `train_reader`)
-        Iterator for training data.
-    assess_reader : iterator
-        Iterator for assessment data.
-    class_func :
-
-    Prints
-    ------
-    To standard output
-        A report of the assessment.
-
-    Returns
-    -------
-    (float, float)
-        Test statistic and p-value.
-
-    """
-    if phi2 == None:
-        phi2 = phi1
-    if train_func2 == None:
-        train_func2 = train_func1
-    exp1 = experiment(
-        sst_home,
-        train_reader=train_reader,
-        assess_reader=assess_reader,
-        phi=phi1,
-        train_func=train_func1,
-        class_func=class_func,
-        vectorize=vectorize1,
-        verbose=False)
-    exp2 = experiment(
-        sst_home,
-        train_reader=train_reader,
-        assess_reader=assess_reader,
-        phi=phi2,
-        train_func=train_func2,
-        class_func=class_func,
-        vectorize=vectorize2,
-        verbose=False)
-    assert exp1['assess_dataset']['y'] == exp2['assess_dataset']['y']
-    gold = exp1['assess_dataset']['y']
-    preds1 = exp1['predictions']
-    preds2 = exp2['predictions']
-    return utils.mcnemar(gold, preds1, preds2)
-
-
-def build_binary_rnn_dataset(sst_home, reader):
-    """Given an SST reader, return the binary version of the dataset
-    as  (X, y) training pair.
-
-    Parameters
-    ----------
     reader : train_reader or dev_reader
+    class_func : function on the SST labels
 
     Returns
     -------
@@ -521,7 +407,36 @@ def build_binary_rnn_dataset(sst_home, reader):
        Where X is a list of list of str, and y is the output label list.
 
     """
-    r = reader(sst_home, class_func=binary_class_func)
+    r = reader(sst_home, class_func=class_func)
     data = [(tree.leaves(), label) for tree, label in r]
     X, y = zip(*data)
     return list(X), list(y)
+
+
+def build_tree_dataset(sst_home, reader, class_func=ternary_class_func):
+    """Given an SST reader, return the `class_func` version of the
+    dataset. The root node of each tree (`tree.label()`) is set to
+    the class for that tree. We also return the label vector for
+    assessment.
+
+    Parameters
+    ----------
+    sst_home : str
+        Full path to the 'trees' directory for SST.
+    reader : train_reader or dev_reader
+    class_func : function on the SST labels
+
+    Returns
+    -------
+    X, y
+        Where X is a list of `nltk.tree.Tree`, and y is the output
+        label list.
+
+    """
+    data = []
+    labels = []
+    for (tree, label) in reader(sst_home, class_func=class_func):
+        tree.set_label(label)
+        data.append(tree)
+        labels.append(label)
+    return data, labels
