@@ -32,34 +32,51 @@ class RNNClassifier(NNModelBase):
 
     The network will work for any kind of classification task.
 
+    Parameters
+    ----------
+    vocab : list of str
+        This should be the vocabulary. It needs to be aligned with
+        `embedding` in the sense that the ith element of vocab
+        should be represented by the ith row of `embedding`. Ignored
+        if `use_embedding=False`.
+    embedding : np.array or None
+        Each row represents a word in `vocab`, as described above.
+    use_embedding : bool
+        If True, then incoming examples are presumed to be lists of
+        elements of the vocabulary. If False, then they are presumed
+        to be lists of vectors. In this case, the `embedding` and
+       `embed_dim` arguments are ignored, since no embedding is needed
+       and `embed_dim` is set by the nature of the incoming vectors.
+    embed_dim : int
+        Dimensionality for the initial embeddings. This is ignored
+        if `embedding` is not None, as a specified value there
+        determines this value. Also ignored if `use_embedding=False`.
+
+    All of the above are set as attributes. In addition, `self.embed_dim`
+    is set to the dimensionality of the input representations.
+
     """
-    def __init__(self, vocab, embedding=None, embed_dim=50, **kwargs):
-        """
-        Parameters
-        ----------
-        vocab : list of str
-            This should be the vocabulary. It needs to be aligned with
-            `embedding` in the sense that the ith element of vocab
-            should be represented by the ith row of `embedding`.
-        embedding : np.array or None
-            Each row represents a word in `vocab`, as described above.
-        embed_dim : int
-            Dimensionality for the initial embeddings. This is ignored
-            if `embedding` is not None, as a specified value there
-            determines this value.
-
-        All of the above are set as attributes. In addition, `self.embed_dim`
-        is set to the dimensionality of the input representations.
-
-        """
+    def __init__(self,
+            vocab,
+            embedding=None,
+            use_embedding=True,
+            embed_dim=50,
+            **kwargs):
         self.vocab = dict(zip(vocab, range(len(vocab))))
-        if embedding is None:
-            embedding = self._define_embedding_matrix(
-                len(self.vocab), embed_dim)
-        self.embedding = embedding
-        self.embed_dim = self.embedding.shape[1]
+        self.use_embedding = use_embedding
+        if self.use_embedding:
+            if embedding is None:
+                embedding = self._define_embedding_matrix(
+                    len(self.vocab), embed_dim)
+            self.embedding = embedding
+            self.embed_dim = self.embedding.shape[1]
         super(RNNClassifier, self).__init__(**kwargs)
         self.params += ['embedding', 'embed_dim']
+
+    def fit(self, X, y):
+        if not self.use_embedding:
+            self.embed_dim = len(X[0][0])
+        return super(RNNClassifier, self).fit(X, y)
 
     def initialize_parameters(self):
         """
@@ -104,7 +121,10 @@ class RNNClassifier(NNModelBase):
         """
         h = np.zeros((len(seq)+1, self.hidden_dim))
         for t in range(1, len(seq)+1):
-            word_rep = self.get_word_rep(seq[t-1])
+            if self.use_embedding:
+                word_rep = self.get_word_rep(seq[t-1])
+            else:
+                word_rep = seq[t-1]
             h[t] = self.hidden_activation(
                 word_rep.dot(self.W_xh) + h[t-1].dot(self.W_hh))
         y = softmax(h[-1].dot(self.W_hy) + self.b)
@@ -143,7 +163,10 @@ class RNNClassifier(NNModelBase):
         num_steps = len(seq)+1
         for t in reversed(range(1, num_steps)):
             d_W_hh += np.outer(h[t], h_err)
-            word_rep = self.get_word_rep(seq[t-1])
+            if self.use_embedding:
+                word_rep = self.get_word_rep(seq[t-1])
+            else:
+                 word_rep = seq[t-1]
             d_W_xh += np.outer(word_rep, h_err)
             h_err = h_err.dot(self.W_hh.T) * self.d_hidden_activation(h[t])
         return (d_W_hy, d_b, d_W_hh, d_W_xh)
@@ -156,7 +179,7 @@ class RNNClassifier(NNModelBase):
         self.W_xh -= self.eta * d_W_xh
 
 
-def simple_example():
+def simple_example(initial_embedding=False, use_embedding=True):
     vocab = ['a', 'b', '$UNK']
 
     # No b before an a
@@ -180,22 +203,48 @@ def simple_example():
         [list('aaabb'), 'good']
     ]
 
+    if initial_embedding:
+        import numpy as np
+        # `embed_dim=60` to make sure that it gets changed internally:
+        embedding = np.random.uniform(
+            low=-1.0, high=1.0, size=(len(vocab), 60))
+    else:
+        embedding = None
+
     mod = RNNClassifier(
         vocab=vocab,
         max_iter=100,
+        embedding=embedding,
+        use_embedding=use_embedding,
         embed_dim=50,
         hidden_dim=50)
 
     X, y = zip(*train)
-    mod.fit(X, y)
-
     X_test, y_test = zip(*test)
+
+    # Just to illustrate how we can process incoming sequences of
+    # vectors, we create an embedding and use it to preprocess the
+    # train and test sets:
+    if not use_embedding:
+        import numpy as np
+        from copy import copy
+        # `embed_dim=60` to make sure that it gets changed internally:
+        embedding = np.random.uniform(
+            low=-1.0, high=1.0, size=(len(vocab), 60))
+        X = [[embedding[vocab.index(w)] for w in ex] for ex in X]
+        # So we can display the examples sensibly:
+        X_test_orig = copy(X_test)
+        X_test = [[embedding[vocab.index(w)] for w in ex] for ex in X_test]
+    else:
+        X_test_orig = X_test
+
+    mod.fit(X, y)
 
     preds = mod.predict(X_test)
 
     print("\nPredictions:")
 
-    for ex, pred, gold in zip(X_test, preds, y_test):
+    for ex, pred, gold in zip(X_test_orig, preds, y_test):
         score = "correct" if pred == gold else "incorrect"
         print("{0:>6} - predicted: {1:>4}; actual: {2:>4} - {3}".format(
             "".join(ex), pred, gold, score))

@@ -35,35 +35,34 @@ class TorchRNNDataset(torch.utils.data.Dataset):
 
 class TorchRNNClassifierModel(nn.Module):
     def __init__(self,
-            vocab,
+            vocab_size,
             embed_dim,
             embedding,
+            use_embedding,
             hidden_dim,
             output_dim,
             bidirectional,
             device):
         super(TorchRNNClassifierModel, self).__init__()
-        self.vocab = vocab
-        self.vocab_size = len(vocab)
-        self.embed_dim = embed_dim
-        self.hidden_dim = hidden_dim
-        self.output_dim = output_dim
-        self.bidirectional = bidirectional
+        self.use_embedding = use_embedding
         self.device = device
+        self.embed_dim = embed_dim
+        self.bidirectional = bidirectional
         # Graph
-        self.embedding = self._define_embedding(embedding)
-        self.embed_dim = self.embedding.embedding_dim
+        if self.use_embedding:
+            self.embedding = self._define_embedding(
+                embedding, vocab_size, self.embed_dim)
+            self.embed_dim = self.embedding.embedding_dim
         self.rnn = nn.LSTM(
             input_size=self.embed_dim,
-            hidden_size=self.hidden_dim,
+            hidden_size=hidden_dim,
             batch_first=True,
-            bidirectional=self.bidirectional)
-        if self.bidirectional:
-            self.classifier_dim = self.hidden_dim * 2
+            bidirectional=bidirectional)
+        if bidirectional:
+            classifier_dim = hidden_dim * 2
         else:
-            self.classifier_dim = self.hidden_dim
-        self.classifier_layer = nn.Linear(
-            self.classifier_dim, self.output_dim)
+            classifier_dim = hidden_dim
+        self.classifier_layer = nn.Linear(classifier_dim, output_dim)
 
     def forward(self, X, seq_lengths):
         state = self.rnn_forward(X, seq_lengths, self.rnn)
@@ -76,7 +75,10 @@ class TorchRNNClassifierModel(nn.Module):
         seq_lengths = seq_lengths.to(self.device)
         seq_lengths, sort_idx = seq_lengths.sort(0, descending=True)
         X = X[sort_idx]
-        embs = self.embedding(X)
+        if self.use_embedding:
+            embs = self.embedding(X)
+        else:
+            embs = X
         embs = torch.nn.utils.rnn.pack_padded_sequence(
             embs, batch_first=True, lengths=seq_lengths)
         outputs, state = rnn(embs)
@@ -93,9 +95,10 @@ class TorchRNNClassifierModel(nn.Module):
         else:
             return state.squeeze(0)
 
-    def _define_embedding(self, embedding):
+    @staticmethod
+    def _define_embedding(embedding, vocab_size, embed_dim):
         if embedding is None:
-            return nn.Embedding(self.vocab_size, self.embed_dim)
+            return nn.Embedding(vocab_size, embed_dim)
         else:
             embedding = torch.tensor(embedding, dtype=torch.float)
             return nn.Embedding.from_pretrained(embedding)
@@ -110,13 +113,20 @@ class TorchRNNClassifier(TorchModelBase):
     vocab : list of str
         This should be the vocabulary. It needs to be aligned with
          `embedding` in the sense that the ith element of vocab
-        should be represented by the ith row of `embedding`.
+        should be represented by the ith row of `embedding`. Ignored
+        if `use_embedding=False`.
     embedding : np.array or None
         Each row represents a word in `vocab`, as described above.
+    use_embedding : bool
+        If True, then incoming examples are presumed to be lists of
+        elements of the vocabulary. If False, then they are presumed
+        to be lists of vectors. In this case, the `embedding` and
+        `embed_dim` arguments are ignored, since no embedding is needed
+        and `embed_dim` is set by the nature of the incoming vectors.
     embed_dim : int
         Dimensionality for the initial embeddings. This is ignored
         if `embedding` is not None, as a specified value there
-        determines this value.
+        determines this value. Also ignored if `use_embedding=False`.
     hidden_dim : int
         Dimensionality of the hidden layer.
     bidirectional : bool
@@ -140,11 +150,13 @@ class TorchRNNClassifier(TorchModelBase):
     def __init__(self,
             vocab,
             embedding=None,
+            use_embedding=True,
             embed_dim=50,
             bidirectional=False,
             **kwargs):
         self.vocab = vocab
         self.embedding = embedding
+        self.use_embedding = use_embedding
         self.embed_dim = embed_dim
         self.bidirectional = bidirectional
         super(TorchRNNClassifier, self).__init__(**kwargs)
@@ -155,8 +167,9 @@ class TorchRNNClassifier(TorchModelBase):
 
     def build_graph(self):
         return TorchRNNClassifierModel(
-            self.vocab,
+            vocab_size=len(self.vocab),
             embedding=self.embedding,
+            use_embedding=self.use_embedding,
             embed_dim=self.embed_dim,
             hidden_dim=self.hidden_dim,
             output_dim=self.n_classes_,
@@ -196,9 +209,15 @@ class TorchRNNClassifier(TorchModelBase):
             shuffle=True,
             drop_last=False,
             collate_fn=dataset.collate_fn)
+        if not self.use_embedding:
+            # Infer `embed_dim` from `X` in this case:
+            self.embed_dim = X[0][0].shape[0]
         # Graph:
         self.model = self.build_graph()
         self.model.to(self.device)
+        # Make sure this value is up-to-date; self.`model` might change
+        # it if it creates an embedding:
+        self.embed_dim = self.model.embed_dim
         # Optimization:
         loss = nn.CrossEntropyLoss()
         optimizer = self.optimizer(
@@ -261,19 +280,39 @@ class TorchRNNClassifier(TorchModelBase):
         return [self.classes_[i] for i in probs.argmax(axis=1)]
 
     def _prepare_dataset(self, X):
+        """Internal method for preprocessing a set of examples. If
+        `self.use_embedding=True`, then `X` is transformed into a list
+        of lists of indices. Otherwise, `X` is assumed to already
+        contain the vectors we want to process. In both situations,
+        we measure the lengths of the sequences in `X`.
+
+        Parameters
+        ----------
+        X : list of lists of tokens, or list of np.array of vectors
+
+        Returns
+        -------
+        list of lists of ints, or list of np.array of vectors,
+        and `torch.LongTensor` of sequence lengths.
+
+        """
         new_X = []
         seq_lengths = []
-        index = dict(zip(self.vocab, range(len(self.vocab))))
-        unk_index = index['$UNK']
-        for ex in X:
-            seq = [index.get(w, unk_index) for w in ex]
-            seq = torch.tensor(seq, dtype=torch.long)
-            new_X.append(seq)
-            seq_lengths.append(len(seq))
+        if self.use_embedding:
+            index = dict(zip(self.vocab, range(len(self.vocab))))
+            unk_index = index['$UNK']
+            for ex in X:
+                seq = [index.get(w, unk_index) for w in ex]
+                seq = torch.tensor(seq, dtype=torch.long)
+                new_X.append(seq)
+                seq_lengths.append(len(seq))
+        else:
+            new_X = [torch.FloatTensor(ex) for ex in X]
+            seq_lengths = [len(ex) for ex in X]
         return new_X, torch.LongTensor(seq_lengths)
 
 
-def simple_example(initial_embedding=False):
+def simple_example(initial_embedding=False, use_embedding=True):
     vocab = ['a', 'b', '$UNK']
 
     # No b before an a
@@ -299,8 +338,9 @@ def simple_example(initial_embedding=False):
 
     if initial_embedding:
         import numpy as np
+        # `embed_dim=60` to make sure that it gets changed internally:
         embedding = np.random.uniform(
-            low=-1.0, high=1.0, size=(len(vocab), 50))
+            low=-1.0, high=1.0, size=(len(vocab), 60))
     else:
         embedding = None
 
@@ -309,19 +349,36 @@ def simple_example(initial_embedding=False):
         max_iter=100,
         embed_dim=50,
         embedding=embedding,
+        use_embedding=use_embedding,
         bidirectional=False,
         hidden_dim=50)
 
     X, y = zip(*train)
-    mod.fit(X, y)
-
     X_test, y_test = zip(*test)
+
+    # Just to illustrate how we can process incoming sequences of
+    # vectors, we create an embedding and use it to preprocess the
+    # train and test sets:
+    if not use_embedding:
+        import numpy as np
+        from copy import copy
+        # `embed_dim=60` to make sure that it gets changed internally:
+        embedding = np.random.uniform(
+            low=-1.0, high=1.0, size=(len(vocab), 60))
+        X = [[embedding[vocab.index(w)] for w in ex] for ex in X]
+        # So we can display the examples sensibly:
+        X_test_orig = copy(X_test)
+        X_test = [[embedding[vocab.index(w)] for w in ex] for ex in X_test]
+    else:
+        X_test_orig = X_test
+
+    mod.fit(X, y)
 
     preds = mod.predict(X_test)
 
     print("\nPredictions:")
 
-    for ex, pred, gold in zip(X_test, preds, y_test):
+    for ex, pred, gold in zip(X_test_orig, preds, y_test):
         score = "correct" if pred == gold else "incorrect"
         print("{0:>6} - predicted: {1:>4}; actual: {2:>4} - {3}".format(
             "".join(ex), pred, gold, score))
