@@ -195,7 +195,13 @@ def test_np_rnn_classifier(X_sequence):
     mod.predict_one_proba(X_test[0])
 
 
-def test_np_rnn_classifier_simple_example():
+@pytest.mark.parametrize("initial_embedding, use_embedding",[
+    [True, False],
+    [True, True],
+    [False, False],
+    [False, True]
+])
+def test_np_rnn_classifier_simple_example(initial_embedding, use_embedding):
     np_rnn_classifier.simple_example()
 
 
@@ -236,8 +242,13 @@ def test_torch_rnn_classifier_cheese_disease(cheese_disease_dataset):
     assert accuracy_score(cheese_disease_dataset['y_test'], pred) > 0.80
 
 
-@pytest.mark.parametrize("initial_embedding", [True, False])
-def test_torch_rnn_classifier_simple_example(initial_embedding):
+@pytest.mark.parametrize("initial_embedding, use_embedding",[
+    [True, False],
+    [True, True],
+    [False, False],
+    [False, True]
+])
+def test_torch_rnn_classifier_simple_example(initial_embedding, use_embedding):
     torch_rnn_classifier.simple_example(initial_embedding)
 
 

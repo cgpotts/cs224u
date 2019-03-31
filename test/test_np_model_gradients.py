@@ -4,6 +4,7 @@ from np_rnn_classifier import RNNClassifier
 from np_autoencoder import Autoencoder
 from np_tree_nn import TreeNN
 import numpy as np
+import pytest
 import utils
 
 
@@ -11,8 +12,15 @@ class GradientCheckError(Exception):
     """Raised if a gradient check fails."""
 
 
-def test_np_shallow_neural_classifier_gradients():
-    model = ShallowNeuralClassifier(max_iter=10)
+@pytest.mark.parametrize("hidden_activation, d_hidden_activation", [
+    [np.tanh, utils.d_tanh],
+    [utils.relu, utils.d_relu]
+])
+def test_np_shallow_neural_classifier_gradients(hidden_activation, d_hidden_activation):
+    model = ShallowNeuralClassifier(
+        max_iter=10,
+        hidden_activation=hidden_activation,
+        d_hidden_activation=d_hidden_activation)
     # A tiny dataset so that we can run `fit` and set all the model
     # parameters:
     X = utils.randmatrix(5, 2)
@@ -35,7 +43,11 @@ def test_np_shallow_neural_classifier_gradients():
     gradient_check(param_pairs, model, ex, label)
 
 
-def test_np_rnn_classifier():
+@pytest.mark.parametrize("hidden_activation, d_hidden_activation", [
+    [np.tanh, utils.d_tanh],
+    [utils.relu, utils.d_relu]
+])
+def test_np_rnn_classifier(hidden_activation, d_hidden_activation):
     # A tiny dataset so that we can run `fit` and set all the model
     # parameters:
     vocab = ['a', 'b', '$UNK']
@@ -43,7 +55,12 @@ def test_np_rnn_classifier():
         [list('ab'), 'good'],
         [list('aab'), 'good'],
         [list('abb'), 'good']]
-    model = RNNClassifier(vocab, max_iter=10, hidden_dim=2)
+    model = RNNClassifier(
+        vocab,
+        max_iter=10,
+        hidden_dim=2,
+        hidden_activation=hidden_activation,
+        d_hidden_activation=d_hidden_activation)
     X, y = zip(*data)
     model.fit(X, y)
     # Use the first example for the check:
@@ -63,8 +80,16 @@ def test_np_rnn_classifier():
     gradient_check(param_pairs, model, ex, label)
 
 
-def test_np_autoencoder():
-    model = Autoencoder(max_iter=10, hidden_dim=2)
+@pytest.mark.parametrize("hidden_activation, d_hidden_activation", [
+    [np.tanh, utils.d_tanh],
+    [utils.relu, utils.d_relu]
+])
+def test_np_autoencoder(hidden_activation, d_hidden_activation):
+    model = Autoencoder(
+        max_iter=10,
+        hidden_dim=2,
+        hidden_activation=hidden_activation,
+        d_hidden_activation=d_hidden_activation)
     # A tiny dataset so that we can run `fit` and set all the model
     # parameters:
     X = utils.randmatrix(5, 5)
@@ -86,7 +111,11 @@ def test_np_autoencoder():
     gradient_check(param_pairs, model, ex, label)
 
 
-def test_np_tree_nn():
+@pytest.mark.parametrize("hidden_activation, d_hidden_activation", [
+    [np.tanh, utils.d_tanh],
+    [utils.relu, utils.d_relu]
+])
+def test_np_tree_nn(hidden_activation, d_hidden_activation):
     # A tiny dataset so that we can run `fit` and set all the model
     # parameters:
     vocab = ["1", "+", "2"]
@@ -94,7 +123,12 @@ def test_np_tree_nn():
         "(even (odd 1) (neutral (neutral +) (odd 1)))",
         "(odd (odd 1) (neutral (neutral +) (even 2)))"]
     X = [Tree.fromstring(ex) for ex in X]
-    model = TreeNN(vocab, max_iter=10, hidden_dim=5)
+    model = TreeNN(
+        vocab,
+        max_iter=10,
+        hidden_dim=5,
+        hidden_activation=hidden_activation,
+        d_hidden_activation=d_hidden_activation)
     model.fit(X)
     # Use the first example for the check:
     ex = X[0]
