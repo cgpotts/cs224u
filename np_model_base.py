@@ -78,7 +78,20 @@ class NNModelBase(object):
 
     @staticmethod
     def get_error(predictions, labels):
-         # Cross-entropy error reduces to -log(prediction-for-correct-label).
+        """Cross-entropy error: -log(prediction-for-correct-label).
+
+        Parameters
+        ----------
+        predictions : np.array
+            Predicted probabilities for each class
+        labels : np.array
+            One-hot encoded vector.
+
+        Returns
+        -------
+        float
+
+        """
         return -np.log(predictions[np.argmax(labels)])
 
     @staticmethod
