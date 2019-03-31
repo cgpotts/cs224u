@@ -166,7 +166,7 @@ def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50)):
     colors : list of colornames or None (default: None)
         Optional list of colors for the vocab. The color names just
         need to be interpretable by matplotlib. If they are supplied,
-        they need to have the same length as rownames. If `colors=None`,
+        they need to have the same length as `df.index`. If `colors=None`,
         then all the words are displayed in black.
     output_filename : str (default: None)
         If not None, then the output image is written to this location.
@@ -197,7 +197,6 @@ def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50)):
     # Text labels:
     for word, x, y, color in zip(vocab, xvals, yvals, colors):
         try:
-            word = codecs.encode(word, 'utf-8', 'ignore')
             ax.annotate(word, (x, y), fontsize=8, color=color)
         except UnicodeDecodeError:  ## Python 2 won't cooperate!
             pass
