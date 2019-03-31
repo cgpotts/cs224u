@@ -134,7 +134,7 @@ class TreeNN(NNModelBase):
         if isinstance(deep_tree, np.ndarray):
             return d_W, d_b
         else:
-            left_subtree, right_subtree = deep_tree[0], deep_tree[1]
+            left_subtree, right_subtree = deep_tree[1], deep_tree[2]
             left_rep = self._get_vector_tree_root(left_subtree)
             right_rep = self._get_vector_tree_root(right_subtree)
             combined = np.concatenate((left_rep, right_rep))
