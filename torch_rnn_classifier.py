@@ -71,7 +71,7 @@ class TorchRNNClassifierModel(nn.Module):
 
     def rnn_forward(self, X, seq_lengths, rnn):
         X = torch.nn.utils.rnn.pad_sequence(X, batch_first=True)
-        X = X.to(self.device)
+        X = X.to(self.device, non_blocking=True)
         seq_lengths = seq_lengths.to(self.device)
         seq_lengths, sort_idx = seq_lengths.sort(0, descending=True)
         X = X[sort_idx]
@@ -208,6 +208,7 @@ class TorchRNNClassifier(TorchModelBase):
             batch_size=self.batch_size,
             shuffle=True,
             drop_last=False,
+            pin_memory=True,
             collate_fn=dataset.collate_fn)
         if not self.use_embedding:
             # Infer `embed_dim` from `X` in this case:
@@ -228,7 +229,7 @@ class TorchRNNClassifier(TorchModelBase):
         for iteration in range(1, self.max_iter+1):
             epoch_error = 0.0
             for X_batch, batch_seq_lengths, y_batch in dataloader:
-                y_batch = y_batch.to(self.device)
+                y_batch = y_batch.to(self.device, non_blocking=True)
                 batch_preds = self.model(X_batch, batch_seq_lengths)
                 err = loss(batch_preds, y_batch)
                 epoch_error += err.item()

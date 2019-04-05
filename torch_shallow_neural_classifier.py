@@ -78,7 +78,8 @@ class TorchShallowNeuralClassifier(TorchModelBase):
         y = torch.tensor(y, dtype=torch.long)
         dataset = torch.utils.data.TensorDataset(X, y)
         dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=self.batch_size, shuffle=True)
+            dataset, batch_size=self.batch_size, shuffle=True,
+            pin_memory=True)
         # Graph:
         self.model = self.define_graph()
         self.model.to(self.device)
@@ -92,8 +93,8 @@ class TorchShallowNeuralClassifier(TorchModelBase):
         for iteration in range(1, self.max_iter+1):
             epoch_error = 0.0
             for X_batch, y_batch in dataloader:
-                X_batch = X_batch.to(self.device)
-                y_batch = y_batch.to(self.device)
+                X_batch = X_batch.to(self.device, non_blocking=True)
+                y_batch = y_batch.to(self.device, non_blocking=True)
                 batch_preds = self.model(X_batch)
                 err = loss(batch_preds, y_batch)
                 epoch_error += err.item()
