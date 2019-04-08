@@ -134,7 +134,7 @@ class TorchTreeNN(TorchModelBase):
             self.errors.append(epoch_error)
             progress_bar(
                 "Finished epoch {} of {}; error is {}".format(
-                    iteration, self.max_iter, epoch_error))
+                    iteration, self.max_iter, epoch_error/len(X)))
         return self
 
     @staticmethod
