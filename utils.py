@@ -8,6 +8,9 @@ from scipy import stats
 from sklearn.metrics import f1_score
 from sklearn.model_selection import GridSearchCV
 import sys
+import os
+import torch
+import tensorflow as tf
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2019"
@@ -224,3 +227,33 @@ def tf_train_progress_logging():
     def info_filter(logrec):
         return int('loss' in logrec.getMessage().lower())
     logging.getLogger('tensorflow').addFilter(info_filter)
+
+def fix_random_seed(seed=42, set_torch_cudnn=True):
+    """Fix random seeds for reproducibility.
+
+    Parameters
+    ----------
+    seed : int
+        Random seed to be set.
+
+    set_torch_cudnn: bool
+        Flag for whether to enable cudnn deterministic mode.
+        Note that deterministic mode can have a performance impact, depending on your model.
+        https://pytorch.org/docs/stable/notes/randomness.html
+
+    """
+
+    # set system seed
+    np.random.seed(seed)
+    random.seed(seed)
+
+    # set torch seed
+    torch.manual_seed(seed)
+
+    # set torch cudnn backend
+    if set_torch_cudnn:
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+    # set tf seed
+    tf.random.set_random_seed(seed)
