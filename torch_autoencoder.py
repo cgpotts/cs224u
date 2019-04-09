@@ -68,6 +68,7 @@ class TorchAutoencoder(TorchModelBase):
         # Graph
         self.model = self.define_graph()
         self.model.to(self.device)
+        self.model.train()
         # Optimization:
         loss = nn.MSELoss()
         optimizer = self.optimizer(self.model.parameters(), lr=self.eta)
@@ -105,6 +106,7 @@ class TorchAutoencoder(TorchModelBase):
         This will have the same shape as `X`.
 
         """
+        self.model.eval()
         with torch.no_grad():
             X_tensor = self.convert_input_to_tensor(X)
             X_pred = self.model(X_tensor)

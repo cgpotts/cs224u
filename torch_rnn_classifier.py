@@ -216,6 +216,7 @@ class TorchRNNClassifier(TorchModelBase):
         # Graph:
         self.model = self.build_graph()
         self.model.to(self.device)
+        self.model.train()
         # Make sure this value is up-to-date; self.`model` might change
         # it if it creates an embedding:
         self.embed_dim = self.model.embed_dim
@@ -257,6 +258,7 @@ class TorchRNNClassifier(TorchModelBase):
         np.array with shape (len(X), self.n_classes_)
 
         """
+        self.model.eval()
         with torch.no_grad():
             X, seq_lengths = self._prepare_dataset(X)
             preds = self.model(X, seq_lengths)

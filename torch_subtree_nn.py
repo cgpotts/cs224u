@@ -86,6 +86,7 @@ class TorchSubtreeNN(TorchTreeNN):
         """Returns a list of lists of prediction vectors, one list of
         vectors per tree in `X`.
         """
+        self.model.eval()
         with torch.no_grad():
             preds = []
             for tree in X:
