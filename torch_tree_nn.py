@@ -113,6 +113,7 @@ class TorchTreeNN(TorchModelBase):
         # Model:
         self.build_graph()
         self.model.to(self.device)
+        self.model.train()
         # Optimization:
         loss = nn.CrossEntropyLoss()
         optimizer = self.optimizer(self.model.parameters(), lr=self.eta)
@@ -179,6 +180,7 @@ class TorchTreeNN(TorchModelBase):
         np.array with shape (len(X), self.n_classes_)
 
         """
+        self.model.eval()
         with torch.no_grad():
             preds = []
             for tree in X:

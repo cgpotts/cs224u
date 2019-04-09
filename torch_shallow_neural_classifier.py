@@ -83,6 +83,7 @@ class TorchShallowNeuralClassifier(TorchModelBase):
         # Graph:
         self.model = self.define_graph()
         self.model.to(self.device)
+        self.model.train()
         # Optimization:
         loss = nn.CrossEntropyLoss()
         optimizer = self.optimizer(
@@ -122,6 +123,7 @@ class TorchShallowNeuralClassifier(TorchModelBase):
         np.array with shape (len(X), self.n_classes_)
 
         """
+        self.model.eval()
         with torch.no_grad():
             X = torch.tensor(X, dtype=torch.float).to(self.device)
             preds = self.model(X)
