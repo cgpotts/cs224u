@@ -64,7 +64,7 @@ class TorchAutoencoder(TorchModelBase):
         dataset = torch.utils.data.TensorDataset(X_tensor, X_tensor)
         dataloader = torch.utils.data.DataLoader(
             dataset, batch_size=self.batch_size, shuffle=True,
-            pin_memory=True)
+            pin_memory=False)
         # Graph
         self.model = self.define_graph()
         self.model.to(self.device)
