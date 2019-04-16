@@ -56,7 +56,7 @@ class Corpus(object):
                 len(exs), e1, e2))
             print(exs[0])
         else:
-            print('No examples for {0:} and {1:} is:'.format(e1, e2))
+            print('No examples for {0:} and {1:}'.format(e1, e2))
 
     def __str__(self):
         return 'Corpus with {0:,} examples'.format(len(self.examples))
