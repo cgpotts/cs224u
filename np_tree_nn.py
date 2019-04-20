@@ -8,7 +8,8 @@ __version__ = "CS224u, Stanford, Spring 2019"
 
 class TreeNN(NNModelBase):
     def __init__(self, vocab, embedding=None, embed_dim=50, **kwargs):
-        self.vocab = dict(zip(vocab, range(len(vocab))))
+        self.vocab = vocab
+        self.vocab_lookup = dict(zip(self.vocab, range(len(self.vocab))))
         if embedding is None:
             embedding = self._define_embedding_matrix(
                 len(self.vocab), embed_dim)
@@ -17,7 +18,7 @@ class TreeNN(NNModelBase):
         super(TreeNN, self).__init__(**kwargs)
         self.hidden_dim = self.embed_dim * 2
 
-    def fit(self, X):
+    def fit(self, X, y=None):
         y = [t.label() for t in X]
         return super(TreeNN, self).fit(X, y)
 

@@ -26,7 +26,12 @@ class TfModelBase(object):
             'eta']
 
     def get_params(self, deep=True):
-        return {p: getattr(self, p) for p in self.params}
+        params = self.params.copy()
+        # Obligatorily add `vocab` so that sklearn passes it in when
+        # creating new model instances during cross-validation:
+        if hasattr(self, 'vocab'):
+            params += ['vocab']
+        return {p: getattr(self, p) for p in params}
 
     def set_params(self, **params):
         for key, val in params.items():
