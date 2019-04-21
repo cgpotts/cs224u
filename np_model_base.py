@@ -176,10 +176,10 @@ class NNModelBase(object):
         np.array, dimension `self.embed_dim`
 
         """
-        if w in self.vocab:
-            word_index = self.vocab[w]
+        if w in self.vocab_lookup:
+            word_index = self.vocab_lookup[w]
         else:
-            word_index = self.vocab['$UNK']
+            word_index = self.vocab_lookup['$UNK']
         return self.embedding[word_index]
 
     @staticmethod
@@ -277,7 +277,12 @@ class NNModelBase(object):
             Map from attribute names to their values.
 
         """
-        return {p: getattr(self, p) for p in self.params}
+        params = self.params.copy()
+        # Obligatorily add `vocab` so that sklearn passes it in when
+        # creating new model instances during cross-validation:
+        if hasattr(self, 'vocab'):
+            params += ['vocab']
+        return {p: getattr(self, p) for p in params}
 
     def set_params(self, **params):
         for key, val in params.items():

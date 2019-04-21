@@ -15,7 +15,7 @@ class TfRNNClassifier(TfModelBase):
             **kwargs):
         self.vocab = vocab
         self.vocab_size = len(vocab)
-        self._embedding = embedding
+        self.embedding = embedding
         self.embed_dim = embed_dim
         self.train_embedding = train_embedding
         self.cell_class = cell_class
@@ -70,9 +70,9 @@ class TfRNNClassifier(TfModelBase):
         indices = features['indices']
         sequence_length = features['length']
         # Graph:
-        self.embedding = self.define_or_get_embedding()
+        self.embedding_ = self.define_or_get_embedding()
         feats = tf.nn.embedding_lookup(
-            self.embedding, indices)
+            self.embedding_, indices)
         self.cell = self.cell_class(
             self.hidden_dim, activation=self.hidden_activation)
         outputs, state = tf.nn.dynamic_rnn(
@@ -109,12 +109,12 @@ class TfRNNClassifier(TfModelBase):
                     mode, loss=loss, train_op=train_op)
 
     def define_or_get_embedding(self):
-        if self._embedding is None:
+        if self.embedding is None:
             shape = [self.vocab_size, self.embed_dim]
             embedding_intializer = None
         else:
             embedding_intializer = tf.Variable(
-                self._embedding, dtype=tf.float32)
+                self.embedding, dtype=tf.float32)
             shape = None
             self.embed_dim = embedding_intializer.shape[1]
         return tf.get_variable(

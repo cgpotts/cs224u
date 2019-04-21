@@ -488,3 +488,16 @@ def test_parameter_setting(model, params):
     model.set_params(**params)
     for p, val in params.items():
         assert getattr(model, p) == val
+
+
+@pytest.mark.parametrize("model_class", [
+    np_rnn_classifier.RNNClassifier,
+    torch_rnn_classifier.TorchRNNClassifier,
+    tf_rnn_classifier.TfRNNClassifier
+])
+def test_rnn_classifier_cross_validation(model_class, X_sequence):
+    train, test, vocab = X_sequence
+    mod = model_class(vocab, max_iter=2)
+    X, y = zip(*train)
+    best_mod = utils.fit_classifier_with_crossvalidation(
+        X, y, mod, cv=2, param_grid={'hidden_dim': [10, 20]})

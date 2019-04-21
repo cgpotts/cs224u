@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import numpy as np
 from np_model_base import NNModelBase
 from utils import softmax
@@ -62,7 +63,8 @@ class RNNClassifier(NNModelBase):
             use_embedding=True,
             embed_dim=50,
             **kwargs):
-        self.vocab = dict(zip(vocab, range(len(vocab))))
+        self.vocab = vocab
+        self.vocab_lookup = dict(zip(self.vocab, range(len(self.vocab))))
         self.use_embedding = use_embedding
         if self.use_embedding:
             if embedding is None:
