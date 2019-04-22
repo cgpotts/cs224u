@@ -160,6 +160,7 @@ class TorchRNNClassifier(TorchModelBase):
         self.embed_dim = embed_dim
         self.bidirectional = bidirectional
         super(TorchRNNClassifier, self).__init__(**kwargs)
+        self.params += ['embed_dim', 'embedding', 'use_embedding', 'bidirectional']
 
     def build_dataset(self, X, y):
         X, seq_lengths = self._prepare_dataset(X)

@@ -31,7 +31,8 @@ class TorchModelBase(object):
             'batch_size',
             'max_iter',
             'eta',
-            'optimizer']
+            'optimizer',
+            'l2_strength']
         self.errors = []
         self.dev_predictions = {}
 

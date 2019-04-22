@@ -404,7 +404,14 @@ def test_sgd_classifier():
     [
         torch_rnn_classifier.TorchRNNClassifier(
             vocab=[], max_iter=10, hidden_dim=5, eta=0.1),
-        {'hidden_dim': 10, 'eta': 1.0, 'max_iter': 100}
+        {
+            'hidden_dim': 10,
+            'eta': 1.0,
+            'max_iter': 100,
+            'l2_strength': 0.01,
+            'embed_dim': 100,
+            'bidirectional': False
+        }
     ],
     [
         tf_rnn_classifier.TfRNNClassifier(
@@ -424,7 +431,8 @@ def test_sgd_classifier():
             'hidden_dim': 10,
             'hidden_activation': nn.ReLU(),
             'eta': 1.0,
-            'max_iter': 100
+            'max_iter': 100,
+            'l2_strength': 0.01
         }
     ],
     [
