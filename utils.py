@@ -9,8 +9,6 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import GridSearchCV
 import sys
 import os
-import torch
-import tensorflow as tf
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2019"
@@ -269,6 +267,8 @@ def fix_random_seeds(
     https://stackoverflow.com/questions/30585108/disable-hash-randomization-from-within-python-program
 
     """
+    import torch
+    import tensorflow as tf
     # set system seed
     if set_system:
         np.random.seed(seed)
