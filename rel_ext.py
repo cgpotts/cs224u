@@ -407,7 +407,11 @@ def examine_model_weights(train_result, k=3, verbose=True):
     feature_names = train_result['vectorizer'].get_feature_names()
     for rel, model in train_result['models'].items():
         print('Highest and lowest feature weights for relation {}:\n'.format(rel))
-        sorted_weights = sorted([(wgt, idx) for idx, wgt in enumerate(model.coef_[0])], reverse=True)
+        try:
+            coefs = model.coef_.toarray()
+        except AttributeError:
+            coefs = model.coef_
+        sorted_weights = sorted([(wgt, idx) for idx, wgt in enumerate(coefs[0])], reverse=True)
         for wgt, idx in sorted_weights[:k]:
             print('{:10.3f} {}'.format(wgt, feature_names[idx]))
         print('{:>10s} {}'.format('.....', '.....'))
