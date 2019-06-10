@@ -41,7 +41,7 @@ def sentiment_treebank_reader(src_filename, class_func=None):
     """
     if class_func is None:
         class_func = lambda x: x
-    with open(src_filename) as f:
+    with open(src_filename, encoding='utf8') as f:
         for line in f:
             tree = Tree.fromstring(line)
             label = class_func(tree.label())

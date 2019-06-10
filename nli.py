@@ -108,7 +108,7 @@ def bake_off_evaluation(experiment_results, test_data_filename=None):
     if test_data_filename is None:
         test_data_filename = os.path.join(
             'data', 'nlidata', 'nli_wordentail_bakeoff_data-test.json')
-    with open(test_data_filename) as f:
+    with open(test_data_filename, encoding='utf8') as f:
         wordentail_data = json.load(f)
     X_test, y_test = word_entail_featurize(
         wordentail_data['word_disjoint']['test'],
@@ -217,7 +217,7 @@ class NLIReader(object):
 
         """
         random.seed(self.random_state)
-        for line in open(self.src_filename):
+        for line in open(self.src_filename, encoding='utf8'):
             if (not self.samp_percentage) or random.random() <= self.samp_percentage:
                 d = json.loads(line)
                 ex = NLIExample(d)
@@ -291,7 +291,7 @@ def read_annotated_subset(src_filename, multinli_home):
         reader = MultiNLIMatchedDevReader(multinli_home)
     id2ex = {ex.pairID: ex for ex in reader.read()}
     data = {}
-    with open(src_filename) as f:
+    with open(src_filename, encoding='utf8') as f:
         for line in f:
             fields = line.split()
             pair_id = fields[0]

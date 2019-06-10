@@ -85,7 +85,7 @@ def cheese_disease_dataset():
     src_filename = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "cheeseDisease.train.txt")
-    with open(src_filename) as f:
+    with open(src_filename, encoding='utf8') as f:
         for line in f:
             label, ex = line.split("\t", 1)
             label = "cheese" if label.strip() == "1" else "disease"
