@@ -16,7 +16,7 @@ def wordentail_data():
     nlidata_home = os.path.join('data', 'nlidata')
     wordentail_filename = os.path.join(
         nlidata_home, 'nli_wordentail_bakeoff_data.json')
-    with open(wordentail_filename) as f:
+    with open(wordentail_filename, encoding='utf8') as f:
         data = json.load(f)
     return data
 

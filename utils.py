@@ -26,7 +26,7 @@ def glove2dict(src_filename):
         Mapping words to their GloVe vectors.
     """
     data = {}
-    with open(src_filename) as f:
+    with open(src_filename, encoding='utf8') as f:
         while True:
             try:
                 line = next(f)

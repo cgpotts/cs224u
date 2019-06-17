@@ -29,9 +29,9 @@ class Corpus(object):
     @staticmethod
     def read_examples(src_filename):
         examples = []
-        with gzip.open(src_filename) as f:
+        with gzip.open(src_filename, mode='rt', encoding='utf8') as f:
             for line in f:
-                fields = line[:-1].decode('utf-8').split('\t')
+                fields = line[:-1].split('\t')
                 examples.append(Example(*fields))
         return examples
 
@@ -88,9 +88,9 @@ class KB(object):
     @staticmethod
     def read_kb_triples(src_filename):
         kb_triples = []
-        with gzip.open(src_filename) as f:
+        with gzip.open(src_filename, mode='rt', encoding='utf8') as f:
             for line in f:
-                rel, sbj, obj = line[:-1].decode('utf-8').split('\t')
+                rel, sbj, obj = line[:-1].split('\t')
                 kb_triples.append(KBTriple(rel, sbj, obj))
         return kb_triples
 
