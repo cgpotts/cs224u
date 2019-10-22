@@ -8,8 +8,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 
-__author__ = "Bill MacCartney"
-__version__ = "CS224u, Stanford, Spring 2019"
+__author__ = "Bill MacCartney and Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 Example = namedtuple('Example',
@@ -18,6 +18,25 @@ Example = namedtuple('Example',
 
 
 class Corpus(object):
+    """Class for representing and working with the raw text we use
+    as evidence for making relation predictions.
+
+    Parameters
+    ----------
+    src_filename_or_examples : str or list
+        If str, this is assumed to be the full path to the gzip file
+        that contains the examples to use. The method `read_examples`
+        is used to open it in that case. If this is a list, then it
+        should be a list of `Example` instances.
+
+    Attributes
+    ----------
+    examples_by_entities : dict
+        A 2d dictionary mapping `ex.entity_1` to a dict mapping entity
+        `ex.entity_2` to the full `Example` instance `ex`. This is
+        created by the method `_index_examples_by_entities`.
+
+    """
     def __init__(self, src_filename_or_examples):
         if isinstance(src_filename_or_examples, str):
             self.examples = self.read_examples(src_filename_or_examples)
@@ -28,6 +47,21 @@ class Corpus(object):
 
     @staticmethod
     def read_examples(src_filename):
+        """Read `src_filename`, assumed to be a `gzip` file with
+        tab-separated lines that can be turned into `Example`
+        instances.
+
+         Parameters
+        ----------
+        src_filename :  str
+            Assumed to be the full path to the gzip file that contains
+            the examples.
+
+        Returns
+        -------
+        list of Example
+
+        """
         examples = []
         with gzip.open(src_filename, mode='rt', encoding='utf8') as f:
             for line in f:
@@ -36,6 +70,10 @@ class Corpus(object):
         return examples
 
     def _index_examples_by_entities(self):
+        """Fill `examples_by_entities` as a 2d dictionary mapping
+        `ex.entity_1` to a dict mapping entity `ex.entity_2` to the
+        full `Example` instance `ex`.
+        """
         for ex in self.examples:
             if ex.entity_1 not in self.examples_by_entities:
                 self.examples_by_entities[ex.entity_1] = {}
@@ -44,12 +82,18 @@ class Corpus(object):
             self.examples_by_entities[ex.entity_1][ex.entity_2].append(ex)
 
     def get_examples_for_entities(self, e1, e2):
+        """Given two entities `e1` and `e2` as strings, return
+        examples from `self.examples_by_entities`, as a list of
+        `Example` instances."""
         try:
             return self.examples_by_entities[e1][e2]
         except KeyError:
             return []
 
     def show_examples_for_pair(self, e1, e2):
+        """Given two entities `e1` and `e2` as strings, print out their
+        first `Example`, if there is one, otherwise print out a message
+        saying there are no Example instances relating `e1` to `e2`."""
         exs = self.get_examples_for_entities(e1, e2)
         if exs:
             print('The first of {0:,} examples for {1:} and {2:} is:'.format(
@@ -72,6 +116,32 @@ KBTriple = namedtuple('KBTriple', 'rel, sbj, obj')
 
 
 class KB(object):
+    """Class for representing and working with the knowledge base.
+
+    Parameters
+    ----------
+    src_filename_or_triples : str or list
+        If str, this is assumed to be the full path to the gzip file
+        that contains the KB. The method `read_kb_triples` is used to
+        open it in that case. If this is a list, then it should be a
+        list of `KBTriple` instances.
+
+    Attributes
+    ----------
+    all_relations : list
+        Built by `_index_kb_triples_by_relation` as a list of str.
+    all_entity_pairs : list
+        Built by `_collect_all_entity_pairs`, as a sorted list of
+        (subject, object) tuples.
+    kb_triples_by_relation : dict
+        Built by `_index_kb_triples_by_relation`, as a dict mapping
+        relations (str) to `KBTriple` lists.
+    kb_triples_by_entities : dict
+        Built by `_index_kb_triples_by_entities`, as a dict mapping
+        relations subject (str) to dict mapping object (str) to
+        `KBTriple` lists.
+
+    """
     def __init__(self, src_filename_or_triples):
         if isinstance(src_filename_or_triples, str):
             self.kb_triples = self.read_kb_triples(src_filename_or_triples)
@@ -87,6 +157,21 @@ class KB(object):
 
     @staticmethod
     def read_kb_triples(src_filename):
+        """Read `src_filename`, assumed to be a `gzip` file with
+        tab-separated lines that can be turned into `KBTriple`
+        instances.
+
+        Parameters
+        ----------
+        src_filename :  str
+            Assumed to be the full path to the gzip file that contains
+            the triples
+
+        Returns
+        -------
+        list of KBTriple
+
+        """
         kb_triples = []
         with gzip.open(src_filename, mode='rt', encoding='utf8') as f:
             for line in f:
@@ -116,12 +201,16 @@ class KB(object):
             self.kb_triples_by_entities[kbt.sbj][kbt.obj].append(kbt)
 
     def get_triples_for_relation(self, rel):
+        """"Given a relation name (str), return all of the `KBTriple`
+        instances that involve it."""
         try:
             return self.kb_triples_by_relation[rel]
         except KeyError:
             return []
 
     def get_triples_for_entities(self, e1, e2):
+        """Given a pair of entities `e1` and `e2` (both str), return
+        all of the `KBTriple` instances that involve them."""
         try:
             return self.kb_triples_by_entities[e1][e2]
         except KeyError:
@@ -138,6 +227,14 @@ class KB(object):
 
 
 class Dataset(object):
+    """Class for unifying a `Corpus` and a `KB`.
+
+    Parameters
+    ----------
+    corpus : `Corpus`
+    kb : `KB`
+
+    """
     def __init__(self, corpus, kb):
         self.corpus = corpus
         self.kb = kb
@@ -154,6 +251,23 @@ class Dataset(object):
         return unrelated_pairs
 
     def featurize(self, kbts_by_rel, featurizers, vectorizer=None):
+        """Featurize by relation.
+
+        Parameters
+        ----------
+        kbts_by_rel : dict
+            A map from relation (str) to lists of `KBTriples`.
+        featurizers : list of func
+            Each function has to have the signature
+            `kbt, corpus, feature_counter`, where `kbt` is a `KBTriple`,
+            `corpus` is a `Corpus`, and `feature_counter` is a count
+            dictionary.
+        vectorizer : DictVectorizer or None:
+            If None, a new `DictVectorizer` is created and used via
+            `fit`. This is primarily for training. If not None, then
+            `transform` is used. This is primarily for testing.
+
+        """
         # Create feature counters for all instances (kbts).
         feat_counters_by_rel = defaultdict(list)
         for rel, kbts in kbts_by_rel.items():
@@ -178,10 +292,7 @@ class Dataset(object):
             feat_matrices_by_rel[rel] = vectorizer.transform(feat_counters)
         return feat_matrices_by_rel, vectorizer
 
-    def build_dataset(self,
-            include_positive=True,
-            sampling_rate=0.1,
-            seed=1):
+    def build_dataset(self, include_positive=True, sampling_rate=0.1, seed=1):
         unrelated_pairs = self.find_unrelated_pairs()
         random.seed(seed)
         unrelated_pairs = random.sample(

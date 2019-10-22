@@ -3,6 +3,9 @@ import pandas as pd
 import pytest
 import vsm
 
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2020"
+
 
 @pytest.fixture
 def df():

@@ -7,6 +7,9 @@ import numpy as np
 import pytest
 import utils
 
+__author__ = "Christopher Potts"
+__version__ = "CS224u, Stanford, Spring 2020"
+
 
 class GradientCheckError(Exception):
     """Raised if a gradient check fails."""

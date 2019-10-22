@@ -3,7 +3,7 @@ from np_model_base import NNModelBase
 import pandas as pd
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 class Autoencoder(NNModelBase):

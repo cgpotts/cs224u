@@ -3,7 +3,7 @@ from np_model_base import NNModelBase
 from utils import randvec, randmatrix, softmax, progress_bar
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 class ShallowNeuralClassifier(NNModelBase):

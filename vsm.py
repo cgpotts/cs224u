@@ -13,7 +13,7 @@ import sys
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 def euclidean(u, v):
@@ -153,6 +153,30 @@ def get_character_ngrams(w, n):
     else:
         w = list(w)
     return ["".join(w[i: i+n]) for i in range(len(w)-n+1)]
+
+
+def character_level_rep(word, cf, n=4):
+    """Get a representation for `word` as the sum of all the
+    representations of `n`grams that it contains, according to `cf`.
+
+    Parameters
+    ----------
+    word : str
+        The word to represent.
+    cf : pd.DataFrame
+        The character-level VSM (e.g, the output of `ngram_vsm`).
+    n : int
+        The n-gram size.
+
+    Returns
+    -------
+    pd.Series
+
+    """
+    ngrams = get_character_ngrams(word, n)
+    ngrams = [n for n in ngrams if n in cf.index]
+    reps = cf.loc[ngrams].values
+    return reps.sum(axis=0)
 
 
 def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50)):

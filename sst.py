@@ -12,7 +12,7 @@ import scipy.stats
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 def sentiment_treebank_reader(src_filename, class_func=None):

@@ -5,7 +5,7 @@ from scipy.spatial.distance import euclidean
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 class Retrofitter(object):

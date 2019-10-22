@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 CONDITION_NAMES = [
@@ -76,7 +76,7 @@ def wordentail_experiment(
     model.fit(X_train, y_train)
     predictions = model.predict(X_dev)
     # Report:
-    print(classification_report(y_dev, predictions))
+    print(classification_report(y_dev, predictions, digits=3))
     macrof1 = utils.safe_macro_f1(y_dev, predictions)
     return {
         'model': model,
@@ -116,7 +116,7 @@ def bake_off_evaluation(experiment_results, test_data_filename=None):
         vector_combo_func=experiment_results['vector_combo_func'])
     predictions = experiment_results['model'].predict(X_test)
     # Report:
-    print(classification_report(y_test, predictions))
+    print(classification_report(y_test, predictions, digits=3))
 
 
 
