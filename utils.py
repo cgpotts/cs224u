@@ -11,7 +11,7 @@ import sys
 import os
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 def glove2dict(src_filename):
@@ -220,18 +220,10 @@ def create_pretrained_embedding(lookup, vocab):
     return embedding, vocab
 
 
-def tf_train_progress_logging():
-    logging.getLogger('tensorflow').setLevel(logging.INFO)
-    def info_filter(logrec):
-        return int('loss' in logrec.getMessage().lower())
-    logging.getLogger('tensorflow').addFilter(info_filter)
-
-
 def fix_random_seeds(
         seed=42,
         set_system=True,
         set_torch=True,
-        set_tensorflow=True,
         set_torch_cudnn=True):
     """Fix random seeds for reproducibility.
 
@@ -241,8 +233,6 @@ def fix_random_seeds(
         Random seed to be set.
     set_system : bool
         Whether to set `np.random.seed(seed)` and `random.seed(seed)`
-    set_tensorflow : bool
-        Whether to set `tf.random.set_random_seed(seed)`
     set_torch : bool
         Whether to set `torch.manual_seed(seed)`
     set_torch_cudnn: bool
@@ -252,9 +242,9 @@ def fix_random_seeds(
 
     Notes
     -----
-    Even though the random seeds are explicitly set,
-    the behavior may still not be deterministic (especially when a
-    GPU is enabled), due to:
+    Even though the random seeds are explicitly set, the behavior may
+    still not be deterministic (especially when a GPU is enabled),
+    due to:
 
     * CUDA: There are some PyTorch functions that use CUDA functions
     that can be a source of non-determinism:
@@ -268,7 +258,6 @@ def fix_random_seeds(
 
     """
     import torch
-    import tensorflow as tf
     # set system seed
     if set_system:
         np.random.seed(seed)
@@ -282,7 +271,3 @@ def fix_random_seeds(
     if set_torch_cudnn:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-
-    # set tf seed
-    if set_tensorflow:
-        tf.random.set_random_seed(seed)

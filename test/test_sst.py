@@ -6,7 +6,7 @@ from torch_rnn_classifier import TorchRNNClassifier
 import pytest
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 
 sst_home = os.path.join('data', 'trees')

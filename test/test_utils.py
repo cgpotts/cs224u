@@ -2,12 +2,11 @@ import numpy as np
 import os
 import pytest
 import random
-import tensorflow as tf
 import torch
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2019"
+__version__ = "CS224u, Stanford, Spring 2020"
 
 tf.enable_eager_execution()
 
@@ -100,13 +99,4 @@ def test_fix_random_seeds_pytorch(set_value):
     x = torch.rand(1)
     utils.fix_random_seeds(seed=42, set_torch=set_value)
     y = torch.rand(1)
-    assert (x == y) == set_value
-
-
-@pytest.mark.parametrize("set_value", [True, False])
-def test_fix_random_seeds_tensorflow(set_value):
-    utils.fix_random_seeds(seed=42, set_tensorflow=set_value)
-    x = tf.random.uniform([1]).numpy()
-    utils.fix_random_seeds(seed=42, set_tensorflow=set_value)
-    y = tf.random.uniform([1]).numpy()
     assert (x == y) == set_value
