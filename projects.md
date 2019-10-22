@@ -8,26 +8,29 @@ CS224u, Stanford, Spring 2020
 1. [Overview](#overview)
 1. [Project FAQs](#project_faqs)
 1. [Literature review](#literature_review)
-  1. [Finding papers](#finding_papers)
-  1. [What to include in the lit review](#what_to_include_in_the_lit_review)
+    1. [Finding papers](#finding_papers)
+    1. [What to include in the lit review](#what_to_include_in_the_lit_review)
+
 1. [Experiment protocol](#experiment_protocol)
-  1. [Hypotheses ](#hypotheses_)
-  1. [Datasets](#datasets)
-  1. [Metrics](#metrics)
-  1. [Models](#models)
-  1. [General reasoning](#general_reasoning)
-  1. [Summary of progress so far](#summary_of_progress_so_far)
-  1. [References section](#references_section)
+    1. [Hypotheses ](#hypotheses_)
+    1. [Datasets](#datasets)
+    1. [Metrics](#metrics)
+    1. [Models](#models)
+    1. [General reasoning](#general_reasoning)
+    1. [Summary of progress so far](#summary_of_progress_so_far)
+    1. [References section](#references_section)
+
 1. [Final paper](#final_paper)
-  1. [Formatting](#formatting)
-  1. [Suggested paper organization](#suggested_paper_organization)
-  1. [Required authorship statement](#required_authorship_statement)
-  1. [Advice on scientific writing](#advice_on_scientific_writing)
-  1. [Some exceptionally well-written NLU papers](#some_exceptionally_well-written_nlu_papers)
-  1. [Some CS224u papers that become publications](#some_cs224u_papers_that_become_publications)
+    1. [Formatting](#formatting)
+    1. [Suggested paper organization](#suggested_paper_organization)
+    1. [Required authorship statement](#required_authorship_statement)
+    1. [Advice on scientific writing](#advice_on_scientific_writing)
+    1. [Some exceptionally well-written NLU papers](#some_exceptionally_well-written_nlu_papers)
+    1. [Some CS224u papers that become publications](#some_cs224u_papers_that_become_publications)
+
 1. [Beyond the final paper](#beyond_the_final_paper)
-  1. [Conference submissions](#conference_submissions)
-  1. [On giving good talks](#on_giving_good_talks)
+    1. [Conference submissions](#conference_submissions)
+    1. [On giving good talks](#on_giving_good_talks)
 
 ## Overview
 
@@ -53,42 +56,42 @@ Whereas those notebooks cover specific technical concepts, this document is focu
 
 1. __Does my final paper have to be in the same area as my lit review?__
 
-  The ideal is to have the same topic for your lit review and final paper, but it's possible that you'll discover in the lit review that your topic isn't ideal for you, so you can switch topics (or groups) for the final project; your lit review will be graded on its own terms. 
+  The ideal is to have the same topic for your lit review and final paper, but it's possible that you'll discover in the lit review that your topic isn't ideal for you, so you can switch topics (or groups) for the final project; your lit review will be graded on its own terms.
 
-1. __How many papers does the lit review need to cover?__
+2. __How many papers does the lit review need to cover?__
 
   Groups of one should review 5 papers, groups of two should review 7 papers, and groups of three should review 9. See the [Literature review](#Literature-review) section for further details.
 
-1. __Does my final paper have to be in the same area as my experiment protocol?__
+3. __Does my final paper have to be in the same area as my experiment protocol?__
 
-  This is not strictly speaking required, but we are likely to be discouraging about changing your project area after the protocol – you're probably better off seeing your plan through and then pursuing your new idea on a different occasion. 
-  
-1. __Can my lit review cite papers that aren't NLP papers?__
+  This is not strictly speaking required, but we are likely to be discouraging about changing your project area after the protocol – you're probably better off seeing your plan through and then pursuing your new idea on a different occasion.
+
+4. __Can my lit review cite papers that aren't NLP papers?__
 
   Absolutely! For interdisciplinary projects, this is a must! For more on this issue, see the [Finding papers](#Finding-papers) section below.
 
-1. __Can my final paper use methods and datasets that differ from those in my experiment protocol?__
+5. __Can my final paper use methods and datasets that differ from those in my experiment protocol?__
 
   Yes, this is fine. The protocol isn't a [preregistration](https://cos.io/prereg/), but rather meant as a way to help you clarify your plans and ideas. It's natural for those plans and ideas to evolve. We recommend that you discuss major post-protocol changes with your project mentor, and you might even consider updating your protocol as part of this.
-  
-1. __The requirements say I need a hypothesis, but do I really need one?__
+
+6. __The requirements say I need a hypothesis, but do I really need one?__
 
   Yes! Please see [the section on hypotheses](#Hypotheses) below.
-  
-  
-1. __Can my final paper reuse prose from my lit review and protocol?__
+
+
+7. __Can my final paper reuse prose from my lit review and protocol?__
 
   Absolutely! We're hoping you can do this.
 
-1. __Do I have to submit all my code and data along with the final paper?__
+8. __Do I have to submit all my code and data along with the final paper?__
 
   This is not a requirement, but code and data are always welcome. The field of NLP has embraced the ideals of open science. The most influential papers come with reusable code, and they are often associated with new datasets as well. In addition, if you write your code with a public release in mind, you'll likely be more attentive in ways that increase the quality of your research.
-  
-1. __Can my paper for this course be the same as my paper for another course?__
+
+9. __Can my paper for this course be the same as my paper for another course?__
 
   The short answer is no, since we need the minumum requirements to be the same for all students. The longer answer is that we've adopted the ACL policy on multiple submissions to conferences. [Here are the full details of the policy](http://web.stanford.edu/class/cs224u/requirements.html#multiple).
- 
- 
+
+
 ## Literature review
 
 The literature review is a short report that seeks to summarize and synthesize several papers in an area of your choosing. It's meant serve as the intellectual foundation for your project.
@@ -97,7 +100,7 @@ For this course, you can work in groups of up to three people. We specify that g
 
 You are free to review more papers than the minimum requirement, but it's probably best to go deep on just the required number and include others in a more peripheral way.
 
-We assume that you do not yet really know what you are going to do for the final project. At the lit-review stage, you really just need an initial hunch. Maybe you got really immersed in an earlier assignment for this course and would like to consider pursuing it further, or you saw a new dataset or paper announced on Twitter and would like to devote some time to finding out what it's all about, or you're already working on a project that you think would benefit from a fresh approach. 
+We assume that you do not yet really know what you are going to do for the final project. At the lit-review stage, you really just need an initial hunch. Maybe you got really immersed in an earlier assignment for this course and would like to consider pursuing it further, or you saw a new dataset or paper announced on Twitter and would like to devote some time to finding out what it's all about, or you're already working on a project that you think would benefit from a fresh approach.
 
 But all you really need to get going is a few sensible keywords to put into a search engine.
 
@@ -135,9 +138,9 @@ The italicized phrases make good section headings!
 This is a short, structured report designed to help you establish your core experimental framework. The required sections are as follows.
 
 
-### Hypotheses 
+### Hypotheses
 
-A statement of the project's core hypothesis or hypotheses. 
+A statement of the project's core hypothesis or hypotheses.
 
 These hypotheses vary widely and can be oriented towards issues not just in NLP but also in machine learning, social sciences, digital humanities, medicine, and any other field that can benefit from linguistic analysis.
 
@@ -163,7 +166,7 @@ Your mentor will be looking closely at this section, seeking to resolve a few cr
 
 A description of the metrics that will form the basis for evaluation. The [evaluation metrics notebook](evaluation_metrics.ipynb) is a resource for making choices here.
 
-We sort of expect these to be familiar quantitative metrics, but we're open-minded. We do, however, require that the paper include a quantitative evaluation of some kind. We do not mean to imply that all work in NLP needs to be quantitative in this way. Rather, we just want to push you to conduct such evaluations for this course. 
+We sort of expect these to be familiar quantitative metrics, but we're open-minded. We do, however, require that the paper include a quantitative evaluation of some kind. We do not mean to imply that all work in NLP needs to be quantitative in this way. Rather, we just want to push you to conduct such evaluations for this course.
 
 For the quantitative evaluations, your mentor will primarily be focused on determining whether the metrics are appropriate given the data and hypotheses. If you chose something standard – e.g., F1 for a classification problem – then you probably don't need to say much. If you depart from what's standard, or you want to propose your own metric, then you'll need to justify these decisions.
 
@@ -172,7 +175,7 @@ Qualitative evaluations are important as well, of course. Please express your id
 
 ### Models
 
-A description of the models that you'll be using as baselines, and a preliminary description of the model or models that will be the focus of your investigation. 
+A description of the models that you'll be using as baselines, and a preliminary description of the model or models that will be the focus of your investigation.
 
 At this early stage, some aspects of these models might not yet be worked out, so preliminary descriptions are fine. Your focus should be on making it clear how the models interact with your dataset and metrics to provide a clear test of your hypothesis. If your mentor can't put the pieces together in this way, you'll get some points off and a request for a more precise description.
 
@@ -221,7 +224,7 @@ It's worth reiterating a central point from [the evaluation methods notebook](ev
 
 ### Formatting
 
-The paper should be 8 pages long, in ACL submission format and adhering to ACL guidelines concerning references, layout, supplementary materials, and so forth. [Here are the LaTeX and Word templates for the current ACL style](http://www.acl2019.org/EN/call-for-papers.xhtml_). 
+The paper should be 8 pages long, in ACL submission format and adhering to ACL guidelines concerning references, layout, supplementary materials, and so forth. [Here are the LaTeX and Word templates for the current ACL style](http://www.acl2019.org/EN/call-for-papers.xhtml_).
 
 
 ### Suggested paper organization
@@ -234,7 +237,7 @@ Papers in the field tend to use a common structure. You are not required to foll
 Ideally a half-column in length. It's good to give some context for the work right at the start, define the current proposal and situate it in that context, summarize the core findings, and close by identifying the broader significance of the work. The "General reasoning" section of your experiment protocol is likely to provide good material for the abstract.
 
 
-#### Introduction 
+#### Introduction
 
 1–2 columns. This is an extremely important part of the paper. In this section, the reader is likely to form their expectations for the work and begin to form their opinions of it. The introduction should basically tell the full story of the paper, in a way that is accessible to most people in the field:
 
@@ -251,7 +254,7 @@ Ideally a half-column in length. It's good to give some context for the work rig
 1. What are the central findings of the paper, and how do they inform the core hypothesis?
 
 
-#### Related work 
+#### Related work
 
 1.5–2 columns. This section can draw heavily on your lit review. A good strategy for this section is to first organize the papers you want to cover into general groups that relate to your own work in important ways. For each such group, articulate  its thematic unity, briefly discuss what each paper achieves, and then, crucially, relate this work to your own project, as a way of providing context for your work and differentiating it from prior work. In this way, you carve our a place for your own contribution.
 
@@ -263,11 +266,11 @@ Length highly variable. This section should describe the properties of your data
 
 #### Your models
 
-Length highly variable. Your experiment protocol should provide basic descriptions that you can expand and polish for this section. 
+Length highly variable. Your experiment protocol should provide basic descriptions that you can expand and polish for this section.
 
-If you are proposing an original model or exploring a complex, non-standard model from another paper, then this section will have to be quite long and detailed. With luck, your preceding "Related work" and "Data" sections provide some conceptual support for what you are doing. 
+If you are proposing an original model or exploring a complex, non-standard model from another paper, then this section will have to be quite long and detailed. With luck, your preceding "Related work" and "Data" sections provide some conceptual support for what you are doing.
 
-If you are just comparing familiar models, then this section might be shorter, but it is still crucial. 
+If you are just comparing familiar models, then this section might be shorter, but it is still crucial.
 
 To the extent possible, it's good to separate your model description from particular choices that you made for your experiments, as those are really part of the experimental design.
 
@@ -305,13 +308,13 @@ Here are some really nice pieces of writing about scientific writing:
 
 These papers are stand-outs for me not just because of the proposals they make, but also because the writing is great.
 
-* Keith, Katherine and Brendan O'Connor. 2018. [Uncertainty-aware generative models for inferring document class prevalence](https://www.aclweb.org/anthology/D18-1487). In _Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing_, 4575–4585. Brussels, Belgium: Association for Computational Linguistics. 
+* Keith, Katherine and Brendan O'Connor. 2018. [Uncertainty-aware generative models for inferring document class prevalence](https://www.aclweb.org/anthology/D18-1487). In _Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing_, 4575–4585. Brussels, Belgium: Association for Computational Linguistics.
 
 * Pennington, Jeffrey; Richard Socher; Christopher D. Manning. 2014. [GloVe: global vectors for word representation](http://www.aclweb.org/anthology/D14-1162). In _Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)_, 1532–1543. Doha, Qatar: Association for Computational Linguistics.
 
-* Peters, Matthew E.; Mark Neumann; Mohit Iyyer; Matt Gardner; Christopher Clark; Kenton Lee, and Luke Zettlemoyer. 2018. [Deep contextualized word representations](http://aclweb.org/anthology/N18-1202). In _Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers)_, 2227–2237. Association for Computational Linguistics. 
+* Peters, Matthew E.; Mark Neumann; Mohit Iyyer; Matt Gardner; Christopher Clark; Kenton Lee, and Luke Zettlemoyer. 2018. [Deep contextualized word representations](http://aclweb.org/anthology/N18-1202). In _Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers)_, 2227–2237. Association for Computational Linguistics.
 
-* Zettlemoyer, Luke S. and Michael Collins. 2005. [Learning to map sentences to logical form: structured classification with probabilistic categorial grammars](https://homes.cs.washington.edu/~lsz/papers/zc-uai05.pdf). In _Proceedings of the Twenty First Conference on Uncertainty in Artificial Intelligence_. 
+* Zettlemoyer, Luke S. and Michael Collins. 2005. [Learning to map sentences to logical form: structured classification with probabilistic categorial grammars](https://homes.cs.washington.edu/~lsz/papers/zc-uai05.pdf). In _Proceedings of the Twenty First Conference on Uncertainty in Artificial Intelligence_.
 
 And check out this amazing contribution: [The Annotated Transformer](http://nlp.seas.harvard.edu/2018/04/03/attention.html) (Alexander Rush).
 
@@ -330,7 +333,7 @@ Here is a selection of recent CS224u papers that evolved into published work:
 
 * Li, Lucy and Julia Mendelsohn. 2019. [Using sentiment induction to understand variation in gendered online communities](https://www.aclweb.org/anthology/W19-0116/). In _Proceedings of the Society for Computation in Linguistics (SCiL) 2019_, 156–166. New York: Association for Computational Linguistics.
 
-I'm being careful not to call these "published CS224u papers" because all of them went through substantial revisions before they were accepted. Some got shorter while retaining their original scope, whereas others grew in scope and got much longer. 
+I'm being careful not to call these "published CS224u papers" because all of them went through substantial revisions before they were accepted. Some got shorter while retaining their original scope, whereas others grew in scope and got much longer.
 
 I should emphasize also that these papers all exceeded our expectations for course projects even when they were submitted, and they matured afterwords, so the above are not examples of what we're expecting by the end of the course itself. These are more like things to aspire to longer term.
 
@@ -344,7 +347,7 @@ You might be thinking about continuing to work on your final project after the c
 
 My focus is on conference submissions because NLP (like most areas of AI) is a conference-driven field in the sense that papers published at the top conferences are akin to journal papers in other fields. In NLP, the major exception to this is the journal _Transactions of the ACL_, which functions like a regular journal but (in a nod to the importance of conferences) also gives published authors the opportunity to present the work at one of the major ACL conferences.
 
-My own view is that the top conferences in NLP are ACL, NAACL, and EMNLP (and that TACL is on par with these or soon will be). There might once have been real differences in prestige between these conferences, but those differences have disappeared. People submit their work as soon as possible after they feel it is ready, so the choice of these conferences comes down to the time of year. 
+My own view is that the top conferences in NLP are ACL, NAACL, and EMNLP (and that TACL is on par with these or soon will be). There might once have been real differences in prestige between these conferences, but those differences have disappeared. People submit their work as soon as possible after they feel it is ready, so the choice of these conferences comes down to the time of year.
 
 COLING, CoNLL, EACL are also excellent conferences in NLP that might be seen as one step down from the above. Work from these conferences is aggregated in the ACL Anthology, which further reduces the importance of initial venue as times goes on.
 
@@ -403,7 +406,7 @@ Here are some mundane things that you should attend to before taking the stage:
 
 In general, the talk can mirror the structure of the paper. This is at least a good starting point, and then you can depart from it if you see a chance to make things clearer or add presentational flourishes.
 
-However, talks have to be much less technical than papers can be. The emphasis should be on contextualizing the ideas and conveying the high-level narrative of what the paper does. You might begin from the premise that you'll have no equations or formulae, and then add them only where they are crucial and where you are certain you can devote sufficient time to presenting them. 
+However, talks have to be much less technical than papers can be. The emphasis should be on contextualizing the ideas and conveying the high-level narrative of what the paper does. You might begin from the premise that you'll have no equations or formulae, and then add them only where they are crucial and where you are certain you can devote sufficient time to presenting them.
 
 Fundamentally, you're more likely to connect with the audience (and persuade them to read your paper) if you tell a clear and interesting story. There is a show-biz element to this!
 
@@ -419,7 +422,7 @@ It's also very helpful to record yourself giving the talk, because you'll learn 
 
 #### The discussion period
 
-Many conferences have a discussion period following each talk. These are sometimes called "question periods", but people are just as likely to make statements and offer criticisms as they are to ask questions, so "discussion period" is more apt! The discussion period is probably the most intimidating part of giving a talk. Giving the talk itself is nerve-wracking, but at least you're in control. In the discussion period, anything can happen! 
+Many conferences have a discussion period following each talk. These are sometimes called "question periods", but people are just as likely to make statements and offer criticisms as they are to ask questions, so "discussion period" is more apt! The discussion period is probably the most intimidating part of giving a talk. Giving the talk itself is nerve-wracking, but at least you're in control. In the discussion period, anything can happen!
 
 The discussion period _should_ be a chance for the audience to gain a deeper understanding of your ideas. When the entire question period has this aim, it is a joy. But sometimes other things happen. You'll encounter hostile questioners, self-serving questioners, and confused but adamant questioners. Whomever you encounter, and whatever they say, try to pause for one second before answering each question, even if you know exactly how to respond. It helps to set the right kind of conversational pace, and it signals that you're listening carefully.
 
