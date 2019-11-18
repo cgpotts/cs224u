@@ -444,7 +444,8 @@ def train_models(
         splits,
         featurizers,
         split_name='train',
-        model_factory=lambda: LogisticRegression(fit_intercept=True, solver='liblinear'),
+        model_factory=(lambda: LogisticRegression(
+            fit_intercept=True, solver='liblinear', random_state=42)),
         verbose=True):
     train_dataset = splits[split_name]
     train_o, train_y = train_dataset.build_dataset()
@@ -495,7 +496,8 @@ def experiment(
         featurizers,
         train_split='train',
         test_split='dev',
-        model_factory=lambda: LogisticRegression(fit_intercept=True, solver='liblinear'),
+        model_factory=(lambda: LogisticRegression(
+            fit_intercept=True, solver='liblinear', random_state=42)),
         verbose=True):
     train_result = train_models(
         splits,
@@ -536,7 +538,8 @@ def find_new_relation_instances(
         featurizers,
         train_split='train',
         test_split='dev',
-        model_factory=lambda: LogisticRegression(fit_intercept=True, solver='liblinear'),
+        model_factory=(lambda: LogisticRegression(
+            fit_intercept=True, solver='liblinear', random_state=42)),
         k=10,
         verbose=True):
     splits = dataset.build_splits()

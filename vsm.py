@@ -179,7 +179,7 @@ def character_level_rep(word, cf, n=4):
     return reps.sum(axis=0)
 
 
-def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50)):
+def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50), random_state=None):
     """2d plot of `df` using t-SNE, with the points labeled by `df.index`,
     aligned with `colors` (defaults to all black).
 
@@ -199,6 +199,8 @@ def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50)):
         environment.
     figsize : (int, int) (default: (40, 50))
         Default size of the output in display units.
+    random_state : int or None
+        Optionally set the `random_seed` passed to `PCA` and `TSNE`.
 
     """
     # Colors:
@@ -207,10 +209,10 @@ def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50)):
         colors = ['black' for i in vocab]
     # Recommended reduction via PCA or similar:
     n_components = 50 if df.shape[1] >= 50 else df.shape[1]
-    dimreduce = PCA(n_components=n_components)
+    dimreduce = PCA(n_components=n_components, random_state=random_state)
     X = dimreduce.fit_transform(df)
     # t-SNE:
-    tsne = TSNE(n_components=2, random_state=0)
+    tsne = TSNE(n_components=2, random_state=random_state)
     tsnemat = tsne.fit_transform(X)
     # Plot values:
     xvals = tsnemat[: , 0]
