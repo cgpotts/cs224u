@@ -80,7 +80,7 @@ class BasicSGDClassifier(object):
 
     def predict_one(self, rep, costs=0.0):
         """The core classification function. After using
-        `predict_one_proba`, the code just needs to figure out which
+        `predict_one`, the code just needs to figure out which
         class is highest scoring and make a random choice from that
         set (in case of ties).
 
