@@ -79,16 +79,9 @@ class BasicSGDClassifier(object):
                     self.coef_[label_index] += self.eta * rep
 
     def predict_one(self, rep, costs=0.0):
-<<<<<<< HEAD
         """The core classification function. The code just needs to
         figure out which class is highest scoring and make a random
         choice from that set (in case of ties).
-=======
-        """The core classification function. After using
-        `predict_one`, the code just needs to figure out which
-        class is highest scoring and make a random choice from that
-        set (in case of ties).
->>>>>>> origin/master
 
         Parameters
         ----------
