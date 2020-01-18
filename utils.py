@@ -293,8 +293,10 @@ def fix_random_seeds(
     # set tf seed
     if set_tensorflow:
         try:
-            import tensorflow as tf
+            from tensorflow.compat.v1 import set_random_seed as set_tf_seed
+        except ImportError:
+            from tensorflow.random import set_seed as set_tf_seed
         except ImportError:
             pass
         else:
-            tf.random.set_seed(seed)
+            set_tf_seed(seed)
