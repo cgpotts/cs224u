@@ -6,6 +6,7 @@ import pytest
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import string
+import tempfile
 import torch.nn as nn
 import utils
 
@@ -389,3 +390,66 @@ def test_rnn_classifier_cross_validation(model_class, X_sequence):
     X, y = zip(*train)
     best_mod = utils.fit_classifier_with_crossvalidation(
         X, y, mod, cv=2, param_grid={'hidden_dim': [10, 20]})
+
+
+def test_torch_shallow_neural_classifier_save_load(XOR):
+    X, y = XOR
+    mod = torch_shallow_neural_classifier.TorchShallowNeuralClassifier(
+        hidden_dim=4,
+        hidden_activation=nn.ReLU(),
+        max_iter=100,
+        eta=0.01)
+    mod.fit(X, y)
+    mod.predict(X)
+    with tempfile.NamedTemporaryFile(mode='wb') as f:
+        name = f.name
+        mod.to_pickle(name)
+        mod2 = torch_shallow_neural_classifier.TorchShallowNeuralClassifier.from_pickle(name)
+        mod2.predict(X)
+        mod2.fit(X, y)
+
+
+def test_torch_autoencoder_save_load():
+    X = utils.randmatrix(20, 50)
+    mod = torch_autoencoder.TorchAutoencoder(hidden_dim=5, max_iter=2)
+    mod.fit(X)
+    mod.predict(X)
+    with tempfile.NamedTemporaryFile(mode='wb') as f:
+        name = f.name
+        mod.to_pickle(name)
+        mod2 = torch_autoencoder.TorchAutoencoder.from_pickle(name)
+        mod2.predict(X)
+        mod2.fit(X)
+
+
+def test_torch_rnn_classifier_save_load(X_sequence):
+    train, test, vocab = X_sequence
+    mod = torch_rnn_classifier.TorchRNNClassifier(
+        vocab=vocab, max_iter=2)
+    X, y = zip(*train)
+    X_test, _ = zip(*test)
+    mod.fit(X, y)
+    mod.predict(X)
+    with tempfile.NamedTemporaryFile(mode='wb') as f:
+        name = f.name
+        mod.to_pickle(name)
+        mod2 = torch_rnn_classifier.TorchRNNClassifier.from_pickle(name)
+        mod2.predict(X_test)
+        mod2.fit(X, y)
+
+def test_torch_tree_nn_save_load(X_tree):
+    X, vocab = X_tree
+    mod = torch_tree_nn.TorchTreeNN(
+        vocab,
+        embed_dim=50,
+        hidden_dim=50,
+        max_iter=100,
+        embedding=None)
+    mod.fit(X)
+    mod.predict(X)
+    with tempfile.NamedTemporaryFile(mode='wb') as f:
+        name = f.name
+        mod.to_pickle(name)
+        mod2 = torch_tree_nn.TorchTreeNN.from_pickle(name)
+        mod2.predict(X)
+        mod2.fit(X)
