@@ -78,7 +78,7 @@ class TorchTreeNN(TorchModelBase):
         self.device = 'cpu'
 
     def build_graph(self):
-        self.model = TorchTreeNNModel(
+        return TorchTreeNNModel(
             vocab=self.vocab,
             embedding=self.embedding,
             embed_dim=self.embed_dim,
@@ -111,7 +111,8 @@ class TorchTreeNN(TorchModelBase):
         self.n_classes_ = len(self.classes_)
         self.class2index = dict(zip(self.classes_, range(self.n_classes_)))
         # Model:
-        self.build_graph()
+        if not self.warm_start or not hasattr(self, "model"):
+            self.model = self.build_graph()
         self.model.to(self.device)
         self.model.train()
         # Optimization:
@@ -132,6 +133,7 @@ class TorchTreeNN(TorchModelBase):
             # Incremental predictions where possible:
             if X_dev is not None and iteration > 0 and iteration % dev_iter == 0:
                 self.dev_predictions[iteration] = self.predict(X_dev)
+                self.model.train()
             self.errors.append(epoch_error)
             progress_bar(
                 "Finished epoch {} of {}; error is {}".format(

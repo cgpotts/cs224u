@@ -32,6 +32,10 @@ class TorchAutoencoder(TorchModelBase):
         L2 regularization strength. Default 0 is no regularization.
     device : 'cpu' or 'cuda'
         The default is to use 'cuda' iff available
+    warm_start : bool
+        If True, calling `fit` will resume training with previously
+        defined trainable parameters. If False, calling `fit` will
+        reinitialize all trainable parameters. Default: False.
 
     """
     def __init__(self, **kwargs):
@@ -66,7 +70,8 @@ class TorchAutoencoder(TorchModelBase):
             dataset, batch_size=self.batch_size, shuffle=True,
             pin_memory=True)
         # Graph
-        self.model = self.define_graph()
+        if not self.warm_start or not hasattr(self, "model"):
+            self.model = self.define_graph()
         self.model.to(self.device)
         self.model.train()
         # Optimization:

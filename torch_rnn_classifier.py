@@ -145,6 +145,10 @@ class TorchRNNClassifier(TorchModelBase):
         L2 regularization strength. Default 0 is no regularization.
     device : 'cpu' or 'cuda'
         The default is to use 'cuda' iff available
+    warm_start : bool
+        If True, calling `fit` will resume training with previously
+        defined trainable parameters. If False, calling `fit` will
+        reinitialize all trainable parameters. Default: False.
 
     """
     def __init__(self,
@@ -215,7 +219,8 @@ class TorchRNNClassifier(TorchModelBase):
             # Infer `embed_dim` from `X` in this case:
             self.embed_dim = X[0][0].shape[0]
         # Graph:
-        self.model = self.build_graph()
+        if not self.warm_start or not hasattr(self, "model"):
+            self.model = self.build_graph()
         self.model.to(self.device)
         self.model.train()
         # Make sure this value is up-to-date; self.`model` might change
@@ -242,6 +247,7 @@ class TorchRNNClassifier(TorchModelBase):
             # Incremental predictions where possible:
             if X_dev is not None and iteration > 0 and iteration % dev_iter == 0:
                 self.dev_predictions[iteration] = self.predict(X_dev)
+                self.model.train()
             self.errors.append(epoch_error)
             progress_bar("Finished epoch {} of {}; error is {}".format(
                 iteration, self.max_iter, epoch_error))
@@ -261,6 +267,7 @@ class TorchRNNClassifier(TorchModelBase):
         """
         self.model.eval()
         with torch.no_grad():
+            self.model.to(self.device)
             X, seq_lengths = self._prepare_dataset(X)
             preds = self.model(X, seq_lengths)
             preds = torch.softmax(preds, dim=1).cpu().numpy()
