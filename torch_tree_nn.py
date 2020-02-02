@@ -32,8 +32,7 @@ class TorchTreeNNModel(nn.Module):
 
     def forward(self, tree):
         """Recursively interprets `tree`, applying a classifier layer
-        to the final representation. The label comes from the root
-        of the tree itself.
+        to the final representation.
 
         Parameters
         ----------
@@ -45,7 +44,7 @@ class TorchTreeNNModel(nn.Module):
 
         """
         root = self.interpret(tree)
-        return self.classifier_layer(root), tree.label()
+        return self.classifier_layer(root)
 
     def interpret(self, subtree):
         # Terminal nodes are str:
@@ -85,13 +84,18 @@ class TorchTreeNN(TorchModelBase):
             output_dim=self.n_classes_,
             hidden_activation=self.hidden_activation)
 
-    def fit(self, X, **kwargs):
-        """Fairly standard `fit` method except that the labels `y` are
-        presumed to come from the root nodes of the trees in `X`.
+    def fit(self, X, y=None, **kwargs):
+        """Fairly standard `fit` method except that, if `y=None`,
+        then the labels `y` are presumed to come from the root nodes
+        of the trees in `X`. We retain the option of giving them
+        as a separate argument for consistency with the other model
+        interfaces, and so that we can use sklearn cross-validation
+        methods with this class.
 
         Parameters
         ----------
         X : list of `nltk.Tree` instances
+        y : iterable of labels, or None
         kwargs : dict
             For passing other parameters. If 'X_dev' is included,
             then performance is monitored every 10 epochs; use
@@ -102,28 +106,35 @@ class TorchTreeNN(TorchModelBase):
         self
 
         """
+        # Labels:
+        if y is None:
+            y = [t.label() for t in X]
+        self.classes_ = sorted(set(y))
+        self.n_classes_ = len(self.classes_)
+        self.class2index = dict(zip(self.classes_, range(self.n_classes_)))
+
         # Incremental performance:
         X_dev = kwargs.get('X_dev')
         if X_dev is not None:
             dev_iter = kwargs.get('dev_iter', 10)
-        # Data prep:
-        self.classes_ = self.get_classes(X)
-        self.n_classes_ = len(self.classes_)
-        self.class2index = dict(zip(self.classes_, range(self.n_classes_)))
+
         # Model:
         if not self.warm_start or not hasattr(self, "model"):
             self.model = self.build_graph()
         self.model.to(self.device)
         self.model.train()
+
         # Optimization:
         loss = nn.CrossEntropyLoss()
         optimizer = self.optimizer(self.model.parameters(), lr=self.eta)
+
         # Train:
+        dataset = list(zip(X, y))
         for iteration in range(1, self.max_iter+1):
             epoch_error = 0.0
-            random.shuffle(X)
-            for tree in X:
-                pred, label = self.model.forward(tree)
+            random.shuffle(dataset)
+            for tree, label in dataset:
+                pred = self.model.forward(tree)
                 label = self.convert_label(label)
                 err = loss(pred, label)
                 epoch_error += err.item()
@@ -139,21 +150,6 @@ class TorchTreeNN(TorchModelBase):
                 "Finished epoch {} of {}; error is {}".format(
                     iteration, self.max_iter, epoch_error/len(X)))
         return self
-
-    @staticmethod
-    def get_classes(X):
-        """Classes as given by the root nodes in `X`.
-
-        Parameters
-        ----------
-        X : list of nltk.tree.Tree
-
-        Returns
-        -------
-        list
-
-        """
-        return sorted({t.label() for t in X})
 
     def convert_label(self, label):
         """Convert a class label to a format that PyTorch can handle.
@@ -186,7 +182,7 @@ class TorchTreeNN(TorchModelBase):
         with torch.no_grad():
             preds = []
             for tree in X:
-                pred, _ = self.model.forward(tree)
+                pred = self.model.forward(tree)
                 preds.append(pred.squeeze())
             preds = torch.stack(preds)
             return torch.softmax(preds, dim=1).numpy()
@@ -209,7 +205,7 @@ class TorchTreeNN(TorchModelBase):
         return [self.classes_[i] for i in probs.argmax(axis=1)]
 
 
-def simple_example(initial_embedding=False):
+def simple_example(initial_embedding=False, separate_y=False):
     from nltk.tree import Tree
 
     train = [
@@ -249,7 +245,12 @@ def simple_example(initial_embedding=False):
         max_iter=50,
         embedding=embedding)
 
-    mod.fit(X_train)
+    if separate_y:
+        y = [t.label() for t in X_train]
+    else:
+        y = None
+
+    mod.fit(X_train, y=y)
 
     print("\nTest predictions:")
 
@@ -266,4 +267,4 @@ def simple_example(initial_embedding=False):
 
 
 if __name__ == '__main__':
-    simple_example()
+    simple_example(separate_y=True)

@@ -270,13 +270,24 @@ def test_torch_autoencoder_simple_example():
     assert mse < 0.0001
 
 
-def test_np_tree_nn_simple_example():
-    np_tree_nn.simple_example()
+@pytest.mark.parametrize("initial_embedding, separate_y", [
+    [True, True],
+    [True, False],
+    [False, True],
+    [False, False]
+])
+def test_np_tree_nn_simple_example(initial_embedding, separate_y):
+    np_tree_nn.simple_example(initial_embedding, separate_y)
 
 
-@pytest.mark.parametrize("initial_embedding", [True, False])
-def test_torch_tree_nn_simple_example(initial_embedding):
-    torch_tree_nn.simple_example(initial_embedding)
+@pytest.mark.parametrize("initial_embedding, separate_y", [
+    [True, True],
+    [True, False],
+    [False, True],
+    [False, False]
+])
+def test_torch_tree_nn_simple_example(initial_embedding, separate_y):
+    torch_tree_nn.simple_example(initial_embedding, separate_y)
 
 
 def test_torch_tree_nn_incremental(X_tree):
@@ -436,6 +447,7 @@ def test_torch_rnn_classifier_save_load(X_sequence):
         mod2 = torch_rnn_classifier.TorchRNNClassifier.from_pickle(name)
         mod2.predict(X_test)
         mod2.fit(X, y)
+
 
 def test_torch_tree_nn_save_load(X_tree):
     X, vocab = X_tree

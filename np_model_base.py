@@ -46,6 +46,10 @@ class NNModelBase(object):
         y : list
            The one-hot label vector.
 
+        Returns
+        ----------
+        self
+
         """
         y = self.prepare_output_data(y)
         self.initialize_parameters()
@@ -75,6 +79,7 @@ class NNModelBase(object):
                     progress_bar(
                         "Finished epoch {} of {}; error is {}".format
                         (iteration, self.max_iter, error))
+        return self
 
     @staticmethod
     def get_error(predictions, labels):

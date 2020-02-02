@@ -19,7 +19,25 @@ class TreeNN(NNModelBase):
         self.hidden_dim = self.embed_dim * 2
 
     def fit(self, X, y=None):
-        y = [t.label() for t in X]
+        """Fairly standard `fit` method except that, if `y=None`,
+        then the labels `y` are presumed to come from the root nodes
+        of the trees in `X`. We retain the option of giving them
+        as a separate argument for consistency with the other model
+        interfaces, and so that we can use sklearn cross-validation
+        methods with this class.
+
+        Parameters
+        ----------
+        X : list of `nltk.Tree` instances
+        y : iterable of labels, or None
+
+        Returns
+        -------
+        self
+
+        """
+        if y is None:
+            y = [t.label() for t in X]
         return super(TreeNN, self).fit(X, y)
 
     def initialize_parameters(self):
@@ -160,7 +178,7 @@ class TreeNN(NNModelBase):
         self.hidden_dim = self.embed_dim * 2
 
 
-def simple_example():
+def simple_example(initial_embedding=False, separate_y=False):
     from nltk.tree import Tree
     import utils
 
@@ -190,13 +208,26 @@ def simple_example():
 
     X_test = [Tree.fromstring(x) for x in test]
 
+    if initial_embedding:
+        import numpy as np
+        embedding = np.random.uniform(
+            low=-1.0, high=1.0, size=(len(vocab), 50))
+    else:
+        embedding = None
+
     model = TreeNN(
         vocab,
         embed_dim=50,
         hidden_dim=50,
-        max_iter=100)
+        max_iter=100,
+        embedding=embedding)
 
-    model.fit(X_train)
+    if not separate_y:
+        y = [t.label() for t in X_train]
+    else:
+        y = None
+
+    model.fit(X_train, y=y)
 
     print("\nTest predictions:")
 
@@ -213,4 +244,4 @@ def simple_example():
 
 
 if __name__ == '__main__':
-    simple_example()
+    simple_example(initial_embedding=False, separate_y=False)
