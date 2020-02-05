@@ -250,7 +250,7 @@ class Dataset(object):
             unrelated_pairs.add((ex.entity_2, ex.entity_1))
         return unrelated_pairs
 
-    def featurize(self, kbts_by_rel, featurizers, vectorizer=None):
+    def featurize(self, kbts_by_rel, featurizers, vectorizer=None, vectorize=True):
         """Featurize by relation.
 
         Parameters
@@ -266,8 +266,37 @@ class Dataset(object):
             If None, a new `DictVectorizer` is created and used via
             `fit`. This is primarily for training. If not None, then
             `transform` is used. This is primarily for testing.
+        vectorize: bool
+            If True, the feature functions in `featurizers` are presumed
+            to create feature dicts, and a `DictVectorizer` is used. If
+            False, then `featurizers` is required to have exactly one
+            function in it, and that function must return exactly the
+            sort of objects that the models in the model factory take
+            as inputs.
+
+        Returns
+        -------
+        feat_matrices_by_rel, vectorizer
+            where `feat_matrices_by_rel` is a dict mapping relation names
+            to (i) lists of representation if `vectorize=False`, else
+            to `np.array`s, and (ii) and `vectorizer` is a
+            `DictVectorizer` if `vectorize=True`, else None
 
         """
+        if not vectorize:
+
+            feat_matrices_by_rel = defaultdict(list)
+            if len(featurizers) != 1:
+                raise ValueError(
+                    "If `vectorize=True`, the `featurizers` argument "
+                    "must contain exactly one function.")
+            featurizer = featurizers[0]
+            for rel, kbts in kbts_by_rel.items():
+                for kbt in kbts:
+                    rep = featurizer(kbt, self.corpus)
+                    feat_matrices_by_rel[rel].append(rep)
+            return feat_matrices_by_rel, None
+
         # Create feature counters for all instances (kbts).
         feat_counters_by_rel = defaultdict(list)
         for rel, kbts in kbts_by_rel.items():
@@ -446,10 +475,12 @@ def train_models(
         split_name='train',
         model_factory=(lambda: LogisticRegression(
             fit_intercept=True, solver='liblinear', random_state=42)),
+        vectorize=True,
         verbose=True):
     train_dataset = splits[split_name]
     train_o, train_y = train_dataset.build_dataset()
-    train_X, vectorizer = train_dataset.featurize(train_o, featurizers)
+    train_X, vectorizer = train_dataset.featurize(
+        train_o, featurizers, vectorize=vectorize)
     models = {}
     for rel in splits['all'].kb.all_relations:
         models[rel] = model_factory()
@@ -458,16 +489,18 @@ def train_models(
         'featurizers': featurizers,
         'vectorizer': vectorizer,
         'models': models,
-        'all_relations': splits['all'].kb.all_relations}
+        'all_relations': splits['all'].kb.all_relations,
+        'vectorize': vectorize}
 
 
-def predict(splits, train_result, split_name='dev'):
+def predict(splits, train_result, split_name='dev', vectorize=True):
     assess_dataset = splits[split_name]
     assess_o, assess_y = assess_dataset.build_dataset()
     test_X, _ = assess_dataset.featurize(
         assess_o,
         featurizers=train_result['featurizers'],
-        vectorizer=train_result['vectorizer'])
+        vectorizer=train_result['vectorizer'],
+        vectorize=vectorize)
     predictions = {}
     for rel in train_result['all_relations']:
         predictions[rel] = train_result['models'][rel].predict(test_X[rel])
@@ -498,17 +531,20 @@ def experiment(
         test_split='dev',
         model_factory=(lambda: LogisticRegression(
             fit_intercept=True, solver='liblinear', random_state=42)),
+        vectorize=True,
         verbose=True):
     train_result = train_models(
         splits,
         featurizers=featurizers,
         split_name=train_split,
         model_factory=model_factory,
+        vectorize=vectorize,
         verbose=verbose)
     predictions, test_y = predict(
         splits,
         train_result,
-        split_name=test_split)
+        split_name=test_split,
+        vectorize=vectorize)
     evaluate_predictions(
         predictions,
         test_y,
@@ -517,7 +553,14 @@ def experiment(
 
 
 def examine_model_weights(train_result, k=3, verbose=True):
-    feature_names = train_result['vectorizer'].get_feature_names()
+    vectorizer = train_result['vectorizer']
+
+    if vectorizer is None:
+        print("Model weights can be examined only if the featurizers "
+              "are based in dicts (i.e., if `vectorize=True`).")
+        return
+
+    feature_names = vectorizer.get_feature_names()
     for rel, model in train_result['models'].items():
         print('Highest and lowest feature weights for relation {}:\n'.format(rel))
         try:
@@ -541,6 +584,7 @@ def find_new_relation_instances(
         model_factory=(lambda: LogisticRegression(
             fit_intercept=True, solver='liblinear', random_state=42)),
         k=10,
+        vectorize=True,
         verbose=True):
     splits = dataset.build_splits()
     # train models
@@ -549,6 +593,7 @@ def find_new_relation_instances(
         split_name=train_split,
         featurizers=featurizers,
         model_factory=model_factory,
+        vectorize=vectorize,
         verbose=True)
     test_split = splits[test_split]
     neg_o, neg_y = test_split.build_dataset(
@@ -557,7 +602,8 @@ def find_new_relation_instances(
     neg_X, _ = test_split.featurize(
         neg_o,
         featurizers=featurizers,
-        vectorizer=train_result['vectorizer'])
+        vectorizer=train_result['vectorizer'],
+        vectorize=vectorize)
     # Report highest confidence predictions:
     for rel, model in train_result['models'].items():
         print('Highest probability examples for relation {}:\n'.format(rel))
@@ -579,7 +625,8 @@ def bake_off_experiment(train_result, rel_ext_data_home, verbose=True):
     test_X, _ = test_dataset.featurize(
         test_o,
         featurizers=train_result['featurizers'],
-        vectorizer=train_result['vectorizer'])
+        vectorizer=train_result['vectorizer'],
+        vectorize=train_result['vectorize'])
     predictions = {}
     for rel in train_result['all_relations']:
         predictions[rel] = train_result['models'][rel].predict(test_X[rel])
