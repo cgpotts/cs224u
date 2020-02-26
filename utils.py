@@ -14,6 +14,11 @@ __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2020"
 
 
+START_SYMBOL = "<s>"
+END_SYMBOL = "</s>"
+UNK_SYMBOL = "$UNK"
+
+
 def glove2dict(src_filename):
     """GloVe Reader.
     Parameters
@@ -190,7 +195,8 @@ def get_vocab(X, n_words=None):
     return sorted(vocab)
 
 
-def create_pretrained_embedding(lookup, vocab):
+def create_pretrained_embedding(
+        lookup, vocab, required_tokens=('$UNK', "<s>", "</s>")):
     """Create an embedding matrix from a lookup and a specified vocab.
 
     Parameters
@@ -199,6 +205,9 @@ def create_pretrained_embedding(lookup, vocab):
         Must map words to their vector representations.
     vocab : list of str
         Words to create embeddings for.
+    required_tokens : tuple of str
+        Tokens that must have embeddings. If they are not available
+        in the look-up, they will be given random representations.
 
     Returns
     -------
@@ -214,9 +223,10 @@ def create_pretrained_embedding(lookup, vocab):
     """
     vocab = sorted(set(lookup) & set(vocab))
     embedding = np.array([lookup[w] for w in vocab])
-    if '$UNK' not in vocab:
-        vocab.append("$UNK")
-        embedding = np.vstack((embedding, randvec(embedding.shape[1])))
+    for tok in required_tokens:
+        if tok not in vocab:
+            vocab.append(tok)
+            embedding = np.vstack((embedding, randvec(embedding.shape[1])))
     return embedding, vocab
 
 
