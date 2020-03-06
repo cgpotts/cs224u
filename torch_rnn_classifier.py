@@ -132,9 +132,6 @@ class TorchRNNClassifier(TorchModelBase):
     bidirectional : bool
         If True, then the final hidden states from passes in both
         directions are used.
-    hidden_activation : vectorized activation function
-        The non-linear activation function used by the network for the
-        hidden layer. Default `nn.Tanh()`.
     max_iter : int
         Maximum number of training epochs.
     eta : float
@@ -165,6 +162,10 @@ class TorchRNNClassifier(TorchModelBase):
         self.bidirectional = bidirectional
         super(TorchRNNClassifier, self).__init__(**kwargs)
         self.params += ['embed_dim', 'embedding', 'use_embedding', 'bidirectional']
+        # The base class has this attribute, but this model doesn't,
+        # so we remove it to avoid misleading people:
+        delattr(self, 'hidden_activation')
+        self.params.remove('hidden_activation')
 
     def build_dataset(self, X, y):
         X, seq_lengths = self._prepare_dataset(X)

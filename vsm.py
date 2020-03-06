@@ -170,7 +170,7 @@ def character_level_rep(word, cf, n=4):
 
     Returns
     -------
-    pd.Series
+    np.array
 
     """
     ngrams = get_character_ngrams(word, n)

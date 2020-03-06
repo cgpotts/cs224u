@@ -9,6 +9,7 @@ import string
 import tempfile
 import torch.nn as nn
 import utils
+from utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 import np_sgd_classifier
 import np_shallow_neural_classifier
@@ -20,6 +21,7 @@ import torch_shallow_neural_classifier
 import torch_rnn_classifier
 import torch_autoencoder
 import torch_tree_nn
+import torch_color_describer
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2020"
@@ -96,6 +98,13 @@ def cheese_disease_dataset():
     return {'X_train': X_train, 'X_test': X_test,
             'y_train': y_train, 'y_test': y_test,
             'vocab': vocab}
+
+
+@pytest.fixture
+def color_describer_dataset():
+    color_seqs, word_seqs, vocab = torch_color_describer.create_example_dataset(
+        group_size=50, vec_dim=2)
+    return color_seqs, word_seqs, vocab
 
 
 def test_np_shallow_neural_classifier(XOR):
@@ -309,6 +318,13 @@ def test_sgd_classifier():
     assert acc >= 0.89
 
 
+@pytest.mark.parametrize("initial_embedding", [True, False])
+def test_torch_color_describer_simple_example(initial_embedding):
+    acc = torch_color_describer.simple_example(
+        initial_embedding=initial_embedding)
+    assert acc > 0.95
+
+
 @pytest.mark.parametrize("model, params", [
     [
         np_sgd_classifier.BasicSGDClassifier(max_iter=10, eta=0.1),
@@ -383,6 +399,17 @@ def test_sgd_classifier():
             'max_iter': 10,
             'eta': 0.1
         }
+    ],
+    [
+        torch_color_describer.ContextualColorDescriber(
+            vocab=[START_SYMBOL, END_SYMBOL, UNK_SYMBOL],
+            hidden_dim=5, embed_dim=5, max_iter=1, eta=1.0),
+        {
+            'hidden_dim': 10,
+            'embed_dim': 10,
+            'max_iter': 10,
+            'eta': 0.1
+        }
     ]
 ])
 def test_parameter_setting(model, params):
@@ -401,6 +428,20 @@ def test_rnn_classifier_cross_validation(model_class, X_sequence):
     X, y = zip(*train)
     best_mod = utils.fit_classifier_with_crossvalidation(
         X, y, mod, cv=2, param_grid={'hidden_dim': [10, 20]})
+
+
+def test_color_describer_cross_validation(color_describer_dataset):
+    color_seqs, word_seqs, vocab = color_describer_dataset
+    mod = torch_color_describer.ContextualColorDescriber(
+        vocab,
+        embed_dim=10,
+        hidden_dim=10,
+        max_iter=100,
+        embedding=None)
+    best_mod = utils.fit_classifier_with_crossvalidation(
+        color_seqs, word_seqs, mod, cv=2,
+        scoring=None,
+        param_grid={'hidden_dim': [10, 20]})
 
 
 def test_torch_shallow_neural_classifier_save_load(XOR):
@@ -465,3 +506,21 @@ def test_torch_tree_nn_save_load(X_tree):
         mod2 = torch_tree_nn.TorchTreeNN.from_pickle(name)
         mod2.predict(X)
         mod2.fit(X)
+
+
+def test_torch_color_describer_save_load(color_describer_dataset):
+    color_seqs, word_seqs, vocab = color_describer_dataset
+    mod = torch_color_describer.ContextualColorDescriber(
+        vocab,
+        embed_dim=10,
+        hidden_dim=10,
+        max_iter=100,
+        embedding=None)
+    mod.fit(color_seqs, word_seqs)
+    mod.predict(color_seqs)
+    with tempfile.NamedTemporaryFile(mode='wb') as f:
+        name = f.name
+        mod.to_pickle(name)
+        mod2 = torch_color_describer.ContextualColorDescriber.from_pickle(name)
+        mod2.predict(color_seqs)
+        mod2.fit(color_seqs, word_seqs)
