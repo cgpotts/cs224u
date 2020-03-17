@@ -84,6 +84,8 @@ def test_experiment(featurizer, vectorize, corpus, kb):
         train_split='tiny_train',
         test_split='tiny_dev',
         featurizers=[featurizer],
+        train_sampling_rate=0.2,
+        test_sampling_rate=0.2,
         vectorize=vectorize,
         verbose=False)
 
