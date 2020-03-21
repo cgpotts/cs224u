@@ -174,8 +174,7 @@ class NLIExample(object):
             setattr(self, k, v)
 
     def __str__(self):
-        return """{}\n{}\n{}""".format(
-            self.sentence1, self.gold_label, self.sentence2)
+        return repr(self)
 
     def __repr__(self):
         d = {k: v for k, v in self.__dict__.items() if not k.startswith('__')}
@@ -196,17 +195,22 @@ class NLIReader(object):
         of lines.
     random_state : int or None
         Optionally set the random seed for consistent sampling.
+    gold_label_attr_name : str
+        To accommodate different field names across NLI datasets.
+        The default is 'gold_label', as in SNLI and MultiNLI.
 
     """
     def __init__(self,
             src_filename,
             filter_unlabeled=True,
             samp_percentage=None,
-            random_state=None):
+            random_state=None,
+            gold_label_attr_name='gold_label'):
         self.src_filename = src_filename
         self.filter_unlabeled = filter_unlabeled
         self.samp_percentage = samp_percentage
         self.random_state = random_state
+        self.gold_label_attr_name = gold_label_attr_name
 
     def read(self):
         """Primary interface.
@@ -216,13 +220,19 @@ class NLIReader(object):
         `NLIExample`
 
         """
+        if isinstance(self.src_filename, str):
+            src_filenames = [self.src_filename]
+        else:
+            src_filenames = self.src_filename
         random.seed(self.random_state)
-        for line in open(self.src_filename, encoding='utf8'):
-            if (not self.samp_percentage) or random.random() <= self.samp_percentage:
-                d = json.loads(line)
-                ex = NLIExample(d)
-                if (not self.filter_unlabeled) or ex.gold_label != '-':
-                    yield ex
+        for src_filename in src_filenames:
+            for line in open(src_filename, encoding='utf8'):
+                if (not self.samp_percentage) or random.random() <= self.samp_percentage:
+                    d = json.loads(line)
+                    ex = NLIExample(d)
+                    gold_label = getattr(ex, self.gold_label_attr_name)
+                    if (not self.filter_unlabeled) or gold_label != '-':
+                        yield ex
 
     def __repr__(self):
         d = {k: v for k, v in self.__dict__.items() if not k.startswith('__')}
@@ -263,6 +273,35 @@ class MultiNLIMismatchedDevReader(NLIReader):
         src_filename = os.path.join(
             multinli_home, "multinli_1.0_dev_mismatched.jsonl")
         super(MultiNLIMismatchedDevReader, self).__init__(src_filename, **kwargs)
+
+
+class ANLIReader(NLIReader):
+    def __init__(self, anli_home, anli_type, rounds=(1,2,3), **kwargs):
+        if not all(int(i) in {1,2,3} for i in rounds):
+            raise ValueError("Available ANLI rounds are {1,2,3}.")
+        self.rounds = rounds
+        self.src_filename = []
+        for r in self.rounds:
+            self.src_filename.append(
+                os.path.join(
+                    anli_home,
+                    "R{}".format(r),
+                    "{}.jsonl".format(anli_type)))
+        super().__init__(
+            self.src_filename,
+            gold_label_attr_name='label',
+            **kwargs)
+
+
+class ANLITrainReader(ANLIReader):
+    def __init__(self, anli_home, **kwargs):
+        super().__init__(anli_home, 'train', **kwargs)
+
+
+class ANLIDevReader(ANLIReader):
+    def __init__(self, anli_home, **kwargs):
+        super().__init__(anli_home, 'dev', **kwargs)
+
 
 
 def read_annotated_subset(src_filename, multinli_home):

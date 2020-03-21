@@ -87,19 +87,40 @@ multinli_home = os.path.join(data_home, "multinli_1.0")
 
 annotations_home = os.path.join(data_home, "multinli_1.0_annotations")
 
+anli_home = os.path.join(data_home, "anli_v0.1")
+
 
 @pytest.mark.parametrize("reader_class, corpus_home, count", [
     [nli.SNLITrainReader, snli_home, 550152],
     [nli.SNLIDevReader, snli_home, 10000],
     [nli.MultiNLITrainReader, multinli_home, 392702],
     [nli.MultiNLIMatchedDevReader, multinli_home, 10000],
-    [nli.MultiNLIMismatchedDevReader, multinli_home, 10000]
+    [nli.MultiNLIMismatchedDevReader, multinli_home, 10000],
+    [nli.ANLITrainReader, anli_home, 162865],
+    [nli.ANLIDevReader, anli_home, 3200],
 
 ])
 @pytest.mark.slow
 def test_nli_readers(reader_class, corpus_home, count):
     reader = reader_class(
         corpus_home, samp_percentage=None, filter_unlabeled=False)
+    result = len([1 for _ in reader.read()])
+    assert result == count
+
+
+@pytest.mark.parametrize("reader_class, rounds, count", [
+    [nli.ANLITrainReader, (1,2,3), 162865],
+    [nli.ANLITrainReader, (1,), 16946],
+    [nli.ANLITrainReader, (2,), 45460],
+    [nli.ANLITrainReader, (3,), 100459],
+    [nli.ANLIDevReader, (1,2,3), 3200],
+    [nli.ANLIDevReader, (1,), 1000],
+    [nli.ANLIDevReader, (2,), 1000],
+    [nli.ANLIDevReader, (3,), 1200],
+])
+@pytest.mark.slow
+def test_anli_readers_by_rounds(reader_class, rounds, count):
+    reader = reader_class(anli_home, rounds=rounds)
     result = len([1 for _ in reader.read()])
     assert result == count
 
