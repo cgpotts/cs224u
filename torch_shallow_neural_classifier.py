@@ -78,8 +78,8 @@ class TorchShallowNeuralClassifier(TorchModelBase):
         class2index = dict(zip(self.classes_, range(self.n_classes_)))
         y = [class2index[label] for label in y]
         # Dataset:
-        X = torch.tensor(X, dtype=torch.float)
-        y = torch.tensor(y, dtype=torch.long)
+        X = torch.FloatTensor(X)
+        y = torch.tensor(y)
         dataset = torch.utils.data.TensorDataset(X, y)
         dataloader = torch.utils.data.DataLoader(
             dataset, batch_size=self.batch_size, shuffle=True,
@@ -132,7 +132,7 @@ class TorchShallowNeuralClassifier(TorchModelBase):
         self.model.eval()
         with torch.no_grad():
             self.model.to(self.device)
-            X = torch.tensor(X, dtype=torch.float).to(self.device)
+            X = torch.FloatTensor(X).to(self.device)
             preds = self.model(X)
             return torch.softmax(preds, dim=1).cpu().numpy()
 

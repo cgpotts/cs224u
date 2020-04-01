@@ -22,8 +22,8 @@ class TorchRNNDataset(torch.utils.data.Dataset):
     def collate_fn(batch):
         X, seq_lengths, y = zip(*batch)
         X = torch.nn.utils.rnn.pad_sequence(X, batch_first=True)
-        seq_lengths = torch.tensor(seq_lengths, dtype=torch.long)
-        y = torch.tensor(y, dtype=torch.long)
+        seq_lengths = torch.tensor(seq_lengths)
+        y = torch.tensor(y)
         return X, seq_lengths, y
 
     def __len__(self):
@@ -100,7 +100,7 @@ class TorchRNNClassifierModel(nn.Module):
         if embedding is None:
             return nn.Embedding(vocab_size, embed_dim)
         else:
-            embedding = torch.tensor(embedding, dtype=torch.float)
+            embedding = torch.FloatTensor(embedding)
             return nn.Embedding.from_pretrained(embedding)
 
 
@@ -315,13 +315,13 @@ class TorchRNNClassifier(TorchModelBase):
             unk_index = index['$UNK']
             for ex in X:
                 seq = [index.get(w, unk_index) for w in ex]
-                seq = torch.tensor(seq, dtype=torch.long)
+                seq = torch.tensor(seq)
                 new_X.append(seq)
                 seq_lengths.append(len(seq))
         else:
-            new_X = [torch.FloatTensor(ex) for ex in X]
+            new_X = [torch.tensor(ex) for ex in X]
             seq_lengths = [len(ex) for ex in X]
-        return new_X, torch.LongTensor(seq_lengths)
+        return new_X, torch.tensor(seq_lengths)
 
 
 def simple_example(initial_embedding=False, use_embedding=True):
