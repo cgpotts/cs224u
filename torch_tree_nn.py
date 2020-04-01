@@ -121,12 +121,15 @@ class TorchTreeNN(TorchModelBase):
         # Model:
         if not self.warm_start or not hasattr(self, "model"):
             self.model = self.build_graph()
+            self.opt = self.optimizer(
+                self.model.parameters(),
+                lr=self.eta,
+                weight_decay=self.l2_strength)
         self.model.to(self.device)
         self.model.train()
 
         # Optimization:
         loss = nn.CrossEntropyLoss()
-        optimizer = self.optimizer(self.model.parameters(), lr=self.eta)
 
         # Train:
         dataset = list(zip(X, y))
@@ -138,9 +141,9 @@ class TorchTreeNN(TorchModelBase):
                 label = self.convert_label(label)
                 err = loss(pred, label)
                 epoch_error += err.item()
-                optimizer.zero_grad()
+                self.opt.zero_grad()
                 err.backward()
-                optimizer.step()
+                self.opt.step()
             # Incremental predictions where possible:
             if X_dev is not None and iteration > 0 and iteration % dev_iter == 0:
                 self.dev_predictions[iteration] = self.predict(X_dev)

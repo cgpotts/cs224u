@@ -347,6 +347,10 @@ class ContextualColorDescriber(TorchModelBase):
 
         if not self.warm_start or not hasattr(self, "model"):
             self.model = self.build_graph()
+            self.opt = self.optimizer(
+                self.model.parameters(),
+                lr=self.eta,
+                weight_decay=self.l2_strength)
 
         # Make sure that these attributes are aligned -- important
         # where a supplied pretrained embedding has determined
@@ -370,11 +374,6 @@ class ContextualColorDescriber(TorchModelBase):
 
         loss = nn.CrossEntropyLoss()
 
-        optimizer = self.optimizer(
-            self.model.parameters(),
-            lr=self.eta,
-            weight_decay=self.l2_strength)
-
         for iteration in range(1, self.max_iter+1):
             epoch_error = 0.0
             for batch_colors, batch_words, batch_lens, targets in dataloader:
@@ -392,9 +391,9 @@ class ContextualColorDescriber(TorchModelBase):
 
                 err = loss(output, targets)
                 epoch_error += err.item()
-                optimizer.zero_grad()
+                self.opt.zero_grad()
                 err.backward()
-                optimizer.step()
+                self.opt.step()
 
             utils.progress_bar("Epoch {}; err = {}".format(iteration, epoch_error))
 

@@ -72,11 +72,14 @@ class TorchAutoencoder(TorchModelBase):
         # Graph
         if not self.warm_start or not hasattr(self, "model"):
             self.model = self.define_graph()
+            self.opt = self.optimizer(
+                self.model.parameters(),
+                lr=self.eta,
+                weight_decay=self.l2_strength)
         self.model.to(self.device)
         self.model.train()
         # Optimization:
         loss = nn.MSELoss()
-        optimizer = self.optimizer(self.model.parameters(), lr=self.eta)
         # Train:
         for iteration in range(1, self.max_iter+1):
             epoch_error = 0.0
@@ -86,9 +89,9 @@ class TorchAutoencoder(TorchModelBase):
                 batch_preds = self.model(X_batch)
                 err = loss(batch_preds, y_batch)
                 epoch_error += err.item()
-                optimizer.zero_grad()
+                self.opt.zero_grad()
                 err.backward()
-                optimizer.step()
+                self.opt.step()
             self.errors.append(epoch_error)
             progress_bar(
                 "Finished epoch {} of {}; error is {}".format(
