@@ -77,6 +77,7 @@ class BasicSGDClassifier(object):
                 # Weight update if it's an incorrect prediction:
                 if predicted_index != label_index:
                     self.coef_[label_index] += self.eta * rep
+                    self.coef_[predicted_index] += self.eta * -rep
 
     def predict_one(self, rep, costs=0.0):
         """The core classification function. The code just needs to
