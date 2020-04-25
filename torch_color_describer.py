@@ -566,9 +566,13 @@ class ContextualColorDescriber(TorchModelBase):
         probs = self.predict_proba(color_seqs, word_seqs)
         scores = []
         for pred, seq in zip(probs, word_seqs):
+            # pred is n by |V|
             # Get the probabilities corresponding to the path `seq`:
-            s = np.array([t[self.word2index.get(w, self.unk_index)]
-                         for t, w in zip(pred, seq)])
+            l=[]
+            for t, w in zip(pred, seq):
+                print(self.word2index.get(w, self.unk_index), t.shape)
+                l.append(t[self.word2index.get(w, self.unk_index)])
+            s = np.array(l)
             scores.append(s)
         perp = [np.prod(s)**(-1/len(s)) for s in scores]
         return perp
