@@ -288,7 +288,7 @@ class Dataset(object):
             feat_matrices_by_rel = defaultdict(list)
             if len(featurizers) != 1:
                 raise ValueError(
-                    "If `vectorize=True`, the `featurizers` argument "
+                    "If `vectorize=False`, the `featurizers` argument "
                     "must contain exactly one function.")
             featurizer = featurizers[0]
             for rel, kbts in kbts_by_rel.items():
