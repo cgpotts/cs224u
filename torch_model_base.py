@@ -27,6 +27,7 @@ class TorchModelBase(object):
         self.warm_start = warm_start
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
+            print("Using","cuda" if torch.cuda.is_available() else "cpu")
         self.device = torch.device(device)
         self.params = [
             'hidden_dim',

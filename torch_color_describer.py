@@ -6,6 +6,7 @@ import torch.utils.data
 from torch_model_base import TorchModelBase
 import utils
 from utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
+import time
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2020"
@@ -82,6 +83,7 @@ class ColorDataset(torch.utils.data.Dataset):
             word_seqs, batch_first=True)
         targets = torch.nn.utils.rnn.pad_sequence(
             targets, batch_first=True)
+        
         return color_seqs, word_seqs, ex_lengths, targets
 
     def __len__(self):
@@ -90,6 +92,95 @@ class ColorDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return (self.color_seqs[idx], self.word_seqs[idx], self.ex_lengths[idx])
 
+class QuadraticForm(torch.autograd.Function):
+    """
+    This is a custom function that, given two parameters mew and sigma, implements quadratic form. 
+    This function takes a representation of a color in vector space and returns a unnormalized score attributed to that color swab.
+    """
+
+    @staticmethod
+    def forward(ctx, mean, co_var, color):
+        """        
+        mean : FloatTensor
+            m x k matrix, where m is the number of examples, where k is the length of the representation of the color
+        co_var: FloatTensor
+            m x k x k matrix, sigma in the quadratic form. 
+        color: FloatTensor
+            A m x k matrix, where each example has a vector of a single color representation of length k
+
+        """
+        ctx.save_for_backward(mean, co_var, color)
+        print("colors shape", color.shape)
+        print("mew shape", mean.shape)
+        shifted_color = color - mean
+        print("shifted_color shape", shifted_color.shape)
+
+        return shifted_color.t() * co_var * shifted_color
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        """
+        The derivative of the quadratic form.
+        
+        input : list of FloatTensors
+            The first two elements of the list are mew and sigma, the parameters of the quadratic, where:
+                mew is m x k, where m is the number of examples, where k is the length of the representation of the color
+                sigma is a m x k x k matrix
+            The last element is a m x k vector of a single color
+        output : FloatTensor
+            The float tensor for the gradient of a quadratic function
+        """
+        mean, co_var, color = ctx.saved_tensors
+        grad_mean = grad_co_var = grad_color = None
+        
+        shifted_color = color - mean
+        grad = torch.t(shifted_color) * (co_var + co_var.t())
+        
+        if ctx.needs_input_grad[0]:
+            grad_mean = grad * grad_output
+        if ctx.needs_input_grad[1]:
+            grad_co_var = grad * grad_output
+        if ctx.needs_input_grad[2]:
+            grad_color = grad * grad_output
+
+        return grad_mean, grad_co_var, grad_color
+    
+'''
+Models
+'''
+    
+class WordSeqEncoder(Decoder):
+    '''
+    Simple encoder model for the neural literal/pragmatic listener.
+    '''
+    def __init__(self, color_dim, statistical_param_size, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.color_dim = color_dim
+        self.output_layer = nn.Linear(self.hidden_dim, 
+                                      color_dim + color_dim * color_dim).to(self.device)
+        
+    def forward(self, word_seqs, seq_lengths=None, hidden=None, target_colors=None):
+
+        embs = self.get_embeddings(word_seqs, target_colors=target_colors)
+
+        if self.training:
+            # Packed sequence for performance:
+            embs = torch.nn.utils.rnn.pack_padded_sequence(
+                embs, batch_first=True, lengths=seq_lengths, enforce_sorted=False)
+            # RNN forward:
+            output, hidden = self.rnn(embs, hidden)
+            # Unpack:
+            output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
+                output, batch_first=True)
+            
+            # transform hidden state to recieve a new output state
+            hidden_transform = self.output_layer(hidden)
+            
+            return output, hidden
+        else:
+            output, hidden = self.rnn(embs, hidden)
+            output = self.output_layer(output)
+            return output, hidden
 
 class Encoder(nn.Module):
     """Simple Encoder model based on a GRU cell.
@@ -100,14 +191,17 @@ class Encoder(nn.Module):
     hidden_dim : int
 
     """
-    def __init__(self, color_dim, hidden_dim):
+    def __init__(self, color_dim, hidden_dim, force_cpu=False):
         super(Encoder, self).__init__()
+        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        print(self.__class__.__name__,self.device)
+
         self.color_dim = color_dim
         self.hidden_dim = hidden_dim
-        self.rnn = nn.GRU(
+        self.rnn = nn.LSTM(
             input_size=self.color_dim,
             hidden_size=self.hidden_dim,
-            batch_first=True)
+            batch_first=True).to(self.device)
 
     def forward(self, color_seqs):
         output, hidden = self.rnn(color_seqs)
@@ -130,17 +224,19 @@ class Decoder(nn.Module):
         value becomes the embedding.
 
     """
-    def __init__(self, vocab_size, embed_dim, hidden_dim, embedding=None):
+    def __init__(self, vocab_size, embed_dim, hidden_dim, embedding=None, force_cpu=False):
         super(Decoder, self).__init__()
+        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        print(self.__class__.__name__,self.device)
         self.vocab_size = vocab_size
-        self.embedding = self._define_embedding(embedding, vocab_size, embed_dim)
+        self.embedding = self._define_embedding(embedding, vocab_size, embed_dim).to(self.device)
         self.embed_dim = self.embedding.embedding_dim
         self.hidden_dim = hidden_dim
-        self.rnn = nn.GRU(
+        self.rnn = nn.LSTM(
             input_size=self.embed_dim,
             hidden_size=self.hidden_dim,
-            batch_first=True)
-        self.output_layer = nn.Linear(self.hidden_dim, self.vocab_size)
+            batch_first=True).to(self.device)
+        self.output_layer = nn.Linear(self.hidden_dim, self.vocab_size).to(self.device)
 
     def forward(self, word_seqs, seq_lengths=None, hidden=None, target_colors=None):
 
@@ -183,7 +279,10 @@ class Decoder(nn.Module):
             c is the dimensionality of the color representations.
 
         """
-        return self.embedding(word_seqs)
+        if isinstance(word_seqs, nn.utils.rnn.PackedSequence):
+            word_seqs, _ = torch.nn.utils.rnn.pad_packed_sequence(
+                word_seqs, batch_first=True)
+        return self.embedding(word_seqs).to(self.device)
 
     @staticmethod
     def _define_embedding(embedding, vocab_size, embed_dim):
@@ -207,8 +306,10 @@ class EncoderDecoder(nn.Module):
     decoder : `Decoder`
 
     """
-    def __init__(self, encoder, decoder):
+    def __init__(self, encoder, decoder, force_cpu=False):
         super(EncoderDecoder, self).__init__()
+        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        print(self.__class__.__name__,self.device)
         self.encoder = encoder
         self.decoder = decoder
 
@@ -305,6 +406,7 @@ class ContextualColorDescriber(TorchModelBase):
             embedding=None,
             embed_dim=50,
             hidden_dim=50,
+            force_cpu=False,
             **kwargs):
         super(ContextualColorDescriber, self).__init__(
             hidden_dim=hidden_dim, **kwargs)
@@ -323,6 +425,7 @@ class ContextualColorDescriber(TorchModelBase):
         # so we remove it to avoid misleading people:
         delattr(self, 'hidden_activation')
         self.params.remove('hidden_activation')
+        self.force_cpu = force_cpu
 
     def fit(self, color_seqs, word_seqs):
         """Standard `fit` method where `color_seqs` are the inputs and
@@ -376,18 +479,33 @@ class ContextualColorDescriber(TorchModelBase):
 
         for iteration in range(1, self.max_iter+1):
             epoch_error = 0.0
+            start = time.time()
             for batch_colors, batch_words, batch_lens, targets in dataloader:
+                
+                batch_colors = batch_colors.to(self.device, non_blocking=True)
+                
+                batch_words = torch.nn.utils.rnn.pack_padded_sequence(
+                    batch_words, batch_first=True, lengths=batch_lens, enforce_sorted=False)
+                batch_words = batch_words.to(self.device, non_blocking=True)
+                
+                targets = torch.nn.utils.rnn.pack_padded_sequence(
+                    targets, batch_first=True, 
+                    lengths=batch_lens-1, enforce_sorted=False)
+                targets = targets.to(self.device, non_blocking=True)
+                
+                batch_lens = batch_lens.to(self.device, non_blocking=True)
 
-                batch_colors = batch_colors.to(self.device)
-                batch_words = batch_words.to(self.device)
-                batch_lens = batch_lens.to(self.device)
-                targets = targets.to(self.device)
-
+                if next(self.model.parameters()).is_cuda == False:
+                    print("model is training on cpu not gpu")
+                 
                 output, _, targets = self.model(
                     color_seqs=batch_colors,
                     word_seqs=batch_words,
                     seq_lengths=batch_lens,
                     targets=targets)
+                    
+                targets, _ = torch.nn.utils.rnn.pad_packed_sequence(
+                    targets, batch_first=True)
 
                 err = loss(output, targets)
                 epoch_error += err.item()
@@ -395,7 +513,7 @@ class ContextualColorDescriber(TorchModelBase):
                 err.backward()
                 self.opt.step()
 
-            utils.progress_bar("Epoch {}; err = {}".format(iteration, epoch_error))
+            print("Epoch {}; err = {}; time = {}".format(iteration, epoch_error, time.time() - start))
 
         return self
 
@@ -408,15 +526,17 @@ class ContextualColorDescriber(TorchModelBase):
     def build_graph(self):
         encoder = Encoder(
             color_dim=self.color_dim,
-            hidden_dim=self.hidden_dim)
+            hidden_dim=self.hidden_dim,
+            force_cpu=self.force_cpu)
 
         decoder = Decoder(
             vocab_size=self.vocab_size,
             embed_dim=self.embed_dim,
             embedding=self.embedding,
-            hidden_dim=self.hidden_dim)
+            hidden_dim=self.hidden_dim,
+            force_cpu=self.force_cpu)
 
-        return EncoderDecoder(encoder, decoder)
+        return EncoderDecoder(encoder, decoder, self.force_cpu)
 
     def predict(self, color_seqs, max_length=20):
         """Predict new sequences based on the color contexts in
@@ -436,8 +556,8 @@ class ContextualColorDescriber(TorchModelBase):
         list of str
 
         """
-        color_seqs = torch.FloatTensor(color_seqs)
-        self.model.to("cpu")
+        color_seqs = torch.FloatTensor(color_seqs).to(self.device)
+        self.model.to(self.device)
         self.model.eval()
         preds = []
         with torch.no_grad():
@@ -446,7 +566,7 @@ class ContextualColorDescriber(TorchModelBase):
 
             # Start with START_SYMBOL for all examples:
             decoder_input = [[self.start_index]]  * len(color_seqs)
-            decoder_input = torch.LongTensor(decoder_input)
+            decoder_input = torch.LongTensor(decoder_input).to(self.device)
             preds.append(decoder_input)
 
             # Now move through the remaiming timesteps using the
@@ -503,6 +623,8 @@ class ContextualColorDescriber(TorchModelBase):
         """
 
         dataset = self.build_dataset(color_seqs, word_seqs)
+        
+        self.model.to(self.device)
 
         dataloader = torch.utils.data.DataLoader(
             dataset,
@@ -526,6 +648,8 @@ class ContextualColorDescriber(TorchModelBase):
             for batch_colors, batch_words, batch_lens, targets in dataloader:
 
                 batch_colors = batch_colors.to(self.device)
+                batch_words = torch.nn.utils.rnn.pack_padded_sequence(
+                    batch_words, batch_first=True, lengths=batch_lens, enforce_sorted=False)
                 batch_words = batch_words.to(self.device)
                 batch_lens = batch_lens.to(self.device)
 
@@ -533,12 +657,15 @@ class ContextualColorDescriber(TorchModelBase):
                     color_seqs=batch_colors,
                     word_seqs=batch_words,
                     seq_lengths=batch_lens)
+                if next(self.model.parameters()).is_cuda == False:
+                    print("model is training on cpu not gpu")
 
                 probs = softmax(output)
                 probs = probs.cpu().numpy()
                 probs = np.insert(probs, 0, start_probs, axis=1)
                 all_probs += [p[: n] for p, n in zip(probs, batch_lens)]
-
+                utils.progress_bar("all_probs {}".format(len(all_probs)))
+        
         return all_probs
 
     def perplexities(self, color_seqs, word_seqs):
@@ -568,11 +695,7 @@ class ContextualColorDescriber(TorchModelBase):
         for pred, seq in zip(probs, word_seqs):
             # pred is n by |V|
             # Get the probabilities corresponding to the path `seq`:
-            l=[]
-            for t, w in zip(pred, seq):
-                print(self.word2index.get(w, self.unk_index), t.shape)
-                l.append(t[self.word2index.get(w, self.unk_index)])
-            s = np.array(l)
+            s = np.array([t[self.word2index.get(w, self.unk_index)] for t, w in zip(pred, seq)])
             scores.append(s)
         perp = [np.prod(s)**(-1/len(s)) for s in scores]
         return perp
@@ -650,7 +773,6 @@ class ContextualColorDescriber(TorchModelBase):
 
         """
         return self.listener_accuracy(color_seqs, word_seqs)
-
 
 def create_example_dataset(group_size=100, vec_dim=2):
     """Creates simple datasets in which the inputs are three-vector
