@@ -99,88 +99,65 @@ class QuadraticForm(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, mean, co_var, color):
+    def forward(ctx, mew, co_var, color):
         """        
-        mean : FloatTensor
+        mew : FloatTensor
             m x k matrix, where m is the number of examples, where k is the length of the representation of the color
         co_var: FloatTensor
             m x k x k matrix, sigma in the quadratic form. 
         color: FloatTensor
-            A m x k matrix, where each example has a vector of a single color representation of length k
+            m x p x k matrix, where each example has a p vectors of a single color representations of length k
+        ------
+        outputs:
+            m x p matrix of scores.
 
         """
-        ctx.save_for_backward(mean, co_var, color)
-        print("colors shape", color.shape)
-        print("mew shape", mean.shape)
-        shifted_color = color - mean
-        print("shifted_color shape", shifted_color.shape)
-
-        return shifted_color.t() * co_var * shifted_color
+        ctx.save_for_backward(mew, co_var, color)
+        shifted_color = color - mew.unsqueeze(1)
+        vec_mat_mult = torch.matmul(shifted_color.unsqueeze(2), co_var.unsqueeze(1)).squeeze(1)
+        output = (vec_mat_mult.squeeze(2) * shifted_color).sum(2)        
+        #output = (torch.matmul(shifted_color.unsqueeze(1), co_var).squeeze(1) * shifted_color).sum(1)
+        return output
 
     @staticmethod
     def backward(ctx, grad_output):
         """
         The derivative of the quadratic form.
         
-        input : list of FloatTensors
-            The first two elements of the list are mew and sigma, the parameters of the quadratic, where:
-                mew is m x k, where m is the number of examples, where k is the length of the representation of the color
-                sigma is a m x k x k matrix
-            The last element is a m x k vector of a single color
+        input : tuple of FloatTensors
+            mew : FloatTensor
+                m x k matrix, where m is the number of examples, where k is the length of the representation of the color
+            co_var: FloatTensor
+                m x k x k matrix, sigma in the quadratic form
+            color: FloatTensor
+                m x k matrix, where each example has a vector of a single color representation of length k
         output : FloatTensor
-            The float tensor for the gradient of a quadratic function
+            The float tensor for the gradients of a quadratic function
         """
-        mean, co_var, color = ctx.saved_tensors
+        mew, co_var, color = ctx.saved_tensors
         grad_mean = grad_co_var = grad_color = None
         
-        shifted_color = color - mean
-        grad = torch.t(shifted_color) * (co_var + co_var.t())
+        shifted_color = color - mew.unsqueeze(1)
         
         if ctx.needs_input_grad[0]:
-            grad_mean = grad * grad_output
+            # Calculated using chain rule df/dmew = (df/dx)*(dx/dmew)
+            grad_mean = -torch.matmul(shifted_color.unsqueeze(2), (co_var + co_var.permute(0,2,1)).unsqueeze(1)).squeeze(2)
+            
+            grad_mean = grad_mean * grad_output.unsqueeze(2)
+            # Sum over all gradients
+            grad_mean = grad_mean.sum(1)
         if ctx.needs_input_grad[1]:
-            grad_co_var = grad * grad_output
-        if ctx.needs_input_grad[2]:
-            grad_color = grad * grad_output
+            # Derivative of the matrix is the outer product of the shifted_color
+            grad_co_var = torch.einsum('bki,bkj->bkij', (shifted_color, shifted_color))
+            grad_co_var = grad_co_var * grad_output.unsqueeze(2).unsqueeze(3)
+            grad_co_var = grad_co_var.sum(1)
+
 
         return grad_mean, grad_co_var, grad_color
     
 '''
 Models
 '''
-    
-class WordSeqEncoder(Decoder):
-    '''
-    Simple encoder model for the neural literal/pragmatic listener.
-    '''
-    def __init__(self, color_dim, statistical_param_size, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.color_dim = color_dim
-        self.output_layer = nn.Linear(self.hidden_dim, 
-                                      color_dim + color_dim * color_dim).to(self.device)
-        
-    def forward(self, word_seqs, seq_lengths=None, hidden=None, target_colors=None):
-
-        embs = self.get_embeddings(word_seqs, target_colors=target_colors)
-
-        if self.training:
-            # Packed sequence for performance:
-            embs = torch.nn.utils.rnn.pack_padded_sequence(
-                embs, batch_first=True, lengths=seq_lengths, enforce_sorted=False)
-            # RNN forward:
-            output, hidden = self.rnn(embs, hidden)
-            # Unpack:
-            output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
-                output, batch_first=True)
-            
-            # transform hidden state to recieve a new output state
-            hidden_transform = self.output_layer(hidden)
-            
-            return output, hidden
-        else:
-            output, hidden = self.rnn(embs, hidden)
-            output = self.output_layer(output)
-            return output, hidden
 
 class Encoder(nn.Module):
     """Simple Encoder model based on a GRU cell.
@@ -495,9 +472,6 @@ class ContextualColorDescriber(TorchModelBase):
                 
                 batch_lens = batch_lens.to(self.device, non_blocking=True)
 
-                if next(self.model.parameters()).is_cuda == False:
-                    print("model is training on cpu not gpu")
-                 
                 output, _, targets = self.model(
                     color_seqs=batch_colors,
                     word_seqs=batch_words,
@@ -657,8 +631,6 @@ class ContextualColorDescriber(TorchModelBase):
                     color_seqs=batch_colors,
                     word_seqs=batch_words,
                     seq_lengths=batch_lens)
-                if next(self.model.parameters()).is_cuda == False:
-                    print("model is training on cpu not gpu")
 
                 probs = softmax(output)
                 probs = probs.cpu().numpy()
@@ -773,6 +745,253 @@ class ContextualColorDescriber(TorchModelBase):
 
         """
         return self.listener_accuracy(color_seqs, word_seqs)
+    
+class ColorizedNeuralListenerEncoder(Decoder):
+    '''
+    Simple encoder model for the neural literal/pragmatic listener.
+    '''
+    def __init__(self, color_dim, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.color_dim = color_dim
+        self.output_layer = nn.Linear(self.hidden_dim, 
+                                      color_dim + color_dim * color_dim).to(self.device)
+        
+    def forward(self, word_seqs, seq_lengths=None):
+
+        embs = self.get_embeddings(word_seqs)
+
+        if not self.training:
+            # Packed sequence for performance:
+            embs = torch.nn.utils.rnn.pack_padded_sequence(
+                embs, batch_first=True, lengths=seq_lengths, enforce_sorted=False)
+            # RNN forward:
+            output, hidden = self.rnn(embs)
+            # Unpack:
+            output, seq_lengths = torch.nn.utils.rnn.pad_packed_sequence(
+                output, batch_first=True)
+            
+            # Combine all hidden states and feed into linear layer
+            hidden_state = torch.cat(hidden, dim=2).squeeze(0)
+
+            self.output_layer = nn.Linear(self.hidden_dim * len(hidden), 
+                                      self.color_dim + self.color_dim * self.color_dim).to(self.device)
+            
+            hidden_transform = self.output_layer(hidden_state)
+
+            mew, sigma = torch.split(hidden_transform, [self.color_dim, self.color_dim * self.color_dim], dim=1)
+            sigma = sigma.view(-1, self.color_dim, self.color_dim)
+            
+            return output, mew, sigma
+        else:
+            output, hidden = self.rnn(embs)
+            
+            # Combine all hidden states and feed into linear layer
+            hidden_state = torch.cat(hidden, dim=2).squeeze(0)
+
+            self.output_layer = nn.Linear(self.hidden_dim * len(hidden), 
+                                      self.color_dim + self.color_dim * self.color_dim).to(self.device)
+            
+            hidden_transform = self.output_layer(hidden_state)
+
+            mew, sigma = torch.split(hidden_transform, [self.color_dim, self.color_dim * self.color_dim], dim=1)
+            sigma = sigma.view(-1, self.color_dim, self.color_dim)
+            return output, mew, sigma
+        
+class ColorizedNeuralListenerDecoder(nn.Module):
+    '''
+    Simple decoder model for the neural literal/pragmatic listener.
+    This model takes in two statistical params, mew and sigma, and returns a vector containing the normalized scores
+    of each color in the context.
+    '''
+    def __init__(self, force_cpu, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.force_cpu = force_cpu
+        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        self.transform_func = QuadraticForm.apply
+        self.hidden_activation = nn.Softmax(dim=1)
+        
+    def forward(self, color_seqs, mew, sigma):
+        '''
+        color_seqs : FloatTensor
+            A m x k x n tensor where m is the number of examples, k is the number of colors in the context, and
+            n is the size of the color dimension after transform
+        '''
+        color_scores = self.transform_func(mew, sigma, color_seqs)
+        output = self.hidden_activation(color_scores)
+        return output
+
+class ColorizedNeuralListenerEncoderDecoder(EncoderDecoder):
+    
+    def forward(self, 
+            color_seqs, 
+            word_seqs, 
+            seq_lengths=None, 
+            mew=None, 
+            sigma=None):
+        if mew is None or sigma is None:
+            _, mew, sigma = self.encoder(word_seqs, seq_lengths)
+            
+        output = self.decoder(
+            color_seqs, mew=mew, sigma=sigma)
+        
+        return output
+
+class ColorizedNeuralListener(ContextualColorDescriber):
+    def build_graph(self):
+        encoder = ColorizedNeuralListenerEncoder(
+            vocab_size=self.vocab_size,
+            embed_dim=self.embed_dim,
+            embedding=self.embedding,
+            hidden_dim=self.hidden_dim,
+            color_dim=self.color_dim,
+            force_cpu=self.force_cpu)
+
+        decoder = ColorizedNeuralListenerDecoder(
+            force_cpu=self.force_cpu)
+
+        return ColorizedNeuralListenerEncoderDecoder(encoder, decoder, self.force_cpu)
+    
+    def fit(self, color_seqs, word_seqs):
+        """Standard `fit` method where `word_seqs` are the inputs and
+        `color_seqs` are the sequences to predict.
+
+        Parameters
+        ----------
+        color_seqs : list of lists of lists of floats, or np.array
+            Dimension (m, n, p) where m is the number of examples, n is
+            the number of colors in each context, and p is the length
+            of the color representations.
+        word_seqs : list of list of int
+            Dimension m, the number of examples. The length of each
+            sequence can vary.
+
+        Returns
+        -------
+        self
+
+        """
+        self.color_dim = len(color_seqs[0][0])
+        
+        if not self.warm_start or not hasattr(self, "model"):
+            self.model = self.build_graph()
+            self.opt = self.optimizer(
+                self.model.parameters(),
+                lr=self.eta,
+                weight_decay=self.l2_strength)
+
+        # Make sure that these attributes are aligned -- important
+        # where a supplied pretrained embedding has determined
+        # a `embed_dim` that might be different from the user's
+        # argument.
+        self.embed_dim = self.model.encoder.embed_dim
+
+        self.model.to(self.device)
+
+        self.model.train()
+
+        dataset = self.build_dataset(color_seqs, word_seqs)
+
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            drop_last=False,
+            pin_memory=True,
+            collate_fn=dataset.collate_fn)
+
+        loss = nn.CrossEntropyLoss()
+
+        for iteration in range(1, self.max_iter+1):
+            epoch_error = 0.0
+            start = time.time()
+            for batch_colors, batch_words, batch_lens, _ in dataloader:
+                
+                batch_colors = batch_colors.to(self.device, non_blocking=True)
+                
+                batch_words = torch.nn.utils.rnn.pack_padded_sequence(
+                    batch_words, batch_first=True, lengths=batch_lens, enforce_sorted=False)
+                batch_words = batch_words.to(self.device, non_blocking=True)
+                
+                batch_lens = batch_lens.to(self.device, non_blocking=True)
+
+                output = self.model(
+                    color_seqs=batch_colors,
+                    word_seqs=batch_words,
+                    seq_lengths=batch_lens)
+                
+                color_targets = torch.ones(output.shape[0], dtype=torch.long) * 2
+                color_targets = color_targets.to(self.device)
+                #output = output.argmax(1)
+                
+                err = loss(output, color_targets)
+                epoch_error += err.item()
+                self.opt.zero_grad()
+                err.backward()
+                self.opt.step()
+
+            print("Epoch {}; err = {}; time = {}".format(iteration, epoch_error, time.time() - start))
+
+        return self
+    
+    def predict(self, color_seqs, word_seqs, max_length=20):
+        """Predict new sequences based on the word sequences in
+        `word_seqs`.
+
+        Parameters
+        ----------
+        word_seqs : list of lists of str
+            Dimension m, the number of examples, and the length of
+            each sequence can vary.
+        color_seqs : list of lists of lists of floats, or np.array
+            Dimension (m, n, p) where m is the number of examples, n is
+            the number of colors in each context, and p is the length
+            of the color representations.
+        max_length : int
+            Length of the longest sequences to create.
+
+        Returns
+        -------
+        list of ints that represent the index of the colors with the highest score
+
+        """
+        self.model.to(self.device)
+        self.model.eval()
+        
+        word_seqs = [[self.word2index[word] for word in word_seq] for word_seq in word_seqs]
+        
+        dataset = self.build_dataset(color_seqs, word_seqs)
+
+        dataloader = torch.utils.data.DataLoader(
+            dataset,
+            shuffle=False,
+            drop_last=False,
+            pin_memory=True,
+            collate_fn=dataset.collate_fn)
+        
+        preds = []
+        with torch.no_grad():
+            for batch_colors, batch_words, batch_lens, _ in dataloader:
+                
+                batch_colors = batch_colors.to(self.device, non_blocking=True)
+                
+                batch_words = torch.nn.utils.rnn.pack_padded_sequence(
+                    batch_words, batch_first=True, lengths=batch_lens, enforce_sorted=False)
+                batch_words = batch_words.to(self.device, non_blocking=True)
+                
+                batch_lens = batch_lens.to(self.device, non_blocking=True)
+
+                # Get the hidden representations from the color contexts:
+                output = self.model(
+                    color_seqs=batch_colors,
+                    word_seqs=batch_words,
+                    seq_lengths=batch_lens)
+
+                # Always take the highest probability token to
+                # be the prediction:
+                p = output.argmax(1).item()
+                preds.append(p)
+
+        return preds
 
 def create_example_dataset(group_size=100, vec_dim=2):
     """Creates simple datasets in which the inputs are three-vector
@@ -817,7 +1036,6 @@ def create_example_dataset(group_size=100, vec_dim=2):
 
     return color_seqs, word_seqs, vocab
 
-
 def simple_example(group_size=100, vec_dim=2, initial_embedding=False):
     from sklearn.model_selection import train_test_split
 
@@ -858,6 +1076,62 @@ def simple_example(group_size=100, vec_dim=2, initial_embedding=False):
 
     return lis_acc
 
+def simple_neural_listener_example(group_size=100, vec_dim=2, initial_embedding=False):
+    from sklearn.model_selection import train_test_split
+
+    color_seqs, word_seqs, vocab = create_example_dataset(
+        group_size=group_size, vec_dim=vec_dim)
+
+    if initial_embedding:
+        import numpy as np
+        embedding = np.random.uniform(
+            low=-0.5, high=0.5, size=(len(vocab), 11))
+    else:
+        embedding = None
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        color_seqs, word_seqs)
+
+    mod = ColorizedNeuralListener(
+        vocab,
+        embed_dim=10,
+        hidden_dim=10,
+        max_iter=100,
+        embedding=embedding)
+
+    mod.fit(X_train, y_train)
+
+    pred_indices = mod.predict(X_test, y_test)
+    
+    correct = 0
+    for color_seq, pred_index in zip(X_test, pred_indices):
+        target_index = len(color_seq) - 1
+        correct += int(target_index == pred_index)
+    acc = correct / len(X_test)
+    
+    print(pred_indices)
+    
+    print("\nExact sequence: {} of {} correct. Accuracy: {}".format(correct, len(X_test), acc))
+
+    #lis_acc = mod.listener_accuracy(X_test, y_test)
+
+    #print("\nListener accuracy {}".format(lis_acc))
+
+    return correct
+
+def quadratic_grad_check():
+    # gradcheck takes a tuple of tensors as input, check if your gradient
+    # evaluated with these tensors are close enough to numerical
+    # approximations and returns True if they all verify this condition.
+    mew = torch.randn(10,4,dtype=torch.double,requires_grad=True)
+    sigma = torch.randn(10,4,4,dtype=torch.double,requires_grad=True)
+    color = torch.randn(10,3,4,dtype=torch.double,requires_grad=False)
+    input = (mew, sigma, color)
+    test = torch.autograd.gradcheck(QuadraticForm.apply, input, eps=1e-6, atol=1e-4)
+    print(test)
 
 if __name__ == '__main__':
-    simple_example()
+    #simple_example()
+    simple_neural_listener_example()
+    #quadratic_test()
+    #quadratic_grad_check()
