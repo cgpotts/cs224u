@@ -618,17 +618,17 @@ class ContextualColorDescriber(TorchModelBase):
         else:
             torch.save(self.model, path)
         
-    def load_model(self, path, inference_only=False, color_dim=None):
+    def load_model(self, path, inference_only=False, color_dim=None, **kwargs):
         if inference_only:
             if color_dim is None:
                 raise AttributeError('When loading a state_dict, the color_dim must be passed')
             if self.model is None:
                 self.model = literal_listener.build_graph()
                 
-            self.model.load_state_dict(torch.load("literal_listener.pt"))
+            self.model.load_state_dict(torch.load(path, **kwargs))
             self.model.eval()
         else:
-            self.model = torch.load(path)
+            self.model = torch.load(path, **kwargs)
             self.model.eval()
 
 class ColorContextDecoder(Decoder):    

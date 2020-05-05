@@ -168,9 +168,9 @@ class Encoder(nn.Module):
     hidden_dim : int
 
     """
-    def __init__(self, color_dim, hidden_dim, force_cpu=False):
+    def __init__(self, color_dim, hidden_dim, device='cpu'):
         super(Encoder, self).__init__()
-        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        self.device = device
         print(self.__class__.__name__,self.device)
 
         self.color_dim = color_dim
@@ -201,9 +201,9 @@ class Decoder(nn.Module):
         value becomes the embedding.
 
     """
-    def __init__(self, vocab_size, embed_dim, hidden_dim, embedding=None, force_cpu=False):
+    def __init__(self, vocab_size, embed_dim, hidden_dim, embedding=None, device='cpu'):
         super(Decoder, self).__init__()
-        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        self.device = device
         print(self.__class__.__name__,self.device)
         self.vocab_size = vocab_size
         self.embedding = self._define_embedding(embedding, vocab_size, embed_dim).to(self.device)
@@ -283,9 +283,9 @@ class EncoderDecoder(nn.Module):
     decoder : `Decoder`
 
     """
-    def __init__(self, encoder, decoder, force_cpu=False):
+    def __init__(self, encoder, decoder, device='cpu'):
         super(EncoderDecoder, self).__init__()
-        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        self.device = device
         print(self.__class__.__name__,self.device)
         self.encoder = encoder
         self.decoder = decoder
@@ -383,7 +383,7 @@ class ContextualColorDescriber(TorchModelBase):
             embedding=None,
             embed_dim=50,
             hidden_dim=50,
-            force_cpu=False,
+            device='cpu',
             **kwargs):
         super(ContextualColorDescriber, self).__init__(
             hidden_dim=hidden_dim, **kwargs)
@@ -402,7 +402,7 @@ class ContextualColorDescriber(TorchModelBase):
         # so we remove it to avoid misleading people:
         delattr(self, 'hidden_activation')
         self.params.remove('hidden_activation')
-        self.force_cpu = force_cpu
+        self.device = device
 
     def fit(self, color_seqs, word_seqs):
         """Standard `fit` method where `color_seqs` are the inputs and
@@ -501,16 +501,16 @@ class ContextualColorDescriber(TorchModelBase):
         encoder = Encoder(
             color_dim=self.color_dim,
             hidden_dim=self.hidden_dim,
-            force_cpu=self.force_cpu)
+            device=self.device)
 
         decoder = Decoder(
             vocab_size=self.vocab_size,
             embed_dim=self.embed_dim,
             embedding=self.embedding,
             hidden_dim=self.hidden_dim,
-            force_cpu=self.force_cpu)
+            device=self.device)
 
-        return EncoderDecoder(encoder, decoder, self.force_cpu)
+        return EncoderDecoder(encoder, decoder, self.device)
 
     def predict(self, color_seqs, max_length=20):
         """Predict new sequences based on the color contexts in
@@ -799,10 +799,9 @@ class ColorizedNeuralListenerDecoder(nn.Module):
     This model takes in two statistical params, mew and sigma, and returns a vector containing the normalized scores
     of each color in the context.
     '''
-    def __init__(self, force_cpu, *args, **kwargs):
+    def __init__(self, device, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.force_cpu = force_cpu
-        self.device = "cuda" if torch.cuda.is_available() and not force_cpu else "cpu"
+        self.device = device
         self.transform_func = QuadraticForm.apply
         self.hidden_activation = nn.Softmax(dim=1)
         
@@ -851,12 +850,12 @@ class ColorizedNeuralListener(ContextualColorDescriber):
             hidden_dim=self.hidden_dim,
             color_dim=self.color_dim,
             dropout_prob=self.dropout_prob,
-            force_cpu=self.force_cpu)
+            device=self.device)
 
         decoder = ColorizedNeuralListenerDecoder(
-            force_cpu=self.force_cpu)
+            device=self.device)
 
-        return ColorizedNeuralListenerEncoderDecoder(encoder, decoder, self.force_cpu)
+        return ColorizedNeuralListenerEncoderDecoder(encoder, decoder, self.device)
     
     def fit(self, color_seqs, word_seqs):
         """Standard `fit` method where `word_seqs` are the inputs and
@@ -1010,17 +1009,17 @@ class ColorizedNeuralListener(ContextualColorDescriber):
         else:
             torch.save(self.model, path)
         
-    def load_model(self, path, inference_only=False, color_dim=None):
+    def load_model(self, path, inference_only=False, color_dim=None, **kwargs):
         if inference_only:
             if color_dim is None:
                 raise AttributeError('When loading a state_dict, the color_dim must be passed')
             if self.model is None:
                 self.model = literal_listener.build_graph()
                 
-            self.model.load_state_dict(torch.load("literal_listener.pt"))
+            self.model.load_state_dict(torch.load(path, **kwargs))
             self.model.eval()
         else:
-            self.model = torch.load(path)
+            self.model = torch.load(path, **kwargs)
             self.model.eval()
 
 def create_example_dataset(group_size=100, vec_dim=2):
