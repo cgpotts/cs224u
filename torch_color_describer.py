@@ -446,6 +446,90 @@ class ContextualColorDescriber(TorchModelBase):
         preds = torch.cat(preds, axis=1)
         preds = [self._convert_predictions(p) for p in preds]
         return preds
+    
+    def sample_utterances(self, color_seqs, num_samples=1, max_length=20):
+        """Calculates the top k likely utterances of the decoder using beam search.
+        Parameters
+        ----------
+        color_seqs : list of lists of lists of floats, or np.array
+            Dimension (m, n, p) where m is the number of examples, n is
+            the number of colors in each context, and p is the length
+            of the color representations.
+        num_samples: int
+            Number of samples to return
+        Returns
+        -------
+        list of list of lists of str, where the innder-most list is sorted ascending 
+        in terms of likelihood. That is, for every color sequence in color_seqs, for
+        every sample, there is a list of word sequences.
+        """
+        color_seqs = torch.FloatTensor(color_seqs).to(self.device)
+        self.model.to(self.device)
+        self.model.eval()
+        preds = []
+        with torch.no_grad():
+            # Get the hidden representations from the color contexts:
+            hidden = self.model.encoder(color_seqs)
+
+            # Start with START_SYMBOL for all examples:
+            decoder_input = [[self.start_index]]  * len(color_seqs)
+            decoder_input = torch.LongTensor(decoder_input).to(self.device)
+            preds.append(decoder_input)
+            
+            # Get the prediction for the top k tokens per example
+            output, hidden, _ = self.model(
+                color_seqs=color_seqs,
+                word_seqs=decoder_input,
+                seq_lengths=None,
+                hidden=hidden)
+            print(output.shape)
+            # Adjust decoder_input to be the size of k per example
+            top_k_probs, top_k_indices = output.topk(num_samples, dim=2)
+            decoder_input = top_k_indices.view(len(color_seqs) * num_samples, 1)
+        
+            # Extend the hidden representation k times per example
+            hidden = torch.repeat_interleave(hidden, num_samples, dim=1)
+            
+            # Now move through the remaiming timesteps using the
+            # previous timestep to predict the next one:
+            for i in range(1, max_length):
+
+                output, hidden, _ = self.model(
+                    color_seqs=color_seqs,
+                    word_seqs=decoder_input,
+                    seq_lengths=None,
+                    hidden=hidden)
+
+                # Reshape back into samples
+                #output = output.view(len(color_seqs), -1)
+                output = output.view(len(color_seqs), -1, output.shape[2])
+                # Add the prob of the vocab with the prob of the old branches
+                output_following_seq = top_k_probs.view(len(color_seqs), -1 ,1) + output
+                output_following_seq = output_following_seq.view(len(color_seqs), -1)
+                
+                # Reconstruct the old predictions so we can choose which branches to keep
+                preds_so_far = torch.cat(preds, axis=1)
+                # Find the top best predictions
+                top_k_probs, top_k_indices = output_following_seq.topk(num_samples, dim=1)
+                # Create 
+                
+                print(output.shape, top_k_probs.shape, output_following_seq.shape)
+                pass
+                
+                # Always take the highest probability token to
+                # be the prediction:
+                p = output.argmax(2)
+                preds.append(p)
+                decoder_input = p
+                
+                print(decoder_input.shape)
+                pass
+
+        # Convert all the predictions from indices to elements of
+        # `self.vocab`:
+        preds = torch.cat(preds, axis=1)
+        preds = [self._convert_predictions(p) for p in preds]
+        return preds
 
     def _convert_predictions(self, pred):
         rep = []
@@ -808,7 +892,13 @@ def simple_example(group_size=100, vec_dim=2, initial_embedding=False):
     lis_acc = mod.listener_accuracy(X_test, y_test)
 
     print("\nListener accuracy {}".format(lis_acc))
+    
+    print("\nSample utterances")
+    
+    utt = mod.sample_utterances(X_test, 3)
 
+    print(utt)
+    
     return lis_acc
 
 
