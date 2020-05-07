@@ -474,19 +474,29 @@ class ContextualColorDescriber(TorchModelBase):
             # Start with START_SYMBOL for all examples:
             decoder_input = [[self.start_index]]  * len(color_seqs)
             decoder_input = torch.LongTensor(decoder_input).to(self.device)
-            preds.append(decoder_input)
-            
+            preds.append(torch.LongTensor([[self.start_index]]  * (len(color_seqs) * num_samples)))
+
             # Get the prediction for the top k tokens per example
             output, hidden, _ = self.model(
                 color_seqs=color_seqs,
                 word_seqs=decoder_input,
                 seq_lengths=None,
                 hidden=hidden)
-            print(output.shape)
-            # Adjust decoder_input to be the size of k per example
+            output = torch.log(torch.softmax(output, dim=2))
+            #print(output.shape)
+            # Expand the topk probabilities to be duplicated num_sample times
             top_k_probs, top_k_indices = output.topk(num_samples, dim=2)
+            #print(top_k_indices.shape)
+            accum_top_k_probs = top_k_probs.view(len(color_seqs) * num_samples)
+            
+            # Create a set of "ending masks" to mark which ones have completed the sequence
+            end_masks = torch.ones(len(color_seqs) * num_samples)
+            
+            # Adjust decoder_input to be the size of k per example
             decoder_input = top_k_indices.view(len(color_seqs) * num_samples, 1)
-        
+            preds.append(decoder_input)
+            preds = torch.cat(preds, axis=1)
+
             # Extend the hidden representation k times per example
             hidden = torch.repeat_interleave(hidden, num_samples, dim=1)
             
@@ -499,36 +509,74 @@ class ContextualColorDescriber(TorchModelBase):
                     word_seqs=decoder_input,
                     seq_lengths=None,
                     hidden=hidden)
-
-                # Reshape back into samples
-                #output = output.view(len(color_seqs), -1)
+                # Convert to probabilities
+                output = torch.log(torch.softmax(output, dim=2))
+                # Mask output shape
+                output = output * end_masks.view(-1,1,1)
+                # Reshape back into samples and branches
                 output = output.view(len(color_seqs), -1, output.shape[2])
+                
+                # Create a second mask to zero out sequence possibilities that are finished
+                seq_mask = (output == 0).float() * 1 * float(-900000)
+                seq_mask[:,:,0] = 0
+                seq_mask = seq_mask + 1
+            
                 # Add the prob of the vocab with the prob of the old branches
-                output_following_seq = top_k_probs.view(len(color_seqs), -1 ,1) + output
-                output_following_seq = output_following_seq.view(len(color_seqs), -1)
+                top_k_probs_per_token = accum_top_k_probs.view(len(color_seqs), -1 ,1)+seq_mask + output
+                # Flatten the output so that we can run top k per example
+                output_accum_flatten = top_k_probs_per_token.view(len(color_seqs), -1)
+                # Find the top best predictions per example
+                top_k_probs, top_k_indices = output_accum_flatten.topk(num_samples, dim=1)
+                
+                ####
+                # First, we need to reconstruct the branches that have the highest probability.
+                ####
                 
                 # Reconstruct the old predictions so we can choose which branches to keep
-                preds_so_far = torch.cat(preds, axis=1)
-                # Find the top best predictions
-                top_k_probs, top_k_indices = output_following_seq.topk(num_samples, dim=1)
-                # Create 
+                preds_so_far = preds.view(len(color_seqs), num_samples, -1)
+                # For each example, for each index in the top_k indices, we find the branch 
+                # that maps to the index. 
+                top_k_indices_unflattened = (top_k_indices // output.shape[2])
+                # Duplicate the branch per word in the sequence.
+                old_seq_indices = top_k_indices_unflattened.unsqueeze(2).repeat(1,1,preds_so_far.shape[2])
                 
-                print(output.shape, top_k_probs.shape, output_following_seq.shape)
-                pass
+                # We use old_seq_indices to index into preds_so_far, generating our
+                # new branches. For each example, for each branch, we have a sequence
+                # of indices.
+                preds_so_far = torch.gather(preds_so_far, 1, old_seq_indices)
                 
-                # Always take the highest probability token to
-                # be the prediction:
-                p = output.argmax(2)
-                preds.append(p)
-                decoder_input = p
+                # We also use the same indicies to shuffle our masks
+                end_masks = torch.gather(end_masks.view(len(color_seqs), -1), 1, top_k_indices_unflattened).view(-1)
                 
-                print(decoder_input.shape)
-                pass
+                ####
+                # Now we need to find the best predictions that match with the branches that
+                # were used.
+                ####
+                # First, we find the index of the top k words per branch
+                index_topk_tokens = (top_k_indices % output.shape[2]).unsqueeze(2)
+                
+                # New we append to the existing sequence
+                preds = torch.cat([preds_so_far, index_topk_tokens], axis=2)
+                
+                # Now we need to select the accumulated probabilities to the ones we want
+                accum_top_k_probs = torch.gather(top_k_probs_per_token.view(len(color_seqs), -1), 1, top_k_indices).view(-1)
+                
+                #Update the mask
+                end_masks = torch.clamp(end_masks * index_topk_tokens.view(-1), 0, 1)
+                #print("end_masks", end_masks.view(len(color_seqs), -1)[:5])
+                
+                # Finally, we update the new decoder input for the next timestep
+                decoder_input = index_topk_tokens.view(-1, 1)
+                #print("accum_prob",accum_top_k_probs.view(len(color_seqs), -1)[:5])
+                
+                #print("preds",preds[:5])
 
         # Convert all the predictions from indices to elements of
         # `self.vocab`:
-        preds = torch.cat(preds, axis=1)
-        preds = [self._convert_predictions(p) for p in preds]
+        preds = preds.view(len(color_seqs), num_samples, -1) 
+        #print(preds[:5])
+        #print("result:",preds.shape)
+        preds = [[self._convert_predictions(ind) for ind in seq]for seq in preds]
         return preds
 
     def _convert_predictions(self, pred):
