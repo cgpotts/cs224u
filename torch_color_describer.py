@@ -447,7 +447,7 @@ class ContextualColorDescriber(TorchModelBase):
         preds = [self._convert_predictions(p) for p in preds]
         return preds
     
-    def sample_utterances(self, color_seqs, num_samples=1, max_length=20):
+    def sample_utterances(self, color_seqs, k_samples=1, max_length=20):
         """Calculates the top k likely utterances of the decoder using beam search.
         Parameters
         ----------
@@ -455,7 +455,7 @@ class ContextualColorDescriber(TorchModelBase):
             Dimension (m, n, p) where m is the number of examples, n is
             the number of colors in each context, and p is the length
             of the color representations.
-        num_samples: int
+        k_samples: int
             Number of samples to return
         Returns
         -------
@@ -474,7 +474,7 @@ class ContextualColorDescriber(TorchModelBase):
             # Start with START_SYMBOL for all examples:
             decoder_input = [[self.start_index]]  * len(color_seqs)
             decoder_input = torch.LongTensor(decoder_input).to(self.device)
-            preds.append(torch.LongTensor([[self.start_index]]  * (len(color_seqs) * num_samples)))
+            preds = torch.LongTensor([[self.start_index]]  * (len(color_seqs) * k_samples)).to(self.device)
 
             # Get the prediction for the top k tokens per example
             output, hidden, _ = self.model(
@@ -485,27 +485,29 @@ class ContextualColorDescriber(TorchModelBase):
             output = torch.log(torch.softmax(output, dim=2))
             #print(output.shape)
             # Expand the topk probabilities to be duplicated num_sample times
-            top_k_probs, top_k_indices = output.topk(num_samples, dim=2)
+            top_k_probs, top_k_indices = output.topk(k_samples, dim=2)
             #print(top_k_indices.shape)
-            accum_top_k_probs = top_k_probs.view(len(color_seqs) * num_samples)
+            accum_top_k_probs = top_k_probs.view(len(color_seqs) * k_samples)
             
             # Create a set of "ending masks" to mark which ones have completed the sequence
-            end_masks = torch.ones(len(color_seqs) * num_samples)
+            end_masks = torch.ones(len(color_seqs) * k_samples).to(self.device)
             
             # Adjust decoder_input to be the size of k per example
-            decoder_input = top_k_indices.view(len(color_seqs) * num_samples, 1)
-            preds.append(decoder_input)
-            preds = torch.cat(preds, axis=1)
+            decoder_input = top_k_indices.view(len(color_seqs) * k_samples, 1).to(self.device)
+            preds = torch.cat([preds, decoder_input], axis=1)
 
             # Extend the hidden representation k times per example
-            hidden = torch.repeat_interleave(hidden, num_samples, dim=1)
+            hidden = torch.repeat_interleave(hidden, k_samples, dim=1)
+            
+            # Extend color_seqs to be k times per example
+            extended_color_seqs = torch.repeat_interleave(color_seqs, k_samples, dim=0)
             
             # Now move through the remaiming timesteps using the
             # previous timestep to predict the next one:
             for i in range(1, max_length):
 
                 output, hidden, _ = self.model(
-                    color_seqs=color_seqs,
+                    color_seqs=extended_color_seqs,
                     word_seqs=decoder_input,
                     seq_lengths=None,
                     hidden=hidden)
@@ -526,14 +528,14 @@ class ContextualColorDescriber(TorchModelBase):
                 # Flatten the output so that we can run top k per example
                 output_accum_flatten = top_k_probs_per_token.view(len(color_seqs), -1)
                 # Find the top best predictions per example
-                top_k_probs, top_k_indices = output_accum_flatten.topk(num_samples, dim=1)
+                top_k_probs, top_k_indices = output_accum_flatten.topk(k_samples, dim=1)
                 
                 ####
                 # First, we need to reconstruct the branches that have the highest probability.
                 ####
                 
                 # Reconstruct the old predictions so we can choose which branches to keep
-                preds_so_far = preds.view(len(color_seqs), num_samples, -1)
+                preds_so_far = preds.view(len(color_seqs), k_samples, -1)
                 # For each example, for each index in the top_k indices, we find the branch 
                 # that maps to the index. 
                 top_k_indices_unflattened = (top_k_indices // output.shape[2])
@@ -573,8 +575,7 @@ class ContextualColorDescriber(TorchModelBase):
 
         # Convert all the predictions from indices to elements of
         # `self.vocab`:
-        preds = preds.view(len(color_seqs), num_samples, -1) 
-        #print(preds[:5])
+        preds = preds.view(len(color_seqs), k_samples, -1) 
         #print("result:",preds.shape)
         preds = [[self._convert_predictions(ind) for ind in seq]for seq in preds]
         return preds
@@ -919,7 +920,7 @@ def simple_example(group_size=100, vec_dim=2, initial_embedding=False):
     X_train, X_test, y_train, y_test = train_test_split(
         color_seqs, word_seqs)
 
-    mod = ContextualColorDescriber(
+    mod = ColorizedInputDescriber(
         vocab,
         embed_dim=10,
         hidden_dim=10,

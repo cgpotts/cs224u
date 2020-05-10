@@ -562,6 +562,7 @@ class ContextualColorDescriber(TorchModelBase):
         # Convert all the predictions from indices to elements of
         # `self.vocab`:
         preds = torch.cat(preds, axis=1)
+        print(preds[0])
         preds = [self._convert_predictions(p) for p in preds]
         return preds
 
@@ -752,6 +753,7 @@ class ColorizedNeuralListenerEncoder(Decoder):
     '''
     def __init__(self, color_dim, dropout_prob=0., *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.dropout_prob=dropout_prob
         self.color_dim = color_dim
         self.mew_layer = nn.Linear(#self.hidden_dim*2 + self.embed_dim, 
                                       self.embed_dim,
