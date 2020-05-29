@@ -469,6 +469,7 @@ class ContextualColorDescriber(TorchModelBase):
         # `self.vocab`:
         preds = torch.cat(preds, axis=1)
         preds = [self._convert_predictions(p) for p in preds]
+        self.model.to(self.device)
         return preds
 
     def _convert_predictions(self, pred):
