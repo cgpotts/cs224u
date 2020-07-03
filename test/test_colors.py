@@ -2,9 +2,13 @@ from colors import ColorsCorpusReader, ColorsCorpusExample, TURN_BOUNDARY
 import json
 import os
 import pytest
+import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
+
+
+utils.fix_random_seeds()
 
 
 @pytest.fixture

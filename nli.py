@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 CONDITION_NAMES = [
@@ -111,7 +111,7 @@ def bake_off_evaluation(experiment_results, test_data_filename=None):
     with open(test_data_filename, encoding='utf8') as f:
         wordentail_data = json.load(f)
     X_test, y_test = word_entail_featurize(
-        wordentail_data['word_disjoint']['test'],
+        wordentail_data['test'],
         vector_func=experiment_results['vector_func'],
         vector_combo_func=experiment_results['vector_combo_func'])
     predictions = experiment_results['model'].predict(X_test)
@@ -141,15 +141,15 @@ def str2tree(s, binarize=False):
     return Tree.fromstring(s)
 
 
-def get_edge_overlap_size(wordentail_data, split):
-    train = {tuple(x) for x, y in wordentail_data[split]['train']}
-    dev = {tuple(x) for x, y in wordentail_data[split]['dev']}
+def get_pair_overlap_size(wordentail_data):
+    train = {tuple(x) for x, y in wordentail_data['train']}
+    dev = {tuple(x) for x, y in wordentail_data['dev']}
     return len(train & dev)
 
 
-def get_vocab_overlap_size(wordentail_data, split):
-    train = {w for x, y in wordentail_data[split]['train'] for w in x}
-    dev = {w for x, y in wordentail_data[split]['dev'] for w in x}
+def get_vocab_overlap_size(wordentail_data):
+    train = {w for x, y in wordentail_data['train'] for w in x}
+    dev = {w for x, y in wordentail_data['dev'] for w in x}
     return len(train & dev)
 
 

@@ -1,7 +1,7 @@
 # Final projects
 
 Christopher Potts<br />
-CS224u, Stanford, Spring 2020
+CS224u, Stanford, Fall 2020
 
 ## Contents
 

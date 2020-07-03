@@ -1,20 +1,23 @@
 import numpy as np
 import random
+import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class BasicSGDClassifier(object):
-    """Basic implementation hinge-loss stochastic sub-gradient descent
-    optimization, intended to illustrate the basic concepts of classifier
-    optimization in code."""
     def __init__(self, max_iter=10, eta=0.1):
         """
+        Basic implementation hinge-loss stochastic sub-gradient descent
+        optimization, intended to illustrate the basic concepts of
+        classifier optimization in code.
+
         Parameters
         ----------
         max_iter : int (default: 10)
             Number of training epochs (full runs through shuffled data).
+
         eta : float (default: 0.1)
             Learning rate parameter.
 
@@ -24,7 +27,8 @@ class BasicSGDClassifier(object):
         self.params = ['max_iter', 'eta']
 
     def fit(self, feat_matrix, labels):
-        """Core optimization function.
+        """
+        Core optimization function.
 
         Parameters
         ----------
@@ -80,7 +84,8 @@ class BasicSGDClassifier(object):
                     self.coef_[predicted_index] += self.eta * -rep
 
     def predict_one(self, rep, costs=0.0):
-        """The core classification function. The code just needs to
+        """
+        The core classification function. The code just needs to
         figure out which class is highest scoring and make a random
         choice from that set (in case of ties).
 
@@ -110,8 +115,13 @@ class BasicSGDClassifier(object):
         candidates = np.argwhere(scores==np.max(scores)).flatten()
         return random.choice(candidates)
 
+    def score(self, X, y):
+        preds = self.predict(X)
+        return utils.safe_macro_f1(y, preds)
+
     def predict(self, reps):
-        """Batch prediction function for experiments.
+        """
+        Batch prediction function for experiments.
 
         Parameters
         ----------
@@ -128,7 +138,8 @@ class BasicSGDClassifier(object):
         return [self.classes_[self.predict_one(rep)] for rep in reps]
 
     def get_params(self, deep=True):
-        """Gets the hyperparameters for the model, as given by the
+        """
+        Gets the hyperparameters for the model, as given by the
         `self.params` attribute. This is called `get_params` for
         compatibility with sklearn.
 
@@ -147,13 +158,9 @@ class BasicSGDClassifier(object):
 
 
 def simple_example():
-    """Assess on the digits dataset and informally compare
-    against LogisticRegression.
-    """
     from sklearn.datasets import load_digits
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import classification_report, accuracy_score
-
 
     digits = load_digits()
     X = digits.data
@@ -172,7 +179,7 @@ def simple_example():
 
     print(classification_report(y_test, predictions))
 
-    return accuracy_score(y_test, predictions)
+    return mod.score(X_test, y_test)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,10 @@
 import numpy as np
 from np_model_base import NNModelBase
 import pandas as pd
+from sklearn.metrics import r2_score
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class Autoencoder(NNModelBase):
@@ -57,6 +58,11 @@ class Autoencoder(NNModelBase):
         h, y = self.forward_propagation(X)
         return y
 
+    def score(self, X, y=None):
+        y = X if y is None else y
+        preds = self.predict(X)
+        return r2_score(y, preds)
+
     @staticmethod
     def convert_input_to_array(X):
         if isinstance(X, pd.DataFrame):
@@ -72,8 +78,9 @@ class Autoencoder(NNModelBase):
 
 def simple_example():
     import numpy as np
+    import utils
 
-    np.random.seed(seed=42)
+    utils.fix_random_seeds()
 
     def randmatrix(m, n, sigma=0.1, mu=0):
         return sigma * np.random.randn(m, n) + mu
@@ -83,16 +90,28 @@ def simple_example():
     ncol = 100
 
     X = randmatrix(nrow, rank).dot(randmatrix(rank, ncol))
-    ae = Autoencoder(hidden_dim=rank, max_iter=200)
-    H = ae.fit(X)
-    X_pred = ae.predict(X)
-    mse = (0.5 * (X_pred - X)**2).mean()
+
+    mod = Autoencoder(hidden_dim=rank, max_iter=200)
+
+    print(mod)
+
+    H = mod.fit(X)
+
+    X_pred = mod.predict(X)
+
+    mse = ((X_pred - X)**2).mean()
+
     print("\nMSE between actual and reconstructed: {0:0.09f}".format(mse))
+
+    r2 = mod.score(X)
+
+    print("R^2 score: {}".format(r2))
+
     print("Hidden representations")
     print(H)
 
-    return mse
+    return r2
 
 
 if __name__ == '__main__':
-   simple_example()
+    simple_example()

@@ -3,7 +3,7 @@ import random
 from utils import randvec, randmatrix, progress_bar, d_tanh
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class NNModelBase(object):

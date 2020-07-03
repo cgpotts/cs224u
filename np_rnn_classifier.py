@@ -1,14 +1,15 @@
 from collections import OrderedDict
 import numpy as np
 from np_model_base import NNModelBase
-from utils import softmax
+from utils import softmax, safe_macro_f1
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class RNNClassifier(NNModelBase):
-    """Simple Recurrent Neural Network for classification problems.
+    """
+    Simple Recurrent Neural Network for classification problems.
     The structure of the network is as follows:
 
                                                   y
@@ -40,14 +41,17 @@ class RNNClassifier(NNModelBase):
         `embedding` in the sense that the ith element of vocab
         should be represented by the ith row of `embedding`. Ignored
         if `use_embedding=False`.
+
     embedding : np.array or None
         Each row represents a word in `vocab`, as described above.
+
     use_embedding : bool
         If True, then incoming examples are presumed to be lists of
         elements of the vocabulary. If False, then they are presumed
         to be lists of vectors. In this case, the `embedding` and
        `embed_dim` arguments are ignored, since no embedding is needed
        and `embed_dim` is set by the nature of the incoming vectors.
+
     embed_dim : int
         Dimensionality for the initial embeddings. This is ignored
         if `embedding` is not None, as a specified value there
@@ -66,37 +70,52 @@ class RNNClassifier(NNModelBase):
         self.vocab = vocab
         self.vocab_lookup = dict(zip(self.vocab, range(len(self.vocab))))
         self.use_embedding = use_embedding
+        self._embed_dim = embed_dim
         if self.use_embedding:
             if embedding is None:
                 embedding = self._define_embedding_matrix(
                     len(self.vocab), embed_dim)
             self.embedding = embedding
-            self.embed_dim = self.embedding.shape[1]
-        super(RNNClassifier, self).__init__(**kwargs)
+            self._embed_dim = self.embedding.shape[1]
+        super().__init__(**kwargs)
         self.params += ['embedding', 'embed_dim']
+
+    @property
+    def embed_dim(self):
+        return self._embed_dim
+
+    @embed_dim.setter
+    def embed_dim(self, value):
+        self._embed_dim = value
+        self.embedding = self._define_embedding_matrix(
+            len(self.vocab), value)
 
     def fit(self, X, y):
         if not self.use_embedding:
-            self.embed_dim = len(X[0][0])
-        return super(RNNClassifier, self).fit(X, y)
+            self._embed_dim = len(X[0][0])
+        return super().fit(X, y)
 
     def initialize_parameters(self):
         """
         Attributes
         ----------
-        self.output_dim : int
+        output_dim : int
             Set based on the length of the labels in `training_data`.
             This happens in `self.prepare_output_data`.
-        self.W_xh : np.array
+
+        W_xh : np.array
             Dense connections between the word representations
             and the hidden layers. Random initialization.
-        self.W_hh : np.array
+
+        W_hh : np.array
             Dense connections between the hidden representations.
             Random initialization.
-        self.W_hy : np.array
+
+        W_hy : np.array
             Dense connections from the final hidden layer to
             the output layer. Random initialization.
-        self.b : np.array
+
+        b : np.array
             Output bias. Initialized to all 0.
 
         """
@@ -118,8 +137,10 @@ class RNNClassifier(NNModelBase):
             Each row is for a hidden representation. The first row
             is an all-0 initial state. The others correspond to
             the inputs in seq.
+
         y : np.array
             The vector of predictions.
+
         """
         h = np.zeros((len(seq)+1, self.hidden_dim))
         for t in range(1, len(seq)+1):
@@ -139,12 +160,16 @@ class RNNClassifier(NNModelBase):
         h : np.array, shape (m, self.hidden_dim)
             Matrix of hidden states. `m` is the shape of the current
             example (which is allowed to vary).
+
         predictions : np.array, dimension `len(self.classes)`
             Vector of predictions.
+
         seq : list  of lists
             The original example.
+
         labels : np.array, dimension `len(self.classes)`
             One-hot vector giving the true label.
+
         Returns
         -------
         tuple
@@ -180,8 +205,18 @@ class RNNClassifier(NNModelBase):
         self.W_hh -= self.eta * d_W_hh
         self.W_xh -= self.eta * d_W_xh
 
+    def score(self, X, y):
+        preds = self.predict(X)
+        return safe_macro_f1(y, preds)
 
-def simple_example(initial_embedding=False, use_embedding=True):
+
+
+def simple_example():
+    from sklearn.metrics import accuracy_score
+    import utils
+
+    utils.fix_random_seeds()
+
     vocab = ['a', 'b', '$UNK']
 
     # No b before an a
@@ -194,62 +229,34 @@ def simple_example(initial_embedding=False, use_embedding=True):
         [list('baa'), 'bad'],
         [list('bba'), 'bad'],
         [list('bbaa'), 'bad'],
-        [list('aba'), 'bad']
-    ]
+        [list('aba'), 'bad']]
 
     test = [
         [list('baaa'), 'bad'],
         [list('abaa'), 'bad'],
         [list('bbaa'), 'bad'],
         [list('aaab'), 'good'],
-        [list('aaabb'), 'good']
-    ]
+        [list('aaabb'), 'good']]
 
-    if initial_embedding:
-        import numpy as np
-        # `embed_dim=60` to make sure that it gets changed internally:
-        embedding = np.random.uniform(
-            low=-1.0, high=1.0, size=(len(vocab), 60))
-    else:
-        embedding = None
-
-    mod = RNNClassifier(
-        vocab=vocab,
-        max_iter=100,
-        embedding=embedding,
-        use_embedding=use_embedding,
-        embed_dim=50,
-        hidden_dim=50)
-
-    X, y = zip(*train)
+    X_train, y_train = zip(*train)
     X_test, y_test = zip(*test)
 
-    # Just to illustrate how we can process incoming sequences of
-    # vectors, we create an embedding and use it to preprocess the
-    # train and test sets:
-    if not use_embedding:
-        import numpy as np
-        from copy import copy
-        # `embed_dim=60` to make sure that it gets changed internally:
-        embedding = np.random.uniform(
-            low=-1.0, high=1.0, size=(len(vocab), 60))
-        X = [[embedding[vocab.index(w)] for w in ex] for ex in X]
-        # So we can display the examples sensibly:
-        X_test_orig = copy(X_test)
-        X_test = [[embedding[vocab.index(w)] for w in ex] for ex in X_test]
-    else:
-        X_test_orig = X_test
+    mod = RNNClassifier(vocab)
 
-    mod.fit(X, y)
+    print(mod)
+
+    mod.fit(X_train, y_train)
 
     preds = mod.predict(X_test)
 
     print("\nPredictions:")
 
-    for ex, pred, gold in zip(X_test_orig, preds, y_test):
+    for ex, pred, gold in zip(X_test, preds, y_test):
         score = "correct" if pred == gold else "incorrect"
         print("{0:>6} - predicted: {1:>4}; actual: {2:>4} - {3}".format(
             "".join(ex), pred, gold, score))
+
+    return accuracy_score(y_test, preds)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 import codecs
 from collections import defaultdict
-import itertools
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,11 +8,10 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import scipy
 import scipy.spatial.distance
-import sys
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 def euclidean(u, v):
@@ -41,15 +39,18 @@ def jaccard(u, v):
 
 
 def neighbors(word, df, distfunc=cosine):
-    """Tool for finding the nearest neighbors of `word` in `df` according
+    """
+    Tool for finding the nearest neighbors of `word` in `df` according
     to `distfunc`. The comparisons are between row vectors.
 
     Parameters
     ----------
     word : str
         The anchor word. Assumed to be in `rownames`.
+
     df : pd.DataFrame
         The vector-space model.
+
     distfunc : function mapping vector pairs to floats (default: `cosine`)
         The measure of distance between vectors. Can also be `euclidean`,
         `matching`, `jaccard`, as well as any other distance measure
@@ -111,6 +112,7 @@ def ngram_vsm(df, n=2):
     Parameters
     ----------
     df : pd.DataFrame
+
     n : int
         The n-gram size.
 
@@ -140,6 +142,7 @@ def get_character_ngrams(w, n):
     Parameters
     ----------
     w : str
+
     n : int
         The n-gram size.
 
@@ -163,8 +166,10 @@ def character_level_rep(word, cf, n=4):
     ----------
     word : str
         The word to represent.
+
     cf : pd.DataFrame
         The character-level VSM (e.g, the output of `ngram_vsm`).
+
     n : int
         The n-gram size.
 
@@ -180,25 +185,30 @@ def character_level_rep(word, cf, n=4):
 
 
 def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50), random_state=None):
-    """2d plot of `df` using t-SNE, with the points labeled by `df.index`,
+    """
+    2d plot of `df` using t-SNE, with the points labeled by `df.index`,
     aligned with `colors` (defaults to all black).
 
     Parameters
     ----------
     df : pd.DataFrame
         The matrix to visualize.
+
     colors : list of colornames or None (default: None)
         Optional list of colors for the vocab. The color names just
         need to be interpretable by matplotlib. If they are supplied,
         they need to have the same length as `df.index`. If `colors=None`,
         then all the words are displayed in black.
+
     output_filename : str (default: None)
         If not None, then the output image is written to this location.
         The filename suffix determines the image type. If `None`, then
         `plt.plot()` is called, with the behavior determined by the
         environment.
+
     figsize : (int, int) (default: (40, 50))
         Default size of the output in display units.
+
     random_state : int or None
         Optionally set the `random_seed` passed to `PCA` and `TSNE`.
 
@@ -234,12 +244,14 @@ def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50), random_sta
 
 
 def lsa(df, k=100):
-    """Latent Semantic Analysis using pure scipy.
+    """
+    Latent Semantic Analysis using pure scipy.
 
     Parameters
     ----------
     df : pd.DataFrame
        The matrix to operate on.
+
     k : int (default: 100)
         Number of dimensions to truncate to.
 
@@ -255,87 +267,3 @@ def lsa(df, k=100):
     singvals = np.diag(singvals)
     trunc = np.dot(rowmat[:, 0:k], singvals[0:k, 0:k])
     return pd.DataFrame(trunc, index=df.index)
-
-
-def glove(df, n=100, xmax=100, alpha=0.75, max_iter=100, eta=0.05,
-        tol=1e-4, display_progress=True):
-    """Basic GloVe. This is mainly here as a reference implementation.
-    We recommend using `mittens.GloVe` instead.
-
-    Parameters
-    ----------
-    df : pd.DataFrame or np.array
-        This must be a square matrix.
-    n : int (default: 100)
-        The dimensionality of the output vectors.
-    xmax : int (default: 100)
-        Words with frequency greater than this are given weight 1.0.
-        Words with frequency under this are given weight (c/xmax)**alpha
-        where c is their count in mat (see the paper, eq. (9)).
-    alpha : float (default: 0.75)
-        Exponent in the weighting function (see the paper, eq. (9)).
-    max_iter : int (default: 100)
-        Number of training epochs.
-    eta : float (default: 0.05)
-        Controls the rate of SGD weight updates.
-    tol : float (default: 1e-4)
-        Stopping criterion for the loss.
-    display_progress : bool (default: True)
-        Whether to print iteration number and current error to stdout.
-
-    Returns
-    -------
-    pd.DataFrame
-        With dimension `(df.shape[0], n)`
-
-    """
-    X = df.values if isinstance(df, pd.DataFrame) else df
-    m = X.shape[0]
-    # Parameters:
-    W = utils.randmatrix(m, n)  # Word weights.
-    C = utils.randmatrix(m, n)  # Context weights.
-    B = utils.randmatrix(2, m)  # Word and context biases.
-    # Precomputable GloVe values:
-    X_log = utils.log_of_array_ignoring_zeros(X)
-    X_weights = (np.minimum(X, xmax) / xmax)**alpha  # eq. (9)
-    # Learning:
-    indices = list(range(m))
-    for iteration in range(max_iter):
-        error = 0.0
-        random.shuffle(indices)
-        for i, j in itertools.product(indices, indices):
-            if X[i,j] > 0.0:
-                weight = X_weights[i,j]
-                # Cost is J' based on eq. (8) in the paper:
-                diff = W[i].dot(C[j]) + B[0,i] + B[1,j] - X_log[i,j]
-                fdiff = diff * weight
-                # Gradients:
-                wgrad = fdiff * C[j]
-                cgrad = fdiff * W[i]
-                wbgrad = fdiff
-                wcgrad = fdiff
-                # Updates:
-                W[i] -= eta * wgrad
-                C[j] -= eta * cgrad
-                B[0,i] -= eta * wbgrad
-                B[1,j] -= eta * wcgrad
-                # One-half squared error term:
-                error += 0.5 * weight * (diff**2)
-        error /= m
-        if display_progress:
-            if error < tol:
-                utils.progress_bar(
-                    "Stopping at iteration {} with "
-                    "error {}".format(iteration, error))
-                break
-            else:
-                utils.progress_bar(
-                    "Iteration {}: error {}".format(iteration, error))
-    if display_progress:
-        sys.stderr.write('\n')
-    # Return the sum of the word and context matrices, per the advice
-    # in section 4.2:
-    G = W + C
-    if isinstance(df, pd.DataFrame):
-        G = pd.DataFrame(G, index=df.index)
-    return G

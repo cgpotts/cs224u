@@ -1,45 +1,53 @@
 import numpy as np
 from np_model_base import NNModelBase
-from utils import randvec, randmatrix, softmax, progress_bar
+from utils import randvec, randmatrix, softmax, progress_bar, safe_macro_f1
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class ShallowNeuralClassifier(NNModelBase):
-    """Fit a model
-
-    h = f(xW1 + b1)
-    y = softmax(hW2 + b2)
-
-    with a cross entropy loss.
-    """
     def __init__(self, **kwargs):
-        """All the parameters are set as attributes.
+        """
+        Fit a model
+
+        h = f(xW_xh + b_h)
+        y = softmax(hW_hy + b2_y)
+
+        with a cross entropy loss and f set by `hidden_activation` and
+        `d_hidden_activation`.
 
         Parameters
         ----------
         hidden_dim : int (default: 40)
             Dimensionality of the hidden layer.
+
         hidden_activation : vectorized activation function
             The non-linear activation function used by the
             network for the hidden and output layers.
+
         d_hidden_activation : vectorized activation function derivative.
             The derivative of `afunc`. It does not ensure that this
             matches `afunc`, and craziness will result from mismatches!
+
         max_iter : int default: 100)
             Maximum number of training epochs.
+
         eta : float (default: 0.05)
             Learning rate.
+
         tol : float (default: 1.5e-8)
             Training terminates if the error reaches this point (or
             `maxiter` is met).
+
         display_progress : bool (default: True)
            Whether to use the simple over-writing `progress_bar`
            to show progress.
 
+        All the parameters are set as attributes.
+
         """
-        super(ShallowNeuralClassifier, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.params += ['hidden_activation', 'd_hidden_activation']
 
     def fit(self, X, y):
@@ -74,9 +82,12 @@ class ShallowNeuralClassifier(NNModelBase):
         d_b_xh = h_err
         return d_W_hy, d_b_hy, d_W_xh, d_b_xh
 
+    def score(self, X, y):
+        preds = self.predict(X)
+        return safe_macro_f1(y, preds)
+
 
 def simple_example():
-    """Assess on the digits dataset."""
     from sklearn.datasets import load_digits
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import classification_report, accuracy_score
@@ -88,18 +99,18 @@ def simple_example():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.33, random_state=42)
 
-    mod = ShallowNeuralClassifier(max_iter=100)
+    mod = ShallowNeuralClassifier()
 
     print(mod)
 
     mod.fit(X_train, y_train)
-    predictions = mod.predict(X_test)
+    preds = mod.predict(X_test)
 
     print("\nClassification report:")
 
-    print(classification_report(y_test, predictions))
+    print(classification_report(y_test, preds))
 
-    return accuracy_score(y_test, predictions)
+    return accuracy_score(y_test, preds)
 
 
 if __name__ == '__main__':

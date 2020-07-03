@@ -3,154 +3,182 @@ import torch
 import torch.nn as nn
 import torch.utils.data
 from torch_model_base import TorchModelBase
-from utils import progress_bar
+import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class TorchShallowNeuralClassifier(TorchModelBase):
-    """Fit a model
+    def __init__(self,
+            hidden_dim=50,
+            hidden_activation=nn.Tanh(),
+            **base_kwargs):
+        """
+        A model
 
-    h = f(xW1 + b1)
-    y = softmax(hW2 + b2)
+        h = f(xW_xh + b_h)
+        y = softmax(hW_hy + b_y)
 
-    with a cross entropy loss.
+        with a cross-entropy loss and f determined by `hidden_activation`.
 
-    Parameters
-    ----------
-    hidden_dim : int
-        Dimensionality of the hidden layer.
-    hidden_activation : vectorized activation function
-        The non-linear activation function used by the network for the
-        hidden layer. Default `nn.Tanh()`.
-    max_iter : int
-        Maximum number of training epochs.
-    eta : float
-        Learning rate.
-    optimizer : PyTorch optimizer
-        Default is `torch.optim.Adam`.
-    l2_strength : float
-        L2 regularization strength. Default 0 is no regularization.
-    device : 'cpu' or 'cuda'
-        The default is to use 'cuda' iff available
-    warm_start : bool
-        If True, calling `fit` will resume training with previously
-        defined trainable parameters. If False, calling `fit` will
-        reinitialize all trainable parameters. Default: False.
+        Parameters
+        ----------
+        hidden_dim : int
+            Dimensionality of the hidden layer.
 
-    """
-    def __init__(self, **kwargs):
-        super(TorchShallowNeuralClassifier, self).__init__(**kwargs)
+        hidden_activation : nn.Module
+            The non-activation function used by the network for the
+            hidden layer.
 
-    def define_graph(self):
+        **base_kwargs
+            For details, see `torch_model_base.py`.
+
+        Attributes
+        ----------
+        loss: nn.CrossEntropyLoss(reduction="mean")
+
+        self.params: list
+            Extends TorchModelBase.params with names for all of the
+            arguments for this class to support tuning of these values
+            using `sklearn.model_selection` tools.
+
+        """
+        self.hidden_dim = hidden_dim
+        self.hidden_activation = hidden_activation
+        super().__init__(**base_kwargs)
+        self.loss = nn.CrossEntropyLoss(reduction="mean")
+        self.params += ['hidden_dim', 'hidden_activation']
+
+    def build_graph(self):
+        """
+        Define the model's computation graph.
+
+        Returns
+        -------
+        nn.Module
+
+        """
         return nn.Sequential(
             nn.Linear(self.input_dim, self.hidden_dim),
             self.hidden_activation,
             nn.Linear(self.hidden_dim, self.n_classes_))
 
-    def fit(self, X, y, **kwargs):
-        """Standard `fit` method.
+    def build_dataset(self, X, y=None):
+        """
+        Define datasets for the model.
 
         Parameters
         ----------
-        X : np.array
-        y : array-like
-        kwargs : dict
-            For passing other parameters. If 'X_dev' is included,
-            then performance is monitored every 10 epochs; use
-            `dev_iter` to control this number.
+        X : iterable of length `n_examples`
+           Each element must have the same length.
+
+        y: None or iterable of length `n_examples`
+
+        Attributes
+        ----------
+        input_dim : int
+            Set based on `X.shape[1]` after `X` has been converted to
+            `np.array`.
 
         Returns
         -------
-        self
+        torch.utils.data.TensorDataset` Where `y=None`, the dataset will
+        yield single tensors `X`. Where `y` is specified, it will yield
+        `(X, y)` pairs.
 
         """
-        # Incremental performance:
-        X_dev = kwargs.get('X_dev')
-        if X_dev is not None:
-            dev_iter = kwargs.get('dev_iter', 10)
-        # Data prep:
         X = np.array(X)
         self.input_dim = X.shape[1]
-        self.classes_ = sorted(set(y))
-        self.n_classes_ = len(self.classes_)
-        class2index = dict(zip(self.classes_, range(self.n_classes_)))
-        y = [class2index[label] for label in y]
-        # Dataset:
         X = torch.FloatTensor(X)
-        y = torch.tensor(y)
-        dataset = torch.utils.data.TensorDataset(X, y)
-        dataloader = torch.utils.data.DataLoader(
-            dataset, batch_size=self.batch_size, shuffle=True,
-            pin_memory=True)
-        # Graph:
-        if not self.warm_start or not hasattr(self, "model"):
-            self.model = self.define_graph()
-            self.opt = self.optimizer(
-                self.model.parameters(),
-                lr=self.eta,
-                weight_decay=self.l2_strength)
-        self.model.to(self.device)
-        self.model.train()
-        # Optimization:
-        loss = nn.CrossEntropyLoss()
-        # Train:
-        for iteration in range(1, self.max_iter+1):
-            epoch_error = 0.0
-            for X_batch, y_batch in dataloader:
-                X_batch = X_batch.to(self.device, non_blocking=True)
-                y_batch = y_batch.to(self.device, non_blocking=True)
-                batch_preds = self.model(X_batch)
-                err = loss(batch_preds, y_batch)
-                epoch_error += err.item()
-                self.opt.zero_grad()
-                err.backward()
-                self.opt.step()
-            # Incremental predictions where possible:
-            if X_dev is not None and iteration > 0 and iteration % dev_iter == 0:
-                self.dev_predictions[iteration] = self.predict(X_dev)
-                self.model.train()
-            self.errors.append(epoch_error)
-            progress_bar(
-                "Finished epoch {} of {}; error is {}".format(
-                    iteration, self.max_iter, epoch_error))
-        return self
+        if y is None:
+            dataset = torch.utils.data.TensorDataset(X)
+        else:
+            self.classes_ = sorted(set(y))
+            self.n_classes_ = len(self.classes_)
+            class2index = dict(zip(self.classes_, range(self.n_classes_)))
+            y = [class2index[label] for label in y]
+            y = torch.tensor(y)
+            dataset = torch.utils.data.TensorDataset(X, y)
+        return dataset
 
-    def predict_proba(self, X):
-        """Predicted probabilities for the examples in `X`.
+    def score(self, X, y, device=None):
+        """
+        Uses macro-F1 as the score function. Note: this departs from
+        `sklearn`, where classifiers use accuracy as their scoring
+        function. Using macro-F1 is more consistent with our course.
+
+        This function can be used to evaluate models, but its primary
+        use is in cross-validation and hyperparameter tuning.
 
         Parameters
         ----------
-        X : np.array
+        X: np.array, shape `(n_examples, n_features)`
+
+        y: iterable, shape `len(n_examples)`
+            These can be the raw labels. They will converted internally
+            as needed. See `build_dataset`.
+
+        device: str or None
+            Allows the user to temporarily change the device used
+            during prediction. This is useful if predictions require a
+            lot of memory and so are better done on the CPU. After
+            prediction is done, the model is returned to `self.device`.
 
         Returns
         -------
-        np.array with shape (len(X), self.n_classes_)
+        float
 
         """
-        self.model.eval()
-        with torch.no_grad():
-            self.model.to(self.device)
-            X = torch.FloatTensor(X).to(self.device)
-            preds = self.model(X)
-            return torch.softmax(preds, dim=1).cpu().numpy()
+        preds = self.predict(X, device=device)
+        return utils.safe_macro_f1(y, preds)
 
-    def predict(self, X):
-        """Predicted labels for the examples in `X`. These are converted
+    def predict_proba(self, X, device=None):
+        """
+        Predicted probabilities for the examples in `X`.
+
+        Parameters
+        ----------
+        X : np.array, shape `(n_examples, n_features)`
+
+        device: str or None
+            Allows the user to temporarily change the device used
+            during prediction. This is useful if predictions require a
+            lot of memory and so are better done on the CPU. After
+            prediction is done, the model is returned to `self.device`.
+
+        Returns
+        -------
+        np.array, shape `(len(X), self.n_classes_)`
+            Each row of this matrix will sum to 1.0.
+
+        """
+        preds = self._predict(X, device=device)
+        probs = torch.softmax(preds, dim=1).cpu().numpy()
+        return probs
+
+    def predict(self, X, device=None):
+        """
+        Predicted labels for the examples in `X`. These are converted
         from the integers that PyTorch needs back to their original
         values in `self.classes_`.
 
         Parameters
         ----------
-        X : np.array
+        X : np.array, shape `(n_examples, n_features)`
+
+        device: str or None
+            Allows the user to temporarily change the device used
+            during prediction. This is useful if predictions require a
+            lot of memory and so are better done on the CPU. After
+            prediction is done, the model is returned to `self.device`.
 
         Returns
         -------
-        list of length len(X)
+        list, length len(X)
 
         """
-        probs = self.predict_proba(X)
+        probs = self.predict_proba(X, device=device)
         return [self.classes_[i] for i in probs.argmax(axis=1)]
 
 
@@ -159,6 +187,8 @@ def simple_example():
     from sklearn.datasets import load_digits
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import classification_report, accuracy_score
+
+    utils.fix_random_seeds()
 
     digits = load_digits()
     X = digits.data
@@ -172,14 +202,14 @@ def simple_example():
     print(mod)
 
     mod.fit(X_train, y_train)
-    predictions = mod.predict(X_test)
+    preds = mod.predict(X_test)
 
     print("\nClassification report:")
 
-    print(classification_report(y_test, predictions))
+    print(classification_report(y_test, preds))
 
-    return accuracy_score(y_test, predictions)
+    return accuracy_score(y_test, preds)
 
 
 if __name__ == '__main__':
-   simple_example()
+    simple_example()
