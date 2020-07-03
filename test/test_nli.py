@@ -6,9 +6,14 @@ import os
 import pytest
 from sklearn.linear_model import LogisticRegression
 from torch_shallow_neural_classifier import TorchShallowNeuralClassifier
+import utils
+
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
+
+
+utils.fix_random_seeds()
 
 
 @pytest.fixture
@@ -21,47 +26,47 @@ def wordentail_data():
     return data
 
 
-@pytest.mark.parametrize("condition, split",[
-    ("edge_disjoint", "train"), ("edge_disjoint", "dev"),
-    ("word_disjoint", "train"), ("word_disjoint", "dev")
-])
-def test_word_entail_featurize(wordentail_data, condition, split):
-    data = wordentail_data[condition][split]
+@pytest.mark.parametrize("split", ["train", "dev"])
+def test_word_entail_featurize(wordentail_data, split):
+    data = wordentail_data[split]
     nli.word_entail_featurize(
         data,
         vector_func=lambda x: np.ones(10),
         vector_combo_func=lambda u, v: np.concatenate((u, v)))
 
 
-
-@pytest.mark.parametrize("split, count", [
-    ["edge_disjoint", 0],
-    ["word_disjoint", 0]
-])
-def test_edge_overlap_size(wordentail_data, split, count):
-    result = nli.get_edge_overlap_size(wordentail_data, split)
-    assert result == count
+def test_vocab_overlap_size(wordentail_data):
+    result = nli.get_vocab_overlap_size(wordentail_data)
+    assert result == 0
 
 
-@pytest.mark.parametrize("split, count", [
-    ["edge_disjoint", 2916],
-    ["word_disjoint", 0]
-])
-def test_vocab_overlap_size(wordentail_data, split, count):
-    result = nli.get_vocab_overlap_size(wordentail_data, split)
-    assert result == count
-
-
-@pytest.mark.parametrize("condition", [
-    "edge_disjoint", "word_disjoint"
-])
-def test_wordentail_experiment(wordentail_data, condition):
+def test_wordentail_experiment(wordentail_data):
     nli.wordentail_experiment(
-        train_data=wordentail_data[condition]['train'],
-        assess_data=wordentail_data[condition]['dev'],
+        train_data=wordentail_data['train'],
+        assess_data=wordentail_data['dev'],
         vector_func=lambda x: np.ones(10),
         vector_combo_func=lambda u, v: np.concatenate((u, v)),
         model=TorchShallowNeuralClassifier(hidden_dim=5, max_iter=1))
+
+
+def test_bakeoff_experiment(wordentail_data):
+    word_disjoint_experiment = nli.wordentail_experiment(
+        train_data=wordentail_data['train'],
+        assess_data=wordentail_data['dev'],
+        vector_func=lambda x: np.ones(10),
+        vector_combo_func=lambda u, v: np.concatenate((u, v)),
+        model=TorchShallowNeuralClassifier(hidden_dim=5, max_iter=1))
+
+
+    test_data_filename = os.path.join(
+        'data',
+        'nlidata',
+        'bakeoff-wordentail-data',
+        'nli_wordentail_bakeoff_data-test.json')
+
+    nli.bake_off_evaluation(
+        word_disjoint_experiment,
+        test_data_filename)
 
 
 @pytest.mark.parametrize("s, expected", [
@@ -87,7 +92,7 @@ multinli_home = os.path.join(data_home, "multinli_1.0")
 
 annotations_home = os.path.join(data_home, "multinli_1.0_annotations")
 
-anli_home = os.path.join(data_home, "anli_v0.1")
+anli_home = os.path.join(data_home, "anli_v1.0")
 
 
 @pytest.mark.parametrize("reader_class, corpus_home, count", [

@@ -2,9 +2,13 @@ import numpy as np
 import pandas as pd
 import pytest
 import vsm
+import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
+
+
+utils.fix_random_seeds()
 
 
 @pytest.fixture
@@ -105,11 +109,3 @@ def test_tsne_viz(df):
 
 def test_lsa(df):
     vsm.lsa(df, k=2)
-
-
-def test_glove(df):
-    """Just makes sure that this code will run; it doesn't check that
-    it is creating good models.
-    """
-    vsm.glove(df, n=100, xmax=100, alpha=0.75, max_iter=100, eta=0.05,
-        tol=1e-4, display_progress=True)

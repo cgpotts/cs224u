@@ -8,7 +8,10 @@ import pytest
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
+
+
+utils.fix_random_seeds()
 
 
 class GradientCheckError(Exception):
@@ -126,13 +129,14 @@ def test_np_tree_nn(hidden_activation, d_hidden_activation):
         "(even (odd 1) (neutral (neutral +) (odd 1)))",
         "(odd (odd 1) (neutral (neutral +) (even 2)))"]
     X = [Tree.fromstring(ex) for ex in X]
+    y = [tree.label() for tree in X]
     model = TreeNN(
         vocab,
         max_iter=10,
         hidden_dim=5,
         hidden_activation=hidden_activation,
         d_hidden_activation=d_hidden_activation)
-    model.fit(X)
+    model.fit(X, y)
     # Use the first example for the check:
     ex = X[0]
     label = model._onehot_encode([ex.label()])[0]
@@ -151,7 +155,8 @@ def test_np_tree_nn(hidden_activation, d_hidden_activation):
 
 
 def gradient_check(param_pairs, model, ex, label, epsilon=0.0001, threshold=0.001):
-    """Numerical gradient check following the method described here:
+    """
+    Numerical gradient check following the method described here:
 
     http://ufldl.stanford.edu/wiki/index.php/Gradient_checking_and_advanced_optimization
 
@@ -162,14 +167,18 @@ def gradient_check(param_pairs, model, ex, label, epsilon=0.0001, threshold=0.00
         and the second is its purported derivatives. We use the name
         as the first pair so that we can raise an informative error
         message in the case of a failure.
+
     model : trained model instance
         This should have attributes for all of the parameters named in
         `param_pairs`, and it must have methods `forward_propagation`,
         and `get_error`.
     ex : an example that `model` can process
+
     label : a label vector that `model` can learn from directly
+
     epsilon : float
         The small constant by which the parameter values are changed.
+
     threshold : float
         Tolerance for raising an error.
 

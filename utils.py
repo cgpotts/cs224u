@@ -5,13 +5,14 @@ import numpy as np
 import pandas as pd
 import random
 from scipy import stats
+from sklearn.base import TransformerMixin
 from sklearn.metrics import f1_score
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit
 import sys
 import os
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 START_SYMBOL = "<s>"
@@ -20,7 +21,8 @@ UNK_SYMBOL = "$UNK"
 
 
 def glove2dict(src_filename):
-    """GloVe Reader.
+    """
+    GloVe vectors file reader.
 
     Parameters
     ----------
@@ -54,12 +56,18 @@ def glove2dict(src_filename):
 
 
 def d_tanh(z):
-    """The derivative of np.tanh. z should be a float or np.array."""
+    """
+    The derivative of np.tanh. z should be a float or np.array.
+
+    """
     return 1.0 - z**2
 
 
 def softmax(z):
-    """Softmax activation function. z should be a float or np.array."""
+    """
+    Softmax activation function. z should be a float or np.array.
+
+    """
     # Increases numerical stability:
     t = np.exp(z - np.max(z))
     return t / np.sum(t)
@@ -74,33 +82,48 @@ def d_relu(z):
 
 
 def randvec(n=50, lower=-0.5, upper=0.5):
-    """Returns a random vector of length `n`. `w` is ignored."""
+    """
+    Returns a random vector of length `n`. `w` is ignored.
+
+    """
     return np.array([random.uniform(lower, upper) for i in range(n)])
 
 
 def randmatrix(m, n, lower=-0.5, upper=0.5):
-    """Creates an m x n matrix of random values in [lower, upper]"""
+    """
+    Creates an m x n matrix of random values in [lower, upper].
+
+    """
     return np.array([random.uniform(lower, upper) for i in range(m*n)]).reshape(m, n)
 
 
 def safe_macro_f1(y, y_pred):
-    """Macro-averaged F1, forcing `sklearn` to report as a multiclass
+    """
+    Macro-averaged F1, forcing `sklearn` to report as a multiclass
     problem even when there are just two classes. `y` is the list of
-    gold labels and `y_pred` is the list of predicted labels."""
+    gold labels and `y_pred` is the list of predicted labels.
+
+    """
     return f1_score(y, y_pred, average='macro', pos_label=None)
 
 
-def progress_bar(msg):
-    """Simple over-writing progress bar."""
-    sys.stderr.write('\r')
-    sys.stderr.write(msg)
-    sys.stderr.flush()
+def progress_bar(msg, verbose=True):
+    """
+    Simple over-writing progress bar.
+
+    """
+    if verbose:
+        sys.stderr.write('\r')
+        sys.stderr.write(msg)
+        sys.stderr.flush()
 
 
 def log_of_array_ignoring_zeros(M):
-    """Returns an array containing the logs of the nonzero
+    """
+    Returns an array containing the logs of the nonzero
     elements of M. Zeros are left alone since log(0) isn't
     defined.
+
     """
     log_M = M.copy()
     mask = log_M > 0
@@ -109,11 +132,13 @@ def log_of_array_ignoring_zeros(M):
 
 
 def mcnemar(y_true, pred_a, pred_b):
-    """McNemar's test using the chi2 distribution.
+    """
+    McNemar's test using the chi2 distribution.
 
     Parameters
     ----------
     y_true : list of actual labels
+
     pred_a, pred_b : lists
         Predictions from the two systems being evaluated.
         Assumed to have the same length as `y_true`.
@@ -136,26 +161,33 @@ def mcnemar(y_true, pred_a, pred_b):
     return stat, pval
 
 
-def fit_classifier_with_crossvalidation(
+def fit_classifier_with_hyperparameter_search(
         X, y, basemod, cv, param_grid, scoring='f1_macro', verbose=True):
-    """Fit a classifier with hyperparameters set via cross-validation.
+    """
+    Fit a classifier with hyperparameters set via cross-validation.
 
     Parameters
     ----------
     X : 2d np.array
         The matrix of features, one example per row.
+
     y : list
         The list of labels for rows in `X`.
+
     basemod : an sklearn model class instance
         This is the basic model-type we'll be optimizing.
+
     cv : int
         Number of cross-validation folds.
+
     param_grid : dict
         A dict whose keys name appropriate parameters for `basemod` and
         whose values are lists of values to try.
+
     scoring : value to optimize for (default: f1_macro)
         Other options include 'accuracy' and 'f1_micro'. See
         http://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+
     verbose : bool
         Whether to print some summary information to standard output.
 
@@ -171,8 +203,9 @@ def fit_classifier_with_crossvalidation(
         A trained model instance, the best model found.
 
     """
+    splitter = StratifiedShuffleSplit(n_splits=cv, test_size=0.20)
     # Find the best model within param_grid:
-    crossvalidator = GridSearchCV(basemod, param_grid, cv=cv, scoring=scoring)
+    crossvalidator = GridSearchCV(basemod, param_grid, cv=splitter, scoring=scoring)
     crossvalidator.fit(X, y)
     # Report some information:
     if verbose:
@@ -183,14 +216,17 @@ def fit_classifier_with_crossvalidation(
 
 
 def get_vocab(X, n_words=None, mincount=1):
-    """Get the vocabulary for an RNN example matrix `X`,
-    adding $UNK$ if it isn't already present.
+    """
+    Get the vocabulary for an RNN example matrix `X`, adding $UNK$ if
+    it isn't already present.
 
     Parameters
     ----------
     X : list of lists of str
+
     n_words : int or None
         If this is `int > 0`, keep only the top `n_words` by frequency.
+
     mincount : int
         Only words with at least this many tokens are kept.
 
@@ -210,7 +246,8 @@ def get_vocab(X, n_words=None, mincount=1):
 
 def create_pretrained_embedding(
         lookup, vocab, required_tokens=('$UNK', "<s>", "</s>")):
-    """Create an embedding matrix from a lookup and a specified vocab.
+    """
+    Create an embedding matrix from a lookup and a specified vocab.
     Words from `vocab` that are not in `lookup` are given random
     representations.
 
@@ -218,8 +255,10 @@ def create_pretrained_embedding(
     ----------
     lookup : dict
         Must map words to their vector representations.
+
     vocab : list of str
         Words to create embeddings for.
+
     required_tokens : tuple of str
         Tokens that must have embeddings. If they are not available
         in the look-up, they will be given random representations.
@@ -244,23 +283,29 @@ def fix_random_seeds(
         seed=42,
         set_system=True,
         set_torch=True,
-        set_tensorflow=True,
+        set_tensorflow=False,
         set_torch_cudnn=True):
-    """Fix random seeds for reproducibility.
+    """
+    Fix random seeds for reproducibility.
 
     Parameters
     ----------
     seed : int
         Random seed to be set.
+
     set_system : bool
         Whether to set `np.random.seed(seed)` and `random.seed(seed)`
+
     set_tensorflow : bool
         Whether to set `tf.random.set_random_seed(seed)`
+
     set_torch : bool
         Whether to set `torch.manual_seed(seed)`
+
     set_torch_cudnn: bool
         Flag for whether to enable cudnn deterministic mode.
-        Note that deterministic mode can have a performance impact, depending on your model.
+        Note that deterministic mode can have a performance impact,
+        depending on your model.
         https://pytorch.org/docs/stable/notes/randomness.html
 
     Notes
@@ -320,3 +365,26 @@ def fix_random_seeds(
             pass
         else:
             set_tf_seed(seed)
+
+
+class DenseTransformer(TransformerMixin):
+    """
+    From
+
+    http://zacstewart.com/2014/08/05/pipelines-of-featureunions-of-pipelines.html
+
+    Some sklearn methods return sparse matrices that don't interact
+    well with estimators that expect dense arrays or regular iterables
+    as inputs. This little class helps manage that. Especially useful
+    in the context of Pipelines.
+
+    """
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+    def transform(self, X, y=None, **fit_params):
+        return X.todense()
+
+    def fit_transform(self, X, y=None, **fit_params):
+        self.fit(X, y, **fit_params)
+        return self.transform(X)

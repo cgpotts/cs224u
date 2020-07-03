@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatch
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 TURN_BOUNDARY =  " ### "
 
 
 class ColorsCorpusReader:
-    """Basic interface for the Stanford Colors in Context corpus:
+    """
+    Basic interface for the Stanford Colors in Context corpus:
 
     https://cocolab.stanford.edu/datasets/colors.html
 
@@ -20,10 +21,12 @@ class ColorsCorpusReader:
     ----------
     src_filename : str
         Full path to the corpus file.
+
     word_count : int or None
         If int, then only examples with `word_count` words in their
         'contents' field are included (as estimated by the number of
         whitespqce tokens). If None, then all examples are returned.
+
     normalize_colors : bool
          The colors in the corpus are in HLS format with values
          [0, 360], [0, 100], [0, 100]. If `normalize_colors=True`,
@@ -43,7 +46,8 @@ class ColorsCorpusReader:
         self.normalize_colors = normalize_colors
 
     def read(self):
-        """The main interface to the corpus.
+        """
+        The main interface to the corpus.
 
         As in the paper, turns taken in the same game and round are
         grouped together into a single `ColorsCorpusExample` instance
@@ -72,7 +76,8 @@ class ColorsCorpusReader:
 
 
 class ColorsCorpusExample:
-    """Interface to individual examples in the Stanford Colors in
+    """
+    Interface to individual examples in the Stanford Colors in
     Context corpus.
 
     Parameters
@@ -81,6 +86,7 @@ class ColorsCorpusExample:
         This contains all of the turns associated with a given game
         and round. The assumption is that all of the key-value pairs
         in these dicts are the same except for the 'contents' key.
+
     normalize_colors : bool
          The colors in the corpus are in HLS format with values
          [0, 360], [0, 100], [0, 100]. If `normalize_colors=True`,
@@ -124,7 +130,8 @@ class ColorsCorpusExample:
         self.speaker_context = self._get_reps_in_order('speaker')
 
     def parse_turns(self):
-        """"Turns the `contents` string into a list by splitting on
+        """"
+        Turns the `contents` string into a list by splitting on
         `TURN_BOUNDARY`.
 
         Returns
@@ -135,7 +142,8 @@ class ColorsCorpusExample:
         return self.contents.split(TURN_BOUNDARY)
 
     def display(self, typ='model'):
-        """Prints examples to the screen in an intuitive format: the
+        """
+        Prints examples to the screen in an intuitive format: the
         utterance text appears first, following by the three color
         patches, with the target identified by a black border in the
         'speaker' and 'model' variants.
@@ -213,9 +221,10 @@ class ColorsCorpusExample:
 
     @staticmethod
     def _check_row_alignment(rows):
-        """We expect all the dicts in `rows` to have the same
-        keys and values except for the keys associated with the
-        messages. This function tests this assumption holds.
+        """
+        We expect all the dicts in `rows` to have the same keys and
+        values except for the keys associated with the messages. This
+        function tests this assumption holds.
 
         """
         keys = set(rows[0].keys())

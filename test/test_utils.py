@@ -5,7 +5,10 @@ import random
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
+
+
+utils.fix_random_seeds()
 
 
 @pytest.mark.parametrize("arg, expected", [
@@ -140,20 +143,4 @@ def test_fix_random_seeds_pytorch(set_value):
     x = torch.rand(1)
     utils.fix_random_seeds(**params)
     y = torch.rand(1)
-    assert (x == y) == set_value
-
-
-@pytest.mark.parametrize("set_value", [True, False])
-def test_fix_random_seeds_tensorflow(set_value):
-    import tensorflow as tf
-    params = dict(
-        seed=42,
-        set_system=False,
-        set_tensorflow=set_value,
-        set_torch=True,
-        set_torch_cudnn=True)
-    utils.fix_random_seeds(**params)
-    x = tf.random.uniform([1]).numpy()
-    utils.fix_random_seeds(**params)
-    y = tf.random.uniform([1]).numpy()
     assert (x == y) == set_value

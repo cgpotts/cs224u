@@ -1,9 +1,9 @@
 import numpy as np
 from np_model_base import NNModelBase
-from utils import softmax
+import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class TreeNN(NNModelBase):
@@ -14,31 +14,21 @@ class TreeNN(NNModelBase):
             embedding = self._define_embedding_matrix(
                 len(self.vocab), embed_dim)
         self.embedding = embedding
-        self.embed_dim = self.embedding.shape[1]
-        super(TreeNN, self).__init__(**kwargs)
+        self._embed_dim = self.embedding.shape[1]
+        super().__init__(**kwargs)
         self.hidden_dim = self.embed_dim * 2
+        self.params += ['embedding', 'embed_dim']
 
-    def fit(self, X, y=None):
-        """Fairly standard `fit` method except that, if `y=None`,
-        then the labels `y` are presumed to come from the root nodes
-        of the trees in `X`. We retain the option of giving them
-        as a separate argument for consistency with the other model
-        interfaces, and so that we can use sklearn cross-validation
-        methods with this class.
 
-        Parameters
-        ----------
-        X : list of `nltk.Tree` instances
-        y : iterable of labels, or None
+    @property
+    def embed_dim(self):
+        return self._embed_dim
 
-        Returns
-        -------
-        self
-
-        """
-        if y is None:
-            y = [t.label() for t in X]
-        return super(TreeNN, self).fit(X, y)
+    @embed_dim.setter
+    def embed_dim(self, value):
+        self._embed_dim = value
+        self.embedding = self._define_embedding_matrix(
+            len(self.vocab), value)
 
     def initialize_parameters(self):
         # Hidden parameters for semantic composition:
@@ -49,7 +39,8 @@ class TreeNN(NNModelBase):
         self.b_y = np.zeros(self.output_dim)
 
     def forward_propagation(self, subtree):
-        """Forward propagation through the tree and through the
+        """
+        Forward propagation through the tree and through the
         softmax prediction layer on top. For each subtree
 
         [parent left right]
@@ -75,11 +66,12 @@ class TreeNN(NNModelBase):
         """
         vectree = self._interpret(subtree)
         root = self._get_vector_tree_root(vectree)
-        y = softmax(root.dot(self.W_hy) + self.b_y)
+        y = utils.softmax(root.dot(self.W_hy) + self.b_y)
         return vectree, y
 
     def _interpret(self, subtree):
-        """The forward propagation through the tree itself (excluding
+        """
+        The forward propagation through the tree itself (excluding
         the softmax prediction layer on top of this).
 
         Given an NLTK Tree instance `subtree`, this returns a vector
@@ -117,7 +109,8 @@ class TreeNN(NNModelBase):
 
     @staticmethod
     def _get_vector_tree_root(vectree):
-        """Returns `tree` if it represents only a lexical item, else
+        """
+        Returns `tree` if it represents only a lexical item, else
         the root (first member) of `tree`.
 
         Parameters
@@ -174,13 +167,21 @@ class TreeNN(NNModelBase):
         self.b -= self.eta * d_b
 
     def set_params(self, **params):
-        super(TreeNN, self).set_params(**params)
+        super().set_params(**params)
         self.hidden_dim = self.embed_dim * 2
+        return self
+
+    def score(self, X, y):
+        preds = self.predict(X)
+        return utils.safe_macro_f1(y, preds)
 
 
-def simple_example(initial_embedding=False, separate_y=False):
+def simple_example():
     from nltk.tree import Tree
+    from sklearn.metrics import accuracy_score
     import utils
+
+    utils.fix_random_seeds()
 
     train = [
         "(odd 1)",
@@ -205,43 +206,29 @@ def simple_example(initial_embedding=False, separate_y=False):
     vocab = ["1", "+", "2"]
 
     X_train = [Tree.fromstring(x) for x in train]
+    y_train = [t.label() for t in X_train]
 
     X_test = [Tree.fromstring(x) for x in test]
+    y_test = [t.label() for t in X_test]
 
-    if initial_embedding:
-        import numpy as np
-        embedding = np.random.uniform(
-            low=-1.0, high=1.0, size=(len(vocab), 50))
-    else:
-        embedding = None
+    mod = TreeNN(vocab)
 
-    model = TreeNN(
-        vocab,
-        embed_dim=50,
-        hidden_dim=50,
-        max_iter=100,
-        embedding=embedding)
+    print(mod)
 
-    if not separate_y:
-        y = [t.label() for t in X_train]
-    else:
-        y = None
-
-    model.fit(X_train, y=y)
+    mod.fit(X_train, y_train)
 
     print("\nTest predictions:")
 
-    preds = model.predict(X_test)
-
-    y_test = [t.label() for t in X_test]
+    preds = mod.predict(X_test)
 
     correct = 0
     for tree, label, pred in zip(X_test, y_test, preds):
-        if pred == label:
-            correct += 1
+        correct += int(pred == label)
         print("{}\n\tPredicted: {}\n\tActual: {}".format(tree, pred, label))
     print("{}/{} correct".format(correct, len(X_test)))
 
+    return accuracy_score(y_test, preds)
+
 
 if __name__ == '__main__':
-    simple_example(initial_embedding=False, separate_y=False)
+    simple_example()

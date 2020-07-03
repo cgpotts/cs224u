@@ -5,23 +5,29 @@ from scipy.spatial.distance import euclidean
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2020"
+__version__ = "CS224u, Stanford, Fall 2020"
 
 
 class Retrofitter(object):
-    """Implements the baseline retrofitting method of Faruqui et al.
+    """
+    Implements the baseline retrofitting method of Faruqui et al.
 
     Parameters
     ----------
     max_iter : int indicating the maximum number of iterations to run.
+
     alpha : func from `edges.keys()` to floats or None
+
     beta : func from `edges.keys()` to floats or None
+
     tol : float
         If the average distance change between two rounds is at or
         below this value, we stop. Default to 10^-2 as suggested
         in the paper.
+
     verbose : bool
         Whether to print information about the optimization process.
+
     introspecting : bool
         Whether to accumulate a list of the retrofitting matrices
         at each step. This should be set to `True` only for small
@@ -39,11 +45,13 @@ class Retrofitter(object):
         self.introspecting = introspecting
 
     def fit(self, X, edges):
-        """The core internal retrofitting method.
+        """
+        The core internal retrofitting method.
 
         Parameters
         ----------
         X : np.array (distributional embeddings)
+
         edges : dict
             Mapping indices into `X` into sets of indices into `X`.
 
@@ -51,6 +59,7 @@ class Retrofitter(object):
         ----------
         self.Y : np.array, same dimensions and arrangement as `X`.
            The retrofitting matrix.
+
         self.all_Y : list
            Set only if `self.introspecting=True`.
 
