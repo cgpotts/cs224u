@@ -858,7 +858,7 @@ def create_example_dataset(group_size=100, vec_dim=2):
         dis_indices.remove(i)
         random.shuffle(dis_indices)
         disl1, disu1 = groups[dis_indices[0]]
-        dis2 = disl2, disu2 = groups[dis_indices[1]]
+        disl2, disu2 = groups[dis_indices[1]]
 
         for _ in range(group_size):
             target = utils.randvec(vec_dim, l, u)
