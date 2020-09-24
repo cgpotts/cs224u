@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import pickle
+import time
 from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
@@ -346,6 +347,7 @@ class TorchModelBase:
         self.model.train()
         self.optimizer.zero_grad()
 
+        t_start = time.time()
         for iteration in range(1, self.max_iter+1):
 
             epoch_error = 0.0
@@ -377,6 +379,8 @@ class TorchModelBase:
                     self.optimizer.step()
                     self.optimizer.zero_grad()
 
+            elapsed = time.time() - t_start
+
             # Stopping criteria:
 
             if self.early_stopping:
@@ -385,8 +389,8 @@ class TorchModelBase:
                     utils.progress_bar(
                         "Stopping after epoch {}. Validation score did "
                         "not improve by tol={} for more than {} epochs. "
-                        "Final error is {}".format(iteration, self.tol,
-                            self.n_iter_no_change, epoch_error),
+                        "Final error is {}; took {:.2f} seconds".format(iteration, self.tol,
+                            self.n_iter_no_change, epoch_error, elapsed),
                         verbose=self.display_progress)
                     break
 
@@ -396,13 +400,13 @@ class TorchModelBase:
                     utils.progress_bar(
                         "Stopping after epoch {}. Training loss did "
                         "not improve more than tol={}. Final error "
-                        "is {}.".format(iteration, self.tol, epoch_error),
+                        "is {}; took {:.2f} seconds".format(iteration, self.tol, epoch_error, elapsed),
                         verbose=self.display_progress)
                     break
 
             utils.progress_bar(
-                "Finished epoch {} of {}; error is {}".format(
-                    iteration, self.max_iter, epoch_error),
+                "Finished epoch {} of {}; error is {}; took {:.2f} seconds".format(
+                    iteration, self.max_iter, epoch_error, elapsed),
                 verbose=self.display_progress)
 
         if self.early_stopping:

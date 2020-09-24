@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import random
 import sys
+import time
 import utils
 
 __author__ = "Christopher Potts"
@@ -87,6 +88,7 @@ class GloVe:
         X_weights = (np.minimum(X, self.xmax) / self.xmax)**self.alpha  # eq. (9)
         # Learning:
         indices = list(range(m))
+        t_start = time.time()
         for iteration in range(self.max_iter):
             epoch_error = 0.0
             random.shuffle(indices)
@@ -110,16 +112,17 @@ class GloVe:
                     epoch_error += 0.5 * weight * (diff**2)
 
             epoch_error /= m
+            elapsed = time.time() - t_start
 
             if epoch_error <= self.tol:
                 utils.progress_bar(
-                    "Converged on iteration {} with error {}".format(
-                        iteration, epoch_error, self.display_progress))
+                    "Converged on iteration {} with error {}; took {:.2f} seconds".format(
+                        iteration, epoch_error, elapsed, self.display_progress))
                 break
 
             utils.progress_bar(
-                "Finished epoch {} of {}; error is {}".format(
-                    iteration, self.max_iter, epoch_error, self.display_progress))
+                "Finished epoch {} of {}; error is {}; took {:.2f} seconds".format(
+                    iteration, self.max_iter, epoch_error, elapsed, self.display_progress))
 
         # Return the sum of the word and context matrices, per the advice
         # in section 4.2:

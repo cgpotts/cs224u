@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import random
 from utils import randvec, randmatrix, progress_bar, d_tanh
@@ -57,6 +58,7 @@ class NNModelBase(object):
         training_data = list(zip(X, y))
         # SGD:
         iteration = 0
+        t_start = time.time()
         for iteration in range(1, self.max_iter+1):
             error = 0.0
             random.shuffle(training_data)
@@ -68,17 +70,18 @@ class NNModelBase(object):
                     hidden_states, predictions, ex, labels)
                 self.update_parameters(gradients)
             error /= len(training_data)
+            elapsed = time.time() - t_start
             if error <= self.tol:
                 if self.display_progress:
                     progress_bar(
-                        "Converged on iteration {} with error {}".format(
-                            iteration, error))
+                        "Converged on iteration {} with error {}; took {:.2f} seconds".format(
+                            iteration, error, elapsed))
                 break
             else:
                 if self.display_progress:
                     progress_bar(
-                        "Finished epoch {} of {}; error is {}".format
-                        (iteration, self.max_iter, error))
+                        "Finished epoch {} of {}; error is {}; took {:.2f} seconds".format
+                        (iteration, self.max_iter, error, elapsed))
         return self
 
     @staticmethod
