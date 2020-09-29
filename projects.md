@@ -224,7 +224,7 @@ It's worth reiterating a central point from [the evaluation methods notebook](ev
 
 ### Formatting
 
-The paper should be 8 pages long, in ACL submission format and adhering to ACL guidelines concerning references, layout, supplementary materials, and so forth. [Here are the LaTeX and Word templates for the current ACL style](http://www.acl2019.org/EN/call-for-papers.xhtml_).
+The paper should be 8 pages long, in ACL submission format and adhering to ACL guidelines concerning references, layout, supplementary materials, and so forth. [Here are the LaTeX and Word templates for the 2020 ACL style](https://www.overleaf.com/latex/templates/acl-2020-proceedings-template/zsrkcwjptpcd).
 
 
 ### Suggested paper organization
