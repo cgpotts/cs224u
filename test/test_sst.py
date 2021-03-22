@@ -7,87 +7,75 @@ import pytest
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 utils.fix_random_seeds()
 
 
-sst_home = os.path.join('data', 'trees')
+sst_home = os.path.join('data', 'sentiment')
 
 
-@pytest.mark.parametrize("reader, count", [
-    [sst.train_reader(sst_home, class_func=None), 8544],
-    [sst.train_reader(sst_home, class_func=sst.binary_class_func), 6920],
-    [sst.train_reader(sst_home, class_func=sst.ternary_class_func), 8544],
-    [sst.dev_reader(sst_home, class_func=None), 1101],
-    [sst.dev_reader(sst_home, class_func=sst.binary_class_func), 872],
-    [sst.dev_reader(sst_home, class_func=sst.ternary_class_func), 1101],
-
+@pytest.mark.parametrize("split_df, expected_count", [
+    [sst.train_reader(sst_home, include_subtrees=True, dedup=False), 318582],
+    [sst.train_reader(sst_home, include_subtrees=True, dedup=True), 159274],
+    [sst.train_reader(sst_home, include_subtrees=False, dedup=False), 8544],
+    [sst.train_reader(sst_home, include_subtrees=False, dedup=True), 8534],
+    [sst.dev_reader(sst_home, include_subtrees=True, dedup=False), 1101],
+    [sst.dev_reader(sst_home, include_subtrees=True, dedup=True), 1100],
+    [sst.dev_reader(sst_home, include_subtrees=False, dedup=False), 1101],
+    [sst.dev_reader(sst_home, include_subtrees=False, dedup=True), 1100]
 ])
-def test_readers(reader, count):
-    result = len(list(reader))
-    assert result == count
-
-
-def test_reader_labeling():
-    tree, label = next(sst.train_reader(sst_home, class_func=sst.ternary_class_func))
-    for subtree in tree.subtrees():
-        assert subtree.label() in {'negative', 'neutral', 'positive'}
+def test_readers(split_df, expected_count):
+    result = split_df.shape[0]
+    assert result == expected_count
 
 
 def test_build_dataset_vectorizing():
-    phi = lambda tree: Counter(tree.leaves())
-    class_func = None
-    reader = sst.train_reader
+    phi = lambda text: Counter(text.split())
+    split_df = sst.dev_reader(sst_home)
     dataset = sst.build_dataset(
-        sst_home,
-        reader,
+        split_df,
         phi,
-        class_func,
         vectorizer=None,
         vectorize=True)
-    assert len(dataset['X']) == len(list(reader(sst_home)))
+    assert len(dataset['X']) == split_df.shape[0]
     assert len(dataset['y']) == len(dataset['X'])
     assert len(dataset['raw_examples']) == len(dataset['X'])
 
 
 def test_build_dataset_not_vectorizing():
-    phi = lambda tree: tree
-    class_func = None
-    reader = sst.train_reader
+    phi = lambda text: text
+    split_df = sst.dev_reader(sst_home)
     dataset = sst.build_dataset(
-        sst_home,
-        reader,
+        split_df,
         phi,
-        class_func,
         vectorizer=None,
         vectorize=False)
-    assert len(dataset['X']) == len(list(reader(sst_home)))
+    assert len(dataset['X']) == split_df.shape[0]
     assert dataset['X'] == dataset['raw_examples']
     assert len(dataset['y']) == len(dataset['X'])
 
 
 def test_build_rnn_dataset():
-    X, y = sst.build_rnn_dataset(
-        sst_home, sst.train_reader, class_func=sst.binary_class_func)
-    assert len(X) == 6920
-    assert len(y) == 6920
+    split_df = sst.dev_reader(sst_home)
+    X, y = sst.build_rnn_dataset(split_df)
+    assert len(X) == 1101
+    assert len(y) == 1101
 
 
-@pytest.mark.parametrize("assess_reader", [
+@pytest.mark.parametrize("assess_dataframe", [
     None,
-    sst.dev_reader
+    sst.dev_reader(sst_home)
 ])
-def test_experiment(assess_reader):
+def test_experiment(assess_dataframe):
     def fit_maxent(X, y):
         mod = LogisticRegression(solver='liblinear', multi_class='auto')
         mod.fit(X, y)
         return mod
     sst.experiment(
-        sst_home,
-        train_reader=sst.train_reader,
+        sst.train_reader(sst_home, include_subtrees=False),
         phi=lambda x: {"$UNK": 1},
         train_func=fit_maxent,
-        assess_reader=assess_reader,
+        assess_dataframes=assess_dataframe,
         random_state=42)

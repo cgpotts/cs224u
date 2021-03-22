@@ -7,7 +7,7 @@ from torch_model_base import TorchModelBase
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 class TorchRNNDataset(torch.utils.data.Dataset):
@@ -129,7 +129,10 @@ class TorchRNNModel(nn.Module):
         if self.use_embedding:
             X = self.embedding(X)
         embs = torch.nn.utils.rnn.pack_padded_sequence(
-            X, batch_first=True, lengths=seq_lengths, enforce_sorted=False)
+            X,
+            batch_first=True,
+            lengths=seq_lengths.cpu(),
+            enforce_sorted=False)
         outputs, state = self.rnn(embs)
         return outputs, state
 

@@ -7,7 +7,7 @@ import torch.nn as nn
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 class TorchModelBase:

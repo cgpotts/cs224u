@@ -1,9 +1,6 @@
-from collections import Counter, namedtuple
-from nltk.tree import Tree
 import numpy as np
 import os
 import pandas as pd
-import random
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -12,140 +9,111 @@ import scipy.stats
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
-def sentiment_treebank_reader(src_filename, class_func=None):
+def sentiment_reader(src_filename, include_subtrees=True, dedup=False):
     """
-    Iterator for the Penn-style distribution of the Stanford
-    Sentiment Treebank. The iterator yields (tree, label) pairs.
-
-    The labels are strings. They do not make sense as a linear order
-    because negative ('0', '1'), neutral ('2'), and positive ('3','4')
-    do not form a linear order conceptually, and because '0' is
-    stronger than '1' but '4' is stronger than '3'.
+    Iterator for our distribution of the SST-3 and other files in
+    that format.
 
     Parameters
     ----------
     src_filename : str
         Full path to the file to be read.
 
-    class_func : None, or function mapping labels to labels or None
-        If this is None, then the original 5-way labels are returned.
-        Other options: `binary_class_func` and `ternary_class_func`
-        (or you could write your own).
+    include_subtrees : bool
+        If True, then the subtrees are returned as separate examples.
+        This affects only the train split. For dev and test, only
+        the full examples are included.
+
+    dedup : bool
+        If True, only one copy of each (example, label) pair is included.
+        This mainly affects the train set, though there is one repeated
+        example in the dev set.
 
     Yields
     ------
-    (tree, label)
-        nltk.Tree, str in {'0','1','2','3','4'}
+    pd.DataFrame with columns ['example_id', 'sentence', 'label']
 
     """
-    if class_func is None:
-        class_func = lambda x: x
-    with open(src_filename, encoding='utf8') as f:
-        for line in f:
-            tree = Tree.fromstring(line)
-            label = class_func(tree.label())
-            # As in the paper, if the root node doesn't fall into any
-            # of the classes for this version of the problem, then
-            # we drop the example:
-            if label:
-                for subtree in tree.subtrees():
-                    subtree.set_label(class_func(subtree.label()))
-                yield (tree, label)
+    df = pd.read_csv(src_filename)
+    if not include_subtrees:
+        df = df[df.is_subtree == 0]
+    if dedup:
+        df = df.groupby(['sentence', 'label']).apply(lambda x: x.iloc[0])
+        df = df.reset_index(drop=True)
+    return df
 
 
-def binary_class_func(y):
+def train_reader(sst_home, include_subtrees=False, dedup=False):
     """
-    Define a binary SST task.
-
-    Parameters
-    ----------
-    y : str
-        Assumed to be one of the SST labels.
-
-    Returns
-    -------
-    str or None
-        None values are ignored by `build_dataset` and thus left out of
-        the experiments.
+    Convenience function for reading the SST-3 train file.
 
     """
-    if y in ("0", "1"):
-        return "negative"
-    elif y in ("3", "4"):
-        return "positive"
-    else:
-        return None
+    src = os.path.join(sst_home, 'sst3-train.csv')
+    return sentiment_reader(
+        src, include_subtrees=include_subtrees, dedup=dedup)
 
 
-def ternary_class_func(y):
+def dev_reader(sst_home, include_subtrees=False, dedup=False):
     """
-    Define a binary SST task. Just like `binary_class_func` except
-    input '2' returns 'neutral'.
+    Convenience function for reading the SST-3 dev file.
 
     """
-    if y in ("0", "1"):
-        return "negative"
-    elif y in ("3", "4"):
-        return "positive"
-    else:
-        return "neutral"
+    src = os.path.join(sst_home, 'sst3-dev.csv')
+    return sentiment_reader(
+        src, include_subtrees=include_subtrees, dedup=dedup)
 
 
-def train_reader(sst_home, **kwargs):
+def test_reader(sst_home, include_subtrees=False, dedup=False):
     """
-    Convenience function for reading the train file, full-trees only.
-
-    """
-    src = os.path.join(sst_home, 'train.txt')
-    return sentiment_treebank_reader(src, **kwargs)
-
-
-def dev_reader(sst_home, **kwargs):
-    """
-    Convenience function for reading the dev file, full-trees only.
+    Convenience function for reading the SST-3 test file, unlabeled.
+    This function should be used only for the final stages of a
+    project, to obtain a submission to be evaluated. If you need
+    to do an evaluation yourself with the labeled dataset, use
+    `sentiment_reader` pointing to the labeled version of this
+    dataset.
 
     """
-    src = os.path.join(sst_home, 'dev.txt')
-    return sentiment_treebank_reader(src, **kwargs)
+    src = os.path.join(sst_home, 'sst3-test-unlabeled.csv')
+    return sentiment_reader(
+        src, include_subtrees=include_subtrees, dedup=dedup)
 
 
-def test_reader(sst_home, **kwargs):
+def bakeoff_dev_reader(sst_home, include_subtrees=False, dedup=False):
     """
-    Convenience function for reading the test file, full-trees only.
-    This function should be used only for the final stages of a project,
-    to obtain final results.
+    Convenience function for reading the bakeoff dev file.
 
     """
-    src = os.path.join(sst_home, 'test.txt')
-    return sentiment_treebank_reader(src, **kwargs)
+    src = os.path.join(sst_home, 'cs224u-sentiment-dev.csv')
+    return sentiment_reader(
+        src, include_subtrees=include_subtrees, dedup=dedup)
 
 
-def build_dataset(sst_home, reader, phi, class_func, vectorizer=None, vectorize=True):
+def bakeoff_test_reader(sst_home, include_subtrees=False, dedup=False):
+    """
+    Convenience function for reading the bakeoff test file, unlabeled.
+
+    """
+    src = os.path.join(sst_home, 'cs224u-sentiment-test-unlabeled.csv')
+    return sentiment_reader(
+        src, include_subtrees=include_subtrees, dedup=dedup)
+
+
+def build_dataset(dataframes, phi, vectorizer=None, vectorize=True):
     """
     Core general function for building experimental datasets.
 
     Parameters
     ----------
-    sst_home : str
-        Full path to the 'trees' directory for SST.
-
-    reader : iterator or iterable of iterators
-       Should be `train_reader`, `dev_reader`, or another function
-       defined in those terms, or a list/tuple of such functions.
-       This is the dataset we'll be featurizing.
+    dataframes : pd.DataFrame or list of pd.DataFrame
+        The dataset or datasets to process, as read in by
+        `sentiment_reader`.
 
     phi : feature function
-       Any function that takes an `nltk.Tree` instance as input
-       and returns a bool/int/float-valued dict as output.
-
-    class_func : function on the SST labels
-       Any function like `binary_class_func` or `ternary_class_func`.
-       This modifies the SST labels based on the experimental
-       design. If `class_func` returns None for a label, then that
-       item is ignored.
+       Any function that takes a string as input and returns a
+       bool/int/float-valued dict as output.
 
     vectorizer : sklearn.feature_extraction.DictVectorizer
        If this is None, then a new `DictVectorizer` is created and
@@ -168,24 +136,24 @@ def build_dataset(sst_home, reader, phi, class_func, vectorizer=None, vectorize=
         'raw_examples' (the `nltk.Tree` objects, for error analysis).
 
     """
-    labels = []
-    feat_dicts = []
-    raw_examples = []
-
-    if isinstance(reader, (list, tuple)):
-        readers = reader
+    if isinstance(dataframes, (list, tuple)):
+        df = pd.concat(dataframes)
     else:
-        readers = [reader]
+        df = dataframes
 
-    for reader in readers:
-        for tree, label in reader(sst_home, class_func=class_func):
-            labels.append(label)
-            feat_dicts.append(phi(tree))
-            raw_examples.append(tree)
+    raw_examples = list(df.sentence.values)
+
+    feat_dicts = list(df.sentence.apply(phi).values)
+
+    if 'label' in df.columns:
+        labels = list(df.label.values)
+    else:
+        labels = None
+
     feat_matrix = None
     if vectorize:
         # In training, we want a new vectorizer:
-        if vectorizer == None:
+        if vectorizer is None:
             vectorizer = DictVectorizer(sparse=False)
             feat_matrix = vectorizer.fit_transform(feat_dicts)
         # In assessment, we featurize using the existing vectorizer:
@@ -193,6 +161,7 @@ def build_dataset(sst_home, reader, phi, class_func, vectorizer=None, vectorize=
             feat_matrix = vectorizer.transform(feat_dicts)
     else:
         feat_matrix = feat_dicts
+
     return {'X': feat_matrix,
             'y': labels,
             'vectorizer': vectorizer,
@@ -200,26 +169,25 @@ def build_dataset(sst_home, reader, phi, class_func, vectorizer=None, vectorize=
 
 
 def experiment(
-        sst_home,
+        train_dataframes,
         phi,
         train_func,
-        train_reader=train_reader,
-        assess_reader=None,
+        assess_dataframes=None,
         train_size=0.7,
-        class_func=binary_class_func,
         score_func=utils.safe_macro_f1,
         vectorize=True,
         verbose=True,
         random_state=None):
     """
-    Generic experimental framework for SST. Either assesses with a
-    random train/test split of `train_reader` or with `assess_reader` if
+    Generic experimental framework. Either assesses with a random
+    train/test split of `train_reader` or with `assess_reader` if
     it is given.
 
     Parameters
     ----------
-    sst_home : str
-        Full path to the 'trees' directory for SST.
+    train_dataframes : pd.DataFrame or list of pd.DataFrame
+        The dataset or datasets to process, as read in by
+        `sentiment_reader`.
 
     phi : feature function
         Any function that takes an `nltk.Tree` instance as input
@@ -230,45 +198,37 @@ def experiment(
         as its values and returns a fitted model with a `predict`
         function that operates on feature matrices.
 
-    train_reader : SST iterator (default: `train_reader`)
-        Iterator for training data.
-
-    assess_reader : iterator or None (default: None)
-        If None, then the data from `train_reader` are split into
+    assess_dataframes : pd.DataFrame, list of pd.DataFrame or None
+        If None, then the df from `train_dataframes` is split into
         a random train/test split, with the the train percentage
         determined by `train_size`. If not None, then this should
-        be an iterator for assessment data (e.g., `dev_reader`).
+        be a dataset or datasets to process, as read in by
+        `sentiment_reader`. Each such dataset will be read and
+        used in a separate evaluation.
 
     train_size : float (default: 0.7)
         If `assess_reader` is None, then this is the percentage of
         `train_reader` devoted to training. If `assess_reader` is
         not None, then this value is ignored.
 
-    class_func : function on the SST labels
-        Any function like `binary_class_func` or `ternary_class_func`.
-        This modifies the SST labels based on the experimental
-        design. If `class_func` returns None for a label, then that
-        item is ignored.
-
     score_metric : function name (default: `utils.safe_macro_f1`)
         This should be an `sklearn.metrics` scoring function. The
         default is weighted average F1 (macro-averaged F1). For
         comparison with the SST literature, `accuracy_score` might
-        be used instead. For micro-averaged F1, use
-          (lambda y, y_pred : f1_score(y, y_pred, average='micro', pos_label=None))
-        For other metrics that can be used here, see
+        be used instead. For other metrics that can be used here,
         see http://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics
 
     vectorize : bool
-       Whether to use a DictVectorizer. Set this to False for
-       deep learning models that process their own input.
+        Whether to use a DictVectorizer. Set this to False for
+        deep learning models that process their own input.
 
     verbose : bool (default: True)
         Whether to print out the model assessment to standard output.
         Set to False for statistical testing via repeated runs.
 
     random_state : int or None
-        Optionally set the random seed for consistent sampling.
+        Optionally set the random seed for consistent sampling
+        where random train/test splits are being created.
 
     Prints
     -------
@@ -284,63 +244,84 @@ def experiment(
         'model': trained model
         'phi': the function used for featurization
         'train_dataset': a dataset as returned by `build_dataset`
-        'assess_dataset': a dataset as returned by `build_dataset`
-        'predictions': predictions on the assessment data
+        'assess_datasets': list of datasets as returned by `build_dataset`
+        'predictions': list of lists of predictions on the assessment datasets
         'metric': `score_func.__name__`
-        'score': the `score_func` score on the assessment data
+        'score': the `score_func` score on each of the assessment datasets
 
     """
     # Train dataset:
     train = build_dataset(
-        sst_home,
-        train_reader,
+        train_dataframes,
         phi,
-        class_func,
         vectorizer=None,
         vectorize=vectorize)
+
     # Manage the assessment set-up:
     X_train = train['X']
     y_train = train['y']
     raw_train = train['raw_examples']
-    if assess_reader == None:
+    assess_datasets = []
+    if assess_dataframes is None:
         X_train, X_assess, y_train, y_assess, raw_train, raw_assess = train_test_split(
             X_train, y_train, raw_train,
-            train_size=train_size, test_size=None, random_state=random_state)
-        assess = {
+            train_size=train_size,
+            test_size=None,
+            random_state=random_state)
+        assess_datasets.append({
             'X': X_assess,
             'y': y_assess,
             'vectorizer': train['vectorizer'],
-            'raw_examples': raw_assess}
+            'raw_examples': raw_assess})
     else:
-        # Assessment dataset using the training vectorizer:
-        assess = build_dataset(
-            sst_home,
-            assess_reader,
-            phi,
-            class_func,
-            vectorizer=train['vectorizer'],
-            vectorize=vectorize)
-        X_assess, y_assess = assess['X'], assess['y']
+        if not isinstance(assess_dataframes, (tuple, list)):
+            assess_dataframes = [assess_dataframes]
+        for assess_df in assess_dataframes:
+            # Assessment dataset using the training vectorizer:
+            assess = build_dataset(
+                assess_df,
+                phi,
+                vectorizer=train['vectorizer'],
+                vectorize=vectorize)
+            assess_datasets.append(assess)
+
     # Train:
     mod = train_func(X_train, y_train)
-    # Predictions:
-    predictions = mod.predict(X_assess)
-    # Report:
-    if verbose:
-        print(classification_report(y_assess, predictions, digits=3))
-    # Return the overall score and experimental info:
+
+    # Predictions if we have labels:
+    predictions = []
+    scores = []
+    for dataset_num, assess in enumerate(assess_datasets, start=1):
+        preds = mod.predict(assess['X'])
+        if assess['y'] is None:
+            predictions.append(None)
+            scores.append(None)
+        else:
+            if verbose:
+                if len(assess_datasets) > 1:
+                    print("Assessment dataset {}".format(dataset_num))
+                print(classification_report(assess['y'], preds, digits=3))
+            predictions.append(preds)
+            scores.append(score_func(assess['y'], preds))
+    true_scores = [s for s in scores if s is not None]
+    if len(true_scores) > 1 and verbose:
+        mean_score = np.mean(true_scores)
+        print("Mean of macro-F1 scores: {0:.03f}".format(mean_score))
+
+
+    # Return the overall scores and other experimental info:
     return {
         'model': mod,
         'phi': phi,
         'train_dataset': train,
-        'assess_dataset': assess,
+        'assess_datasets': assess_datasets,
         'predictions': predictions,
         'metric': score_func.__name__,
-        'score': score_func(y_assess, predictions)}
+        'scores': scores}
 
 
 def compare_models(
-        sst_home,
+        dataframes,
         phi1,
         train_func1,
         phi2=None,
@@ -349,9 +330,7 @@ def compare_models(
         vectorize2=True,
         stats_test=scipy.stats.wilcoxon,
         trials=10,
-        reader=train_reader,
         train_size=0.7,
-        class_func=binary_class_func,
         score_func=utils.safe_macro_f1):
     """
     Wrapper for comparing models. The parameters are like those of
@@ -359,8 +338,9 @@ def compare_models(
 
     Parameters
     ----------
-    sst_home : str
-        Full path to the 'trees' directory for SST.
+    dataframes : pd.DataFrame or list of pd.DataFrame
+        The dataset or datasets to process, as read in by
+        `sentiment_reader`.
 
     phi1, phi2
         Just like `phi` for `experiment`. `phi1` defaults to
@@ -384,13 +364,7 @@ def compare_models(
         with `train_size` controlling the amount of training data.
 
     train_size : float
-        Percentage of data o use for training.
-
-    class_func : function on the SST labels
-        Any function like `binary_class_func` or `ternary_class_func`.
-        This modifies the SST labels based on the experimental
-        design. If `class_func` returns None for a label, then that
-        item is ignored.
+        Percentage of data to use for training.
 
     Prints
     ------
@@ -401,94 +375,60 @@ def compare_models(
     -------
     (np.array, np.array, float)
         The first two are the scores from each model (length `trials`),
-        and the third is the p-value returned by stats_test.
+        and the third is the p-value returned by `stats_test`.
 
     """
     if phi2 == None:
         phi2 = phi1
     if train_func2 == None:
         train_func2 = train_func1
-    experiments1 = [experiment(sst_home,
-        train_reader=reader,
+    experiments1 = [experiment(dataframes,
         phi=phi1,
         train_func=train_func1,
-        class_func=class_func,
         score_func=score_func,
         vectorize=vectorize1,
         verbose=False) for _ in range(trials)]
-    experiments2 = [experiment(sst_home,
-        train_reader=reader,
+    experiments2 = [experiment(dataframes,
         phi=phi2,
         train_func=train_func2,
-        class_func=class_func,
         score_func=score_func,
         vectorize=vectorize2,
         verbose=False) for _ in range(trials)]
-    scores1 = np.array([d['score'] for d in experiments1])
-    scores2 = np.array([d['score'] for d in experiments2])
+    scores1 = np.array([d['scores'][0] for d in experiments1])
+    scores2 = np.array([d['scores'][0] for d in experiments2])
     # stats_test returns (test_statistic, p-value). We keep just the p-value:
     pval = stats_test(scores1, scores2)[1]
     # Report:
-    print('Model 1 mean: %0.03f' % scores1.mean())
-    print('Model 2 mean: %0.03f' % scores2.mean())
-    print('p = %0.03f' % pval if pval >= 0.001 else 'p < 0.001')
+    print('Model 1 mean: {0:.03f}'.format(scores1.mean()))
+    print('Model 2 mean: {0:.03f}'.format(scores2.mean()))
+    print('p = {0:.03f}'.format(pval if pval >= 0.001 else 'p < 0.001'))
     # Return the scores for later analysis, and the p value:
-    return (scores1, scores2, pval)
+    return scores1, scores2, pval
 
 
-def build_rnn_dataset(sst_home, reader, class_func=binary_class_func):
+def build_rnn_dataset(dataframes, tokenizer=lambda s: s.split()):
     """
-    Given an SST reader, return the `class_func` version of the
-    dataset as  (X, y) training pair.
+    Given an SST reader, return the dataset as (X, y) training pairs.
 
     Parameters
     ----------
-    sst_home : str
-        Full path to the 'trees' directory for SST.
+    dataframes : pd.DataFrame or list of pd.DataFrame
+        The dataset or datasets to process, as read in by
+        `sentiment_reader`.
 
-    reader : train_reader or dev_reader
-
-    class_func : function on the SST labels
+    tokenizer : function from str to list of str
+        Defaults to a whitespace tokenizer.
 
     Returns
     -------
     X, y
-       Where X is a list of list of str, and y is the output label list.
+        Where X is a list of list of str, and y is the output label list.
 
     """
-    r = reader(sst_home, class_func=class_func)
-    data = [(tree.leaves(), label) for tree, label in r]
-    X, y = zip(*data)
-    return list(X), list(y)
-
-
-def build_tree_dataset(sst_home, reader, class_func=binary_class_func):
-    """
-    Given an SST reader, return the `class_func` version of the
-    dataset. The root node of each tree (`tree.label()`) is set to
-    the class for that tree. We also return the label vector for
-    assessment.
-
-    Parameters
-    ----------
-    sst_home : str
-        Full path to the 'trees' directory for SST.
-
-    reader : train_reader or dev_reader
-
-    class_func : function on the SST labels
-
-    Returns
-    -------
-    X, y
-        Where X is a list of `nltk.tree.Tree`, and y is the output
-        label list.
-
-    """
-    data = []
-    labels = []
-    for (tree, label) in reader(sst_home, class_func=class_func):
-        tree.set_label(label)
-        data.append(tree)
-        labels.append(label)
-    return data, labels
+    if isinstance(dataframes, (list, tuple)):
+        df = pd.concat(dataframes)
+    else:
+        df = dataframes
+    X = list(df.sentence.apply(tokenizer))
+    y = list(df.label.values)
+    return X, y

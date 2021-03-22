@@ -9,7 +9,7 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 
 __author__ = "Bill MacCartney and Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 Example = namedtuple('Example',

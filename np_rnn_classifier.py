@@ -4,7 +4,7 @@ from np_model_base import NNModelBase
 from utils import softmax, safe_macro_f1
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 class RNNClassifier(NNModelBase):

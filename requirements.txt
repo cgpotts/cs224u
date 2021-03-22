@@ -3,23 +3,28 @@
 # Only people working in their own virtual environments should install
 # them via this script.
 #
-# numpy>=1.15.0
-# scipy>=1.1.0
-# matplotlib>=3.0.0
-# scikit-learn>=0.20.0
-# nltk>=3.4.0
+# numpy>=1.19.0
+# scipy>=1.5.0
+# matplotlib>=3.3.0
+# scikit-learn>=0.23.0
+# nltk>=3.5.0
 # pytest>=4.0.0
 # jupyter>=1.0.0
-# pandas>=0.25.0
+# pandas>=1.1.2
 
-######################################################################
-# For NLTK, the data distibution needs to be downloaded separately:
-#
-# https://www.nltk.org/data.html
 
 ######################################################################
 # PyTorch is required. For installation instructions, see
 #
-# If you're using Anaconda, we suggest
+# https://pytorch.org/get-started/locally/
+#
+# For local usage, the followng should suffice
 #
 # conda install pytorch torchvision -c pytorch
+
+######################################################################
+# transformers
+#
+# The Hugging Face transformers library is required:
+#
+# transformers==4.3.3
