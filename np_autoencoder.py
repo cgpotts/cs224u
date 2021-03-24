@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.metrics import r2_score
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 class Autoencoder(NNModelBase):

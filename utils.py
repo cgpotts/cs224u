@@ -12,7 +12,7 @@ import sys
 import os
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 START_SYMBOL = "<s>"
@@ -177,8 +177,11 @@ def fit_classifier_with_hyperparameter_search(
     basemod : an sklearn model class instance
         This is the basic model-type we'll be optimizing.
 
-    cv : int
-        Number of cross-validation folds.
+    cv : int or an sklearn Splitter
+        Number of cross-validation folds, or the object used to define
+        the splits. For example, where there is a predefeined train/dev
+        split one wants to use, one can feed in a `PredefinedSplitter`
+        instance to use that split during cross-validation.
 
     param_grid : dict
         A dict whose keys name appropriate parameters for `basemod` and
@@ -203,9 +206,10 @@ def fit_classifier_with_hyperparameter_search(
         A trained model instance, the best model found.
 
     """
-    splitter = StratifiedShuffleSplit(n_splits=cv, test_size=0.20)
+    if isinstance(cv, int):
+        cv = StratifiedShuffleSplit(n_splits=cv, test_size=0.20)
     # Find the best model within param_grid:
-    crossvalidator = GridSearchCV(basemod, param_grid, cv=splitter, scoring=scoring)
+    crossvalidator = GridSearchCV(basemod, param_grid, cv=cv, scoring=scoring)
     crossvalidator.fit(X, y)
     # Report some information:
     if verbose:

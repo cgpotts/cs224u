@@ -2,6 +2,7 @@ import copy
 import itertools
 import nltk.translate.bleu_score
 import numpy as np
+from sklearn.metrics import accuracy_score
 import torch
 import torch.nn as nn
 import torch.utils.data
@@ -10,7 +11,7 @@ import utils
 from utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 class ColorDataset(torch.utils.data.Dataset):
@@ -230,7 +231,7 @@ class Decoder(nn.Module):
             embs = torch.nn.utils.rnn.pack_padded_sequence(
                 embs,
                 batch_first=True,
-                lengths=seq_lengths,
+                lengths=seq_lengths.cpu(),
                 enforce_sorted=False)
             # RNN forward:
             output, hidden = self.rnn(embs, hidden)
@@ -708,9 +709,9 @@ class ContextualColorDescriber(TorchModelBase):
         pred_index = orders[order_index][-1]
         return min_perp, pred_color, pred_index
 
-    def listener_accuracy(self, color_seqs, word_seqs, device=None):
+    def listener_predictions(self, color_seqs, word_seqs, device=None):
         """
-        Compute the "listener accuracy" of the model for each example.
+        Compute the listener predictions of the model for each example.
         For the ith example, this is defined as
 
         prediction = max_{c in C_i} P(word_seq[i] | c)
@@ -741,16 +742,30 @@ class ContextualColorDescriber(TorchModelBase):
 
         Returns
         -------
-        list of float
+        tuple of lists, the first member giving the gold target indices
+        and the second giving the predicted target indices.
 
         """
+        gold = []
+        predicted = []
         correct = 0
         for color_seq, word_seq in zip(color_seqs, word_seqs):
             target_index = len(color_seq) - 1
             min_perp, pred, pred_index = self.listener_predict_one(
                 color_seq, word_seq, device=device)
-            correct += int(target_index == pred_index)
-        return correct / len(color_seqs)
+            gold.append(target_index)
+            predicted.append(pred_index)
+        return gold, predicted
+
+    def listener_accuracy(self, color_seqs, word_seqs, device=None):
+        """
+        Returns the listener accuracy as calculated based on values
+        returns by `listener_predictions`.
+
+        """
+        gold, predicted = self.listener_predictions(
+            color_seqs, word_seqs, device=device)
+        return accuracy_score(gold, predicted)
 
     def score(self, color_seqs, word_seqs, device=None):
         """
@@ -779,7 +794,8 @@ class ContextualColorDescriber(TorchModelBase):
 
         Returns
         -------
-        float
+        tuple consisting of the bleu score (float) and the predictions
+        as a list of lists of tokens
 
         """
         # Ideally, we would have multiple references for each context,
@@ -793,7 +809,7 @@ class ContextualColorDescriber(TorchModelBase):
         bleu = nltk.translate.bleu_score.corpus_bleu(
             refs, preds, weights=(1, ))
 
-        return bleu
+        return bleu, preds
 
     def evaluate(self, color_seqs, word_seqs, device=None):
         """
@@ -818,12 +834,23 @@ class ContextualColorDescriber(TorchModelBase):
 
         Returns
         -------
-        dict, {"listener_accuracy": float, 'corpus_bleu': float}
+        dict, {
+            "listener_accuracy": float,
+            "corpus_bleu": float,
+            "target_index": list of int,
+            "predicted_index": list of int}
 
         """
-        acc = self.listener_accuracy(color_seqs, word_seqs, device=device)
-        bleu = self.corpus_bleu(color_seqs, word_seqs)
-        return {"listener_accuracy": acc, 'corpus_bleu': bleu}
+        gold, predicted = self.listener_predictions(
+            color_seqs, word_seqs, device=device)
+        acc = accuracy_score(gold, predicted)
+        bleu, pred_utt = self.corpus_bleu(color_seqs, word_seqs)
+        return {
+            "listener_accuracy": acc,
+            "corpus_bleu": bleu,
+            "target_index": gold,
+            "predicted_index": predicted,
+            "predicted_utterance": pred_utt}
 
 
 

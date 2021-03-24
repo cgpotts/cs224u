@@ -1,4 +1,3 @@
-import codecs
 from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,10 +7,12 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import scipy
 import scipy.spatial.distance
+from scipy.stats import spearmanr
+import torch
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 def euclidean(u, v):
@@ -267,3 +268,249 @@ def lsa(df, k=100):
     singvals = np.diag(singvals)
     trunc = np.dot(rowmat[:, 0:k], singvals[0:k, 0:k])
     return pd.DataFrame(trunc, index=df.index)
+
+
+def hf_represent(batch_ids, model, layer=-1):
+    """
+    Encode a batch of sequences of ids using a Hugging Face
+    Transformer-based model `model`. The model's `forward` method is
+    `output_hidden_states=True`, and we get the hidden states from
+    `layer`.
+
+
+    Parameters
+    ----------
+    batch_ids : iterable, shape (n_examples, n_tokens)
+        Sequences of indices into the model vocabulary.
+
+    model : Hugging Face transformer model
+
+    later : int
+        The layer to return. This will get all the hidden states at
+        this layer. `layer=0` gives the embedding, and `layer=-1`
+        gives the final output states.
+
+    Returns
+    -------
+    Tensor of shape `(n_examples, n_tokens, n_dimensions)`
+       where `n_dimensions` is the dimensionality of the
+       Transformer model
+
+    """
+    with torch.no_grad():
+        reps = model(batch_ids, output_hidden_states=True)
+        return reps.hidden_states[layer]
+
+
+def hf_encode(text, tokenizer, add_special_tokens=False):
+    """
+    Get the indices for the tokens in `text` according to `tokenizer`.
+    If no tokens can be obtained from `text`, then the tokenizer.unk_token`
+    is used as the only token.
+
+    Parameters
+    ----------
+    text: str
+
+    tokenizer: Hugging Face tokenizer
+
+    add_special_tokens : bool
+        A Hugging Face parameter to the tokenizer.
+
+    Returns
+    -------
+    torch.Tensor of shape `(1, m)`
+        A batch of 1 example of `m` tokens`, where `m` is determined
+        by `text` and the nature of `tokenizer`.
+
+    """
+    encoding = tokenizer.encode(
+        text,
+        add_special_tokens=add_special_tokens,
+        return_tensors='pt')
+    if encoding.shape[1] == 0:
+        text = tokenizer.unk_token
+        encoding = torch.tensor([[tokenizer.vocab[text]]])
+    return encoding
+
+
+def mean_pooling(hidden_states):
+    """
+    Get the mean along `axis=1` of a Tensor.
+
+    Parameters
+    ----------
+    hidden_states : torch.Tensor, shape `(k, m, n)`
+        Where `k` is the number of examples, `m` is the number of vectors
+        for each example, and `n` is dimensionality of each vector.
+
+    Returns
+    -------
+    torch.Tensor of dimension `(k, n)`.
+
+    """
+    _check_pooling_dimensionality(hidden_states)
+    return torch.mean(hidden_states, axis=1)
+
+
+def max_pooling(hidden_states):
+    """
+    Get the max values along `axis=1` of a Tensor.
+
+    Parameters
+    ----------
+    hidden_states : torch.Tensor, shape `(k, m, n)`
+        Where `k` is the number of examples, `m` is the number of vectors
+        for each example, and `n` is dimensionality of each vector.
+
+    Raises
+    ------
+    ValueError
+        If `hidden_states` does not have 3 dimensions.
+
+    Returns
+    -------
+    torch.Tensor of dimension `(k, n)`.
+
+    """
+    _check_pooling_dimensionality(hidden_states)
+    return torch.amax(hidden_states, axis=1)
+
+
+def min_pooling(hidden_states):
+    """
+    Get the min values along `axis=1` of a Tensor.
+
+    Parameters
+    ----------
+    hidden_states : torch.Tensor, shape `(k, m, n)`
+        Where `k` is the number of examples, `m` is the number of vectors
+        for each example, and `n` is dimensionality of each vector.
+
+    Raises
+    ------
+    ValueError
+        If `hidden_states` does not have 3 dimensions.
+
+    Returns
+    -------
+    torch.Tensor of dimension `(k, n)`.
+
+    """
+    _check_pooling_dimensionality(hidden_states)
+    return torch.amin(hidden_states, axis=1)
+
+
+def last_pooling(hidden_states):
+    """Get the final vector in second dimension (`axis=1`) of a Tensor.
+
+    Parameters
+    ----------
+    hidden_states : torch.Tensor, shape (b, m, n)
+       Where b is the number of examples, m is the number of vectors
+       for each example, and `n` is dimensionality of each vector.
+
+    Raises
+    ------
+    ValueError
+        If `hidden_states` does not have 3 dimensions.
+
+    Returns
+    -------
+    torch.Tensor of dimension `(k, n)`.
+
+    """
+    _check_pooling_dimensionality(hidden_states)
+    return hidden_states[:, -1]
+
+
+def _check_pooling_dimensionality(hidden_states):
+     if not len(hidden_states.shape) == 3:
+        raise ValueError(
+            "The input to the pooling function should have 3 dimensions: "
+            "it's a batch of k examples, where each example has m vectors, "
+            "each of dimensionality n. The function will pool the vectors "
+            "for each example, returning a Tensor of shape (k, n).")
+
+
+def create_subword_pooling_vsm(vocab, tokenizer, model, layer=1, pool_func=mean_pooling):
+    vocab_ids = [hf_encode(w, tokenizer) for w in vocab]
+    vocab_hiddens = [hf_represent(w, model, layer=layer) for w in vocab_ids]
+    pooled = [pool_func(h) for h in vocab_hiddens]
+    pooled = [p.squeeze().cpu().numpy() for p in pooled]
+    return pd.DataFrame(pooled, index=vocab)
+
+
+def word_relatedness_evaluation(dataset_df, vsm_df, distfunc=cosine):
+    """
+    Main function for word relatedness evaluations used in the assignment
+    and bakeoff. The function makes predictions for word pairs in
+    `dataset_df` using `vsm_df` and `distfunc`, and it returns a copy of
+    `dataset_df` with a new column `'prediction'`, as well as the Spearman
+    rank correlation between those preductions and the `'score'` column
+    in `dataset_df`.
+
+    The prediction for a word pair (w1, w1) is determined by applying
+    `distfunc` to the representations of w1 and w2 in `vsm_df`. We return
+    the negative of this value since it is assumed that `distfunc` is a
+    distance function and the scores in `dataset_df` are for positive
+    relatedness.
+
+    Parameters
+    ----------
+    dataset_df : pd.DataFrame
+        Required to have columns {'word1', 'word2', 'score'}.
+
+    vsm_df : pd.DataFrame
+        The vector space model used to get representations for the
+        words in `dataset_df`. The index must contain every word
+        represented in `dataset_df`.
+
+    distfunc : function mapping vector pairs to floats (default: `cosine`)
+        The measure of distance between vectors. Can also be `euclidean`,
+        `matching`, `jaccard`, as well as any other distance measure
+        between 1d vectors.
+
+    Raises
+    ------
+    ValueError
+        If any words in `dataset_df` are not in the index of `vsm_df`.
+
+    Returns
+    -------
+    tuple (dataset_df, rho)
+        Where `dataset_df` is a `pd.DataFrame` -- a copy of the
+        input with a new column `'prediction'` -- and `rho` is a float
+        giving the Spearman rank correlation between the `'score'`
+        and `prediction` values.
+
+    """
+    dataset_df = dataset_df.copy()
+
+    dataset_vocab = set(dataset_df.word1.values) | set(dataset_df.word2.values)
+
+    vsm_vocab = set(vsm_df.index)
+
+    missing = dataset_vocab - vsm_vocab
+
+    if missing:
+        raise ValueError(
+            "The following words are in the evaluation dataset but not in the "
+            "VSM. Please switch to a VSM with an appropriate vocabulary:\n"
+            "{}".format(sorted(missing)))
+
+    def predict(row):
+        x1 = vsm_df.loc[row.word1]
+        x2 = vsm_df.loc[row.word2]
+        return -distfunc(x1, x2)
+
+    dataset_df['prediction'] = dataset_df.apply(predict, axis=1)
+
+    rho = None
+
+    if 'score' in dataset_df.columns:
+        rho, pvalue = spearmanr(
+            dataset_df.score.values,
+            dataset_df.prediction.values)
+
+    return dataset_df, rho

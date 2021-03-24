@@ -16,7 +16,7 @@ from np_rnn_classifier import simple_example as np_simple_example
 from torch_rnn_classifier import TorchRNNClassifier, simple_example
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Fall 2020"
+__version__ = "CS224u, Stanford, Spring 2021"
 
 
 utils.fix_random_seeds()
