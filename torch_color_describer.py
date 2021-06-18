@@ -2,6 +2,7 @@ import copy
 import itertools
 import nltk.translate.bleu_score
 import numpy as np
+import random
 from sklearn.metrics import accuracy_score
 import torch
 import torch.nn as nn
@@ -687,6 +688,10 @@ class ContextualColorDescriber(TorchModelBase):
         indices = list(range(n_colors))
         orders = [list(x) for x in itertools.permutations(indices)]
 
+        # Shuffle the context order list so that the true context
+        # is in a random place in the list:
+        random.shuffle(orders)
+
         # All contexts as color sequences:
         contexts = [context[x] for x in orders]
 
@@ -868,8 +873,6 @@ def create_example_dataset(group_size=100, vec_dim=2):
     chosen only to be different from each other).
 
     """
-    import random
-
     groups = ((0.0, 0.2), (0.4, 0.6), (0.8, 1.0))
     vocab = ['<s>', '</s>', 'A', 'B', '$UNK']
     seqs = [
