@@ -285,7 +285,7 @@ def hf_represent(batch_ids, model, layer=-1):
 
     model : Hugging Face transformer model
 
-    later : int
+    layer : int
         The layer to return. This will get all the hidden states at
         this layer. `layer=0` gives the embedding, and `layer=-1`
         gives the final output states.
