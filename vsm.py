@@ -447,7 +447,7 @@ def word_relatedness_evaluation(dataset_df, vsm_df, distfunc=cosine):
     and bakeoff. The function makes predictions for word pairs in
     `dataset_df` using `vsm_df` and `distfunc`, and it returns a copy of
     `dataset_df` with a new column `'prediction'`, as well as the Spearman
-    rank correlation between those preductions and the `'score'` column
+    rank correlation between those predictions and the `'score'` column
     in `dataset_df`.
 
     The prediction for a word pair (w1, w1) is determined by applying
