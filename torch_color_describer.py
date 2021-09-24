@@ -196,7 +196,7 @@ class Decoder(nn.Module):
         word_seqs : torch.LongTensor
             This is a padded sequence, dimension (m, k), where k is
             the length of the longest sequence in the batch. The `forward`
-            method uses `self.get_embeddings` to mape these indices to their
+            method uses `self.get_embeddings` to map these indices to their
             embeddings.
 
         seq_lengths : torch.LongTensor
@@ -306,7 +306,7 @@ class EncoderDecoder(nn.Module):
     def forward(self, color_seqs, word_seqs, seq_lengths, hidden=None):
         """This is the core method for this module. It has a lot of
         arguments mainly to make it easy to create subclasses of this
-        class that do interesting things without requring modifications
+        class that do interesting things without requiring modifications
         to the `fit` method of `ContextualColorDescriber`.
 
         Parameters
@@ -573,7 +573,7 @@ class ContextualColorDescriber(TorchModelBase):
 
     def predict_proba(self, color_seqs, word_seqs, device=None):
         """
-        Calculate the predicted probabilties of the sequences in
+        Calculate the predicted probabilities of the sequences in
         `word_seqs` given the color contexts in `color_seqs`.
 
         Parameters
