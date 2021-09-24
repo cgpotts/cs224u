@@ -327,7 +327,7 @@ Here is a selection of recent CS224u papers that evolved into published work:
 
 * Benavidez, Susana and Andy Lapastora. 2019. Improving hate speech classification on Twitter. _Proceedings of LatinX in AI Research_. Vancouver.
 
-* Chen, Xiaoyu and Rohan Badlani. 2020. [Relation extraction with contextualized relation embedding (CRE)](https://www.aclweb.org/anthology/2020.deelio-1.2). In _Proceedings of Deep Learning Inside Out (DeeLIO): The First Workshop on Knowledge Extraction and Integration for Deep Learning Architectures_, 11–19. Association for Computational Linguistics. 
+* Chen, Xiaoyu and Rohan Badlani. 2020. [Relation extraction with contextualized relation embedding (CRE)](https://www.aclweb.org/anthology/2020.deelio-1.2). In _Proceedings of Deep Learning Inside Out (DeeLIO): The First Workshop on Knowledge Extraction and Integration for Deep Learning Architectures_, 11–19. Association for Computational Linguistics.
 
 * Kolchinski, Y. Alex and Christopher Potts. 2018. [Representing social media users for sarcasm detection](https://www.aclweb.org/anthology/D18-1140/). In _Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing_, 1115-1121. Brussels, Belgium: Association for Computational Linguistics.
 
@@ -335,7 +335,9 @@ Here is a selection of recent CS224u papers that evolved into published work:
 
 * Li, Lucy and Julia Mendelsohn. 2019. [Using sentiment induction to understand variation in gendered online communities](https://www.aclweb.org/anthology/W19-0116/). In _Proceedings of the Society for Computation in Linguistics (SCiL) 2019_, 156–166. New York: Association for Computational Linguistics.
 
-* Zhengxuan Wu, Desmond C. Ong. 2020. [Pragmatically informative color generation by grounding contextual modifiers](https://scholarworks.umass.edu/scil/vol4/iss1/54/). _Proceedings of the Society for Computation in Linguistics_, Vol. 4 , Article 54. 
+* Li, Yutong. 2021. [Maps search misspelling detection leveraging domain-augmented contextual representations](https://arxiv.org/abs/2108.06842). _WIT: Workshop On Deriving Insights From User-Generated Text @KDD2021_.
+
+* Zhengxuan Wu, Desmond C. Ong. 2020. [Pragmatically informative color generation by grounding contextual modifiers](https://scholarworks.umass.edu/scil/vol4/iss1/54/). _Proceedings of the Society for Computation in Linguistics_, Vol. 4 , Article 54.
 
 I'm being careful not to call these "published CS224u papers" because all of them went through substantial revisions before they were accepted. Some got shorter while retaining their original scope, whereas others grew in scope and got much longer.
 
