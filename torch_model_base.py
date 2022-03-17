@@ -4,6 +4,7 @@ import pickle
 from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
+import random
 import utils
 
 __author__ = "Christopher Potts"
@@ -26,6 +27,7 @@ class TorchModelBase:
             tol=1e-5,
             device=None,
             display_progress=True,
+            shuffle_train=True,
             **optimizer_kwargs):
         """
         Base class for all the PyTorch-based models.
@@ -141,6 +143,7 @@ class TorchModelBase:
         self.validation_fraction = validation_fraction
         self.n_iter_no_change = n_iter_no_change
         self.tol = tol
+        self.shuffle_train = shuffle_train
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(device)
@@ -324,7 +327,7 @@ class TorchModelBase:
 
         # Dataset:
         dataset = self.build_dataset(*args)
-        dataloader = self._build_dataloader(dataset, shuffle=True)
+        dataloader = self._build_dataloader(dataset, shuffle=self.shuffle_train)
 
         # Graph:
         if not self.warm_start or not hasattr(self, "model"):
@@ -648,3 +651,33 @@ class TorchModelBase:
         param_str = ["{}={}".format(a, getattr(self, a)) for a in self.params]
         param_str = ",\n\t".join(param_str)
         return "{}(\n\t{})".format(self.__class__.__name__, param_str)
+
+    def _get_set(self,get, set = None):
+        if set is None:
+            def gethook(model,input,output):
+                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"]]
+            set_handler = self.layers[get["layer"]].register_forward_hook(gethook)
+            return [set_handler]
+        elif set["layer"] != get["layer"]:
+            def sethook(model,input,output):
+                output[:,set["start"]: set["end"]] = set["intervention"]
+            set_handler = self.layers[set["layer"]].register_forward_hook(sethook)
+            def gethook(model,input,output):
+                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
+            get_handler = self.layers[get["layer"]].register_forward_hook(gethook)
+            return [set_handler, get_handler]
+        else:
+            def bothhook(model, input, output):
+                output[:,set["start"]: set["end"]] = set["intervention"]
+                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
+            both_handler = self.layers[set["layer"]].register_forward_hook(bothhook)
+            return [both_handler]
+
+    def retrieve_activations(self, input, get, set):
+        input = input.type(torch.FloatTensor).to(self.device)
+        self.activation = dict()
+        handlers = self._get_set(get, set)
+        logits = self.model(input)
+        for handler in handlers:
+            handler.remove()
+        return self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']

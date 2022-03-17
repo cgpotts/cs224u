@@ -8,11 +8,20 @@ import utils
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2021"
 
+class ActivationLayer(torch.nn.Module):
+    def __init__(self, input_dim, output_dim, device, hidden_activation):
+        super().__init__()
+        self.linear = nn.Linear(input_dim, output_dim, device=device)
+        self.activation = hidden_activation
+
+    def forward(self,x):
+        return self.activation(self.linear(x))
 
 class TorchShallowNeuralClassifier(TorchModelBase):
     def __init__(self,
             hidden_dim=50,
             hidden_activation=nn.Tanh(),
+            num_layers=1,
             **base_kwargs):
         """
         A model
@@ -44,6 +53,7 @@ class TorchShallowNeuralClassifier(TorchModelBase):
             using `sklearn.model_selection` tools.
 
         """
+        self.num_layers = num_layers
         self.hidden_dim = hidden_dim
         self.hidden_activation = hidden_activation
         super().__init__(**base_kwargs)
@@ -59,10 +69,11 @@ class TorchShallowNeuralClassifier(TorchModelBase):
         nn.Module
 
         """
-        return nn.Sequential(
-            nn.Linear(self.input_dim, self.hidden_dim),
-            self.hidden_activation,
-            nn.Linear(self.hidden_dim, self.n_classes_))
+        self.layers = [ActivationLayer(self.input_dim, self.hidden_dim, self.device, self.hidden_activation)]
+        for _ in range(self.num_layers-1):
+            self.layers += [ActivationLayer(self.hidden_dim, self.hidden_dim, self.device, self.hidden_activation)]
+        self.layers.append(nn.Linear(self.hidden_dim, self.n_classes_, device=self.device))
+        return nn.Sequential(*self.layers)
 
     def build_dataset(self, X, y=None):
         """
