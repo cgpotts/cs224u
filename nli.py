@@ -10,118 +10,7 @@ from sklearn.model_selection import train_test_split
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
-
-
-CONDITION_NAMES = [
-    'edge_disjoint',
-    'word_disjoint',
-    'word_disjoint_balanced']
-
-
-def word_entail_featurize(data, vector_func, vector_combo_func):
-    X = []
-    y = []
-    for (w1, w2), label in data:
-        rep = vector_combo_func(vector_func(w1), vector_func(w2))
-        X.append(rep)
-        y.append(label)
-    return X, y
-
-
-def wordentail_experiment(
-        train_data,
-        assess_data,
-        vector_func,
-        vector_combo_func,
-        model,
-        featurize_func=word_entail_featurize,
-):
-    """Train and evaluation code for the word-level entailment task.
-
-    Parameters
-    ----------
-    train_data : list
-    assess_data : list
-    vector_func : function
-        Any function mapping words in the vocab for `wordentail_data`
-        to vector representations
-    vector_combo_func : function
-        Any function for combining two vectors into a new vector
-        of fixed dimensionality.
-    model : class with `fit` and `predict` methods
-    featurize_func : function to return feature (X,y) with intended tensor
-
-    Prints
-    ------
-    To standard ouput
-        An sklearn classification report for all three splits.
-
-    Returns
-    -------
-    dict with structure
-
-        'model': the trained model
-        'train_condition': train_condition
-        'assess_condition': assess_condition
-        'macro-F1': score for 'assess_condition'
-        'vector_func': vector_func
-        'vector_combo_func': vector_combo_func
-
-    We pass 'vector_func' and 'vector_combo_func' through to ensure alignment
-    between these experiments and the bake-off evaluation.
-
-    """
-    X_train, y_train = featurize_func(
-        train_data,  vector_func, vector_combo_func)
-    X_dev, y_dev = featurize_func(
-        assess_data, vector_func, vector_combo_func)
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_dev)
-    # Report:
-    print(classification_report(y_dev, predictions, digits=3))
-    macrof1 = utils.safe_macro_f1(y_dev, predictions)
-    return {
-        'model': model,
-        'train_data': train_data,
-        'assess_data': assess_data,
-        'macro-F1': macrof1,
-        'vector_func': vector_func,
-        'vector_combo_func': vector_combo_func}
-
-
-def bake_off_evaluation(experiment_results, test_data_filename=None, featurize_func=word_entail_featurize):
-    """Function for evaluating a trained model on the bake-off test set.
-
-    Parameters
-    ----------
-    experiment_results : dict
-        This should be the return value of `experiment` with at least
-        keys 'model', 'vector_func', and 'vector_combo_func'.
-    test_data_filename : str or None
-        Full path to the test data. If `None`, then we assume the file is
-        'data/nlidata/nli_wordentail_bakeoff_data-test.json'.
-    featurize_func : function to return feature (X,y) with intended tensor
-
-    Prints
-    ------
-    To standard ouput
-        An sklearn classification report for all three splits.
-
-    """
-    if test_data_filename is None:
-        test_data_filename = os.path.join(
-            'data', 'nlidata', 'nli_wordentail_bakeoff_data-test.json')
-    with open(test_data_filename, encoding='utf8') as f:
-        wordentail_data = json.load(f)
-    X_test, y_test = featurize_func(
-        wordentail_data['test'],
-        vector_func=experiment_results['vector_func'],
-        vector_combo_func=experiment_results['vector_combo_func'])
-    predictions = experiment_results['model'].predict(X_test)
-    # Report:
-    print(classification_report(y_test, predictions, digits=3))
-
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 def str2tree(s, binarize=False):
@@ -163,14 +52,22 @@ class NLIExample(object):
     Parameters
     ----------
     d : dict
-        Derived from a JSON line in one of the corpus files. Each
-        key-value pair becomes an attribute-value pair for the
-        class. The tree strings are converted to `nltk.tree.Tree`
-        instances using `str2tree`.
+        Derived from a dataset example. Each key-value pair becomes
+        an attribute-value pair for the class. The tree strings are
+        converted to `nltk.tree.Tree` instances using `str2tree`.
 
     """
+
+    label_map = {
+        0: 'entailment',
+        1: 'neutral',
+        2: 'contradiction',
+        -1: '-'}
+
     def __init__(self, d):
         for k, v in d.items():
+            if k == 'label':
+                v = self.label_map[v]
             if '_binary_parse' in k:
                 v = str2tree(v, binarize=True)
             elif '_parse' in k:
@@ -190,8 +87,11 @@ class NLIReader(object):
 
     Parameters
     ----------
-    src_filename : str
-        Full path to the file to process.
+    splits : DatasetDict or arg list of DatasetDict
+        The NLI dataset split(s) as read by the Hugging Face function
+        `datasets.load_dataset` with the split key filled in
+        (e.g., "train", "validation", "test"). All the splits must have
+        the same fields.
     filter_unlabeled : bool
         Whether to leave out cases without a gold label.
     samp_percentage : float or None
@@ -199,22 +99,29 @@ class NLIReader(object):
         of lines.
     random_state : int or None
         Optionally set the random seed for consistent sampling.
-    gold_label_attr_name : str
-        To accommodate different field names across NLI datasets.
-        The default is 'gold_label', as in SNLI and MultiNLI.
+
+    Raises
+    ------
+    ValueError, if the splits don't have all the same fields
 
     """
     def __init__(self,
-            src_filename,
+            *splits,
             filter_unlabeled=True,
             samp_percentage=None,
             random_state=None,
             gold_label_attr_name='gold_label'):
-        self.src_filename = src_filename
+        self.splits = splits
+
+        fields = set(self.splits[0].features.keys())
+        for split in self.splits[1: ]:
+            if set(split.features.keys()) != fields:
+                raise ValueError(
+                    "All provided splits must have the same keys.")
+
         self.filter_unlabeled = filter_unlabeled
         self.samp_percentage = samp_percentage
         self.random_state = random_state
-        self.gold_label_attr_name = gold_label_attr_name
 
     def read(self):
         """Primary interface.
@@ -224,18 +131,15 @@ class NLIReader(object):
         `NLIExample`
 
         """
-        if isinstance(self.src_filename, str):
-            src_filenames = [self.src_filename]
-        else:
-            src_filenames = self.src_filename
         random.seed(self.random_state)
-        for src_filename in src_filenames:
-            for line in open(src_filename, encoding='utf8'):
+        for split in self.splits:
+            names = list(split.features.keys())
+            fields = zip(*[split[k] for k in names])
+            for ex in fields:
                 if (not self.samp_percentage) or random.random() <= self.samp_percentage:
-                    d = json.loads(line)
+                    d = dict(zip(names, ex))
                     ex = NLIExample(d)
-                    gold_label = getattr(ex, self.gold_label_attr_name)
-                    if (not self.filter_unlabeled) or gold_label != '-':
+                    if (not self.filter_unlabeled) or ex.label != '-':
                         yield ex
 
     def __repr__(self):
@@ -244,71 +148,7 @@ class NLIReader(object):
 
 
 
-class SNLITrainReader(NLIReader):
-    def __init__(self, snli_home, **kwargs):
-        src_filename = os.path.join(
-            snli_home, "snli_1.0_train.jsonl")
-        super(SNLITrainReader, self).__init__(src_filename, **kwargs)
-
-
-class SNLIDevReader(NLIReader):
-    def __init__(self, snli_home, **kwargs):
-        src_filename = os.path.join(
-            snli_home, "snli_1.0_dev.jsonl")
-        super(SNLIDevReader, self).__init__(src_filename, **kwargs)
-
-
-class MultiNLITrainReader(NLIReader):
-    def __init__(self, snli_home, **kwargs):
-        src_filename = os.path.join(
-            snli_home, "multinli_1.0_train.jsonl")
-        super(MultiNLITrainReader, self).__init__(src_filename, **kwargs)
-
-
-class MultiNLIMatchedDevReader(NLIReader):
-    def __init__(self, multinli_home, **kwargs):
-        src_filename = os.path.join(
-            multinli_home, "multinli_1.0_dev_matched.jsonl")
-        super(MultiNLIMatchedDevReader, self).__init__(src_filename, **kwargs)
-
-
-class MultiNLIMismatchedDevReader(NLIReader):
-    def __init__(self, multinli_home, **kwargs):
-        src_filename = os.path.join(
-            multinli_home, "multinli_1.0_dev_mismatched.jsonl")
-        super(MultiNLIMismatchedDevReader, self).__init__(src_filename, **kwargs)
-
-
-class ANLIReader(NLIReader):
-    def __init__(self, anli_home, anli_type, rounds=(1,2,3), **kwargs):
-        if not all(int(i) in {1,2,3} for i in rounds):
-            raise ValueError("Available ANLI rounds are {1,2,3}.")
-        self.rounds = rounds
-        self.src_filename = []
-        for r in self.rounds:
-            self.src_filename.append(
-                os.path.join(
-                    anli_home,
-                    "R{}".format(r),
-                    "{}.jsonl".format(anli_type)))
-        super().__init__(
-            self.src_filename,
-            gold_label_attr_name='label',
-            **kwargs)
-
-
-class ANLITrainReader(ANLIReader):
-    def __init__(self, anli_home, **kwargs):
-        super().__init__(anli_home, 'train', **kwargs)
-
-
-class ANLIDevReader(ANLIReader):
-    def __init__(self, anli_home, **kwargs):
-        super().__init__(anli_home, 'dev', **kwargs)
-
-
-
-def read_annotated_subset(src_filename, multinli_home):
+def read_annotated_subset(src_filename, mnli_dev_split):
     """Given an annotation filename from MultiNLI's separate
     annotation distribution, associate it with the appropriate
     dev examples.
@@ -317,8 +157,10 @@ def read_annotated_subset(src_filename, multinli_home):
     ----------
     src_filename : str
         Full pat to the annotation file.
-    multinli_home : str
-        Full path to the MultiNLI corpus directory.
+    mnli_dev_split : str
+        The MultiNLI dataset split as read by the Hugging Face
+        function `datasets.load_dataset` with the split key as
+        either "validation_matched" or "validation_mismatched".
 
     Returns
     -------
@@ -328,10 +170,7 @@ def read_annotated_subset(src_filename, multinli_home):
         'example' gives an `NLIExample` instance.
 
     """
-    if 'mismatched' in src_filename:
-        reader = MultiNLIMismatchedDevReader(multinli_home)
-    else:
-        reader = MultiNLIMatchedDevReader(multinli_home)
+    reader = NLIReader(mnli_dev_split)
     id2ex = {ex.pairID: ex for ex in reader.read()}
     data = {}
     with open(src_filename, encoding='utf8') as f:
@@ -351,7 +190,8 @@ def build_dataset(reader, phi, vectorizer=None, vectorize=True):
     ----------
     reader : `NLIReader` instance or one of its subclasses.
     phi : feature function
-        Maps trees to count dictionaries.
+        Any function that maps `NLIExample` instances to
+        bool/int/float-valued dicts.
     assess_reader : `NLIReader` or one of its subclasses.
         If None, then random train/test splits are performed.
     vectorizer : `sklearn.feature_extraction.DictVectorizer`
@@ -379,13 +219,11 @@ def build_dataset(reader, phi, vectorizer=None, vectorize=True):
     labels = []
     raw_examples = []
     for ex in reader.read():
-        t1 = ex.sentence1_parse
-        t2 = ex.sentence2_parse
-        label = ex.gold_label
-        d = phi(t1, t2)
+        label = ex.label
+        d = phi(ex)
         feats.append(d)
         labels.append(label)
-        raw_examples.append((t1, t2))
+        raw_examples.append((ex.__dict__))
     if vectorize:
         if vectorizer == None:
             vectorizer = DictVectorizer(sparse=True)
@@ -416,11 +254,11 @@ def experiment(
 
     Parameters
     ----------
-    train_reader : `NLIReader` (or one of its subclasses
+    train_reader : `NLIReader`
         Iterator for training data.
     phi : feature function
-        Any function that takes an `nltk.Tree` instance as input
-        and returns a bool/int/float-valued dict as output.
+        Any function that maps `NLIExample` instances to
+        bool/int/float-valued dicts.
     train_func : model wrapper (default: `fit_maxent_classifier`)
         Any function that takes a feature matrix and a label list
         as its values and returns a fitted model with a `predict`

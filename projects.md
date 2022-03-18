@@ -1,7 +1,7 @@
 # Final projects
 
 Christopher Potts<br />
-CS224u, Stanford, Spring 2021
+CS224u, Stanford, Spring 2022
 
 ## Contents
 

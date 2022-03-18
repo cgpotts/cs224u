@@ -10,7 +10,7 @@ from torch_glove import TorchGloVe, simple_example
 from np_glove import GloVe
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 utils.fix_random_seeds()

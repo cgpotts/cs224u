@@ -7,7 +7,7 @@ import torch.utils.data
 from torch_model_base import TorchModelBase
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 class TorchAutoencoder(TorchModelBase):

@@ -7,7 +7,7 @@ from torch_model_base import TorchModelBase
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 class TorchRNNDataset(torch.utils.data.Dataset):
@@ -73,7 +73,7 @@ class TorchRNNDataset(torch.utils.data.Dataset):
             # padding if creating a tensor is not possible:
             try:
                 y = torch.tensor(y)
-            except ValueError:
+            except (ValueError, TypeError):
                 y = torch.nn.utils.rnn.pad_sequence(y, batch_first=True)
             return X, seq_lengths, y
         else:

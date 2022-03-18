@@ -6,7 +6,7 @@ from torch_model_base import TorchModelBase
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 class TorchShallowNeuralClassifier(TorchModelBase):
