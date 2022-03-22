@@ -31,3 +31,4 @@ torchvision==0.11.1
 transformers==4.17.0
 datasets==2.0.0
 spacy
+gitpython

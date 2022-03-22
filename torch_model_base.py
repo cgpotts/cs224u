@@ -326,19 +326,10 @@ class TorchModelBase:
         dataset = self.build_dataset(*args)
         dataloader = self._build_dataloader(dataset, shuffle=True)
 
-        # Graph:
-        if not self.warm_start or not hasattr(self, "model"):
-            self.model = self.build_graph()
-            # This device move has to happen before the optimizer is built:
-            # https://pytorch.org/docs/master/optim.html#constructing-it
-            self.model.to(self.device)
-            self.optimizer = self.build_optimizer()
-            self.errors = []
-            self.validation_scores = []
-            self.no_improvement_count = 0
-            self.best_error = np.inf
-            self.best_score = -np.inf
-            self.best_parameters = None
+        # Set up parameters needed to use the model. This is a separate
+        # function to support using pretrained models for prediction,
+        # where it might not be desirable to call `fit`.
+        self.initialize()
 
         # Make sure the model is where we want it:
         self.model.to(self.device)
@@ -409,6 +400,26 @@ class TorchModelBase:
             self.model.load_state_dict(self.best_parameters)
 
         return self
+
+    def initialize(self):
+        """
+        Method called by `fit` to establish core attributes. To use a
+        pretrained model without calling `fit`, one can use this
+        method.
+
+        """
+        if not self.warm_start or not hasattr(self, "model"):
+            self.model = self.build_graph()
+            # This device move has to happen before the optimizer is built:
+            # https://pytorch.org/docs/master/optim.html#constructing-it
+            self.model.to(self.device)
+            self.optimizer = self.build_optimizer()
+            self.errors = []
+            self.validation_scores = []
+            self.no_improvement_count = 0
+            self.best_error = np.inf
+            self.best_score = -np.inf
+            self.best_parameters = None
 
     @staticmethod
     def _build_validation_split(*args, validation_fraction=0.2):
