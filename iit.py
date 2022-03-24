@@ -4,10 +4,12 @@ import torch
 from utils import randvec
 
 class IITModel(torch.nn.Module):
-    def __init__(self, model):
+    def __init__(self, model, layers, id_to_coords,device):
         super().__init__()
         self.model = model
-        self.layers = model.layers
+        self.layers = layers
+        self.id_to_coords = id_to_coords
+        self.device = device
 
     def no_IIT_forward(self, X):
         return self.model(X)

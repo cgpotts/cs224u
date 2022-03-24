@@ -11,7 +11,7 @@ __version__ = "CS224u, Stanford, Spring 2021"
 
 
 class TorchShallowNeuralClassifierIIT(TorchShallowNeuralClassifier):
-    def __init__(self,id_to_coords, **base_kwargs):
+    def __init__(self,id_to_coords = None, **base_kwargs):
         super().__init__(**base_kwargs)
         loss_function= nn.CrossEntropyLoss(reduction="mean")
         self.loss = lambda preds, labels: loss_function(preds[0],labels[:,0]) + loss_function(preds[1],labels[:,1])
@@ -20,7 +20,7 @@ class TorchShallowNeuralClassifierIIT(TorchShallowNeuralClassifier):
 
     def build_graph(self):
         model = super().build_graph()
-        IITmodel = IITModel(model)
+        IITmodel = IITModel(model, self.layers, self.id_to_coords, self.device)
         return IITmodel
 
     def batched_indices(self, max_len):
@@ -85,6 +85,8 @@ class TorchShallowNeuralClassifierIIT(TorchShallowNeuralClassifier):
     def prep_input(self, base, source, coord_ids):
         bigX = torch.stack((base,source, coord_ids.unsqueeze(1).expand(-1, base.shape[1])), dim=1)
         return bigX
+
+
 
 if __name__ == '__main__':
     simple_example()
