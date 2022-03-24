@@ -651,33 +651,3 @@ class TorchModelBase:
         param_str = ["{}={}".format(a, getattr(self, a)) for a in self.params]
         param_str = ",\n\t".join(param_str)
         return "{}(\n\t{})".format(self.__class__.__name__, param_str)
-
-    def _get_set(self,get, set = None):
-        if set is None:
-            def gethook(model,input,output):
-                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"]]
-            set_handler = self.layers[get["layer"]].register_forward_hook(gethook)
-            return [set_handler]
-        elif set["layer"] != get["layer"]:
-            def sethook(model,input,output):
-                output[:,set["start"]: set["end"]] = set["intervention"]
-            set_handler = self.layers[set["layer"]].register_forward_hook(sethook)
-            def gethook(model,input,output):
-                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
-            get_handler = self.layers[get["layer"]].register_forward_hook(gethook)
-            return [set_handler, get_handler]
-        else:
-            def bothhook(model, input, output):
-                output[:,set["start"]: set["end"]] = set["intervention"]
-                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
-            both_handler = self.layers[set["layer"]].register_forward_hook(bothhook)
-            return [both_handler]
-
-    def retrieve_activations(self, input, get, set):
-        input = input.type(torch.FloatTensor).to(self.device)
-        self.activation = dict()
-        handlers = self._get_set(get, set)
-        logits = self.model(input)
-        for handler in handlers:
-            handler.remove()
-        return self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']

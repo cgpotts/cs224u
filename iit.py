@@ -3,6 +3,66 @@ import random
 import torch
 from utils import randvec
 
+class IITModel(torch.nn.Module):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+        self.layers = model.layers
+
+    def no_IIT_forward(self, X):
+        return self.model(X)
+
+    def forward(self, X):
+        base, source, coord_ids = X[:,0,:].squeeze(1), X[:,1,:].squeeze(1),X[:,2,:].squeeze(1)
+        get = self.id_to_coords[int(coord_ids.flatten()[0])]
+        base = base.type(torch.FloatTensor).to(self.device)
+        source = source.type(torch.FloatTensor).to(self.device)
+        self.activation = dict()
+        handlers = self._get_set(get,None)
+        source_logits = self.no_IIT_forward(source)
+        for handler in handlers:
+            handler.remove()
+
+        base_logits = self.no_IIT_forward(base)
+        set = {k:get[k] for k in get}
+        set["intervention"] = self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
+        handlers = self._get_set(get, set)
+        counterfactual_logits = self.no_IIT_forward(base)
+        for handler in handlers:
+            handler.remove()
+
+        return counterfactual_logits, base_logits
+
+    def _get_set(self,get, set = None):
+        if set is None:
+            def gethook(model,input,output):
+                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"]]
+            set_handler = self.layers[get["layer"]].register_forward_hook(gethook)
+            return [set_handler]
+        elif set["layer"] != get["layer"]:
+            def sethook(model,input,output):
+                output[:,set["start"]: set["end"]] = set["intervention"]
+            set_handler = self.layers[set["layer"]].register_forward_hook(sethook)
+            def gethook(model,input,output):
+                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
+            get_handler = self.layers[get["layer"]].register_forward_hook(gethook)
+            return [set_handler, get_handler]
+        else:
+            def bothhook(model, input, output):
+                output[:,set["start"]: set["end"]] = set["intervention"]
+                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
+            both_handler = self.layers[set["layer"]].register_forward_hook(bothhook)
+            return [both_handler]
+
+    def retrieve_activations(self, input, get, set):
+        input = input.type(torch.FloatTensor).to(self.device)
+        self.activation = dict()
+        handlers = self._get_set(get, set)
+        logits = self.model(input)
+        for handler in handlers:
+            handler.remove()
+        return self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
+
 
 def get_IIT_equality_dataset(variable, embed_dim, size):
         class_size = size/2

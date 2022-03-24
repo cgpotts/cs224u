@@ -4,9 +4,11 @@ import torch.nn as nn
 import torch.utils.data
 from torch_shallow_neural_classifier import TorchShallowNeuralClassifier
 import utils
+from iit import IITModel
 
 __author__ = "Christopher Potts"
 __version__ = "CS224u, Stanford, Spring 2021"
+
 
 class TorchShallowNeuralClassifierIIT(TorchShallowNeuralClassifier):
     def __init__(self,id_to_coords, **base_kwargs):
@@ -18,9 +20,8 @@ class TorchShallowNeuralClassifierIIT(TorchShallowNeuralClassifier):
 
     def build_graph(self):
         model = super().build_graph()
-        model.no_IIT_forward = model.forward
-        model.forward = self.IIT_forward
-        return model
+        IITmodel = IITModel(model)
+        return IITmodel
 
     def batched_indices(self, max_len):
         batch_indices = [ x for x in range((max_len // self.batch_size))]
@@ -84,27 +85,6 @@ class TorchShallowNeuralClassifierIIT(TorchShallowNeuralClassifier):
     def prep_input(self, base, source, coord_ids):
         bigX = torch.stack((base,source, coord_ids.unsqueeze(1).expand(-1, base.shape[1])), dim=1)
         return bigX
-
-    def IIT_forward(self, X):
-        base, source, coord_ids = X[:,0,:].squeeze(1), X[:,1,:].squeeze(1),X[:,2,:].squeeze(1)
-        get = self.id_to_coords[int(coord_ids.flatten()[0])]
-        base = base.type(torch.FloatTensor).to(self.device)
-        source = source.type(torch.FloatTensor).to(self.device)
-        self.activation = dict()
-        handlers = self._get_set(get,None)
-        source_logits = self.model.no_IIT_forward(source)
-        for handler in handlers:
-            handler.remove()
-
-        base_logits = self.model.no_IIT_forward(base)
-        set = {k:get[k] for k in get}
-        set["intervention"] = self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
-        handlers = self._get_set(get, set)
-        counterfactual_logits = self.model.no_IIT_forward(base)
-        for handler in handlers:
-            handler.remove()
-
-        return counterfactual_logits, base_logits
 
 if __name__ == '__main__':
     simple_example()
