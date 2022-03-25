@@ -22,6 +22,7 @@ class TorchModelBase:
             warm_start=False,
             early_stopping=False,
             validation_fraction=0.1,
+            shuffle_train=True,
             n_iter_no_change=10,
             tol=1e-5,
             device=None,
@@ -93,6 +94,9 @@ class TorchModelBase:
             Percentage of the data given to `fit` to hold out for use in
             early stopping. Ignored if `early_stopping=False`
 
+        shuffle_train: bool
+            Whether to shuffle the training data.
+
         n_iter_no_change: int
             Number of epochs used to control convergence and early
             stopping. Where `early_stopping=True`, training stops if an
@@ -139,6 +143,7 @@ class TorchModelBase:
         self.warm_start = warm_start
         self.early_stopping = early_stopping
         self.validation_fraction = validation_fraction
+        self.shuffle_train = shuffle_train
         self.n_iter_no_change = n_iter_no_change
         self.tol = tol
         if device is None:
@@ -324,7 +329,7 @@ class TorchModelBase:
 
         # Dataset:
         dataset = self.build_dataset(*args)
-        dataloader = self._build_dataloader(dataset, shuffle=True)
+        dataloader = self._build_dataloader(dataset, shuffle=self.shuffle_train)
 
         # Set up parameters needed to use the model. This is a separate
         # function to support using pretrained models for prediction,
