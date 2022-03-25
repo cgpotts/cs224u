@@ -7,7 +7,7 @@ import torch.nn as nn
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 class TorchModelBase:
@@ -22,6 +22,7 @@ class TorchModelBase:
             warm_start=False,
             early_stopping=False,
             validation_fraction=0.1,
+            shuffle_train=True,
             n_iter_no_change=10,
             tol=1e-5,
             device=None,
@@ -93,6 +94,9 @@ class TorchModelBase:
             Percentage of the data given to `fit` to hold out for use in
             early stopping. Ignored if `early_stopping=False`
 
+        shuffle_train: bool
+            Whether to shuffle the training data.
+
         n_iter_no_change: int
             Number of epochs used to control convergence and early
             stopping. Where `early_stopping=True`, training stops if an
@@ -139,6 +143,7 @@ class TorchModelBase:
         self.warm_start = warm_start
         self.early_stopping = early_stopping
         self.validation_fraction = validation_fraction
+        self.shuffle_train = shuffle_train
         self.n_iter_no_change = n_iter_no_change
         self.tol = tol
         if device is None:
@@ -324,21 +329,12 @@ class TorchModelBase:
 
         # Dataset:
         dataset = self.build_dataset(*args)
-        dataloader = self._build_dataloader(dataset, shuffle=True)
+        dataloader = self._build_dataloader(dataset, shuffle=self.shuffle_train)
 
-        # Graph:
-        if not self.warm_start or not hasattr(self, "model"):
-            self.model = self.build_graph()
-            # This device move has to happen before the optimizer is built:
-            # https://pytorch.org/docs/master/optim.html#constructing-it
-            self.model.to(self.device)
-            self.optimizer = self.build_optimizer()
-            self.errors = []
-            self.validation_scores = []
-            self.no_improvement_count = 0
-            self.best_error = np.inf
-            self.best_score = -np.inf
-            self.best_parameters = None
+        # Set up parameters needed to use the model. This is a separate
+        # function to support using pretrained models for prediction,
+        # where it might not be desirable to call `fit`.
+        self.initialize()
 
         # Make sure the model is where we want it:
         self.model.to(self.device)
@@ -409,6 +405,26 @@ class TorchModelBase:
             self.model.load_state_dict(self.best_parameters)
 
         return self
+
+    def initialize(self):
+        """
+        Method called by `fit` to establish core attributes. To use a
+        pretrained model without calling `fit`, one can use this
+        method.
+
+        """
+        if not self.warm_start or not hasattr(self, "model"):
+            self.model = self.build_graph()
+            # This device move has to happen before the optimizer is built:
+            # https://pytorch.org/docs/master/optim.html#constructing-it
+            self.model.to(self.device)
+            self.optimizer = self.build_optimizer()
+            self.errors = []
+            self.validation_scores = []
+            self.no_improvement_count = 0
+            self.best_error = np.inf
+            self.best_score = -np.inf
+            self.best_parameters = None
 
     @staticmethod
     def _build_validation_split(*args, validation_fraction=0.2):

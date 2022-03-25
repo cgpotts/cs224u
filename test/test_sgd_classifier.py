@@ -9,7 +9,7 @@ from np_sgd_classifier import BasicSGDClassifier
 from np_sgd_classifier import simple_example
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 utils.fix_random_seeds()

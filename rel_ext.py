@@ -9,7 +9,7 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 
 __author__ = "Bill MacCartney and Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 Example = namedtuple('Example',
@@ -346,7 +346,7 @@ class Dataset(object):
         unrelated_pairs = self.find_unrelated_pairs()
         random.seed(seed)
         unrelated_pairs = random.sample(
-            unrelated_pairs, int(sampling_rate * len(unrelated_pairs)))
+            list(unrelated_pairs), int(sampling_rate * len(unrelated_pairs)))
         kbts_by_rel = defaultdict(list)
         labels_by_rel = defaultdict(list)
         for index, rel in enumerate(self.kb.all_relations):

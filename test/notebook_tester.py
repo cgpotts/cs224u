@@ -4,7 +4,7 @@ import os
 import subprocess
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 TEMP_PREFIX = "TEMP_"

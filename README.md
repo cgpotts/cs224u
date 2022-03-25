@@ -2,12 +2,9 @@
 
 Code for [the Stanford course](http://web.stanford.edu/class/cs224u/).
 
-Spring 2021
+Spring 2022
 
-# Instructors
-
-* [Bill MacCartney](http://nlp.stanford.edu/~wcmac/)
-* [Christopher Potts](http://web.stanford.edu/~cgpotts/)
+[Christopher Potts](http://web.stanford.edu/~cgpotts/)
 
 
 # Core components
