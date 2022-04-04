@@ -4,11 +4,10 @@ import pickle
 from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
-import random
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 class TorchModelBase:
@@ -23,15 +22,14 @@ class TorchModelBase:
             warm_start=False,
             early_stopping=False,
             validation_fraction=0.1,
+            shuffle_train=True,
             n_iter_no_change=10,
             tol=1e-5,
             device=None,
             display_progress=True,
-            shuffle_train=True,
             **optimizer_kwargs):
         """
         Base class for all the PyTorch-based models.
-
         Parameters
         ----------
         batch_size: int
@@ -39,27 +37,22 @@ class TorchModelBase:
             `torch.utils.data.DataLoader`. Final batches can have fewer
             examples, depending on the total number of examples in the
             dataset.
-
         max_iter: int
             Maximum number of training iterations. This will interact
             with `early_stopping`, `n_iter_no_change`, and `tol` in the
             sense that this limit will be reached if and only if and
             conditions triggered by those other parameters are not met.
-
         eta : float
             Learning rate for the optimizer.
-
         optimizer_class: `torch.optimizer.Optimizer`
             Any PyTorch optimizer should work. Additional arguments
             can be passed to this object via `**optimizer_kwargs`. The
             optimizer itself is built by `self.build_optimizer` when
             `fit` is called.
-
         l2_strength: float
             L2 regularization parameters for the optimizer. The default
             of 0 means no regularization, and larger values correspond
             to stronger regularization.
-
         gradient_accumulation_steps: int
             Controls how often the model parameters are updated during
             learning. For example, with `gradient_accumulation_steps=2`,
@@ -69,20 +62,17 @@ class TorchModelBase:
             fit into memory. The updates based on these small batches can
             have high variance, so accumulating a few batches before
             updating can smooth the process out.
-
         max_grad_norm: None or float
             If not `None`, then `torch.nn.utils.clip_grad_norm_` is used
             to clip all the model parameters to within the range set
             by this value. This is a kind of brute-force way of keeping
             the parameter values from growing absurdly large or small.
-
         warm_start: bool
             If `False`, then repeated calls to `fit` will reset all the
             optimization settings: the model parameters, the optimizer,
             and the metadata we collect during optimization. If `True`,
             then calling `fit` twice with `max_iter=N` should be the same
             as calling fit once with `max_iter=N*2`.
-
         early_stopping: bool
             If `True`, then `validation_fraction` of the data given to
             `fit` are held out and used to assess the model after every
@@ -90,11 +80,11 @@ class TorchModelBase:
             `best_parameters`. If an improvement of at least `self.tol`
             isn't seen after `n_iter_no_change` iterations, then training
             stops and `self.model` is set to use `best_parameters`.
-
         validation_fraction: float
             Percentage of the data given to `fit` to hold out for use in
             early stopping. Ignored if `early_stopping=False`
-
+        shuffle_train: bool
+            Whether to shuffle the training data.
         n_iter_no_change: int
             Number of epochs used to control convergence and early
             stopping. Where `early_stopping=True`, training stops if an
@@ -102,26 +92,21 @@ class TorchModelBase:
             many epochs. If `early_stopping=False`, then training stops
             if the epoch error doesn't drop by at least `self.tol` after
             this many epochs.
-
         tol: float
             Value used to control `early_stopping` and convergence.
-
         device: str or None
             Used to set the device on which the PyTorch computations will
             be done. If `device=None`, this will choose a CUDA device if
             one is available, else the CPU is used.
-
         display_progress: bool
             Whether to print optimization information incrementally to
             `sys.stderr` during training.
-
         **optimizer_kwargs: kwargs
             Any additional keywords given to the model will be passed to
             the optimizer -- see `self.build_optimizer`. The intent is to
             make it easy to tune these as hyperparameters will still
             allowing the user to specify just `optimizer_class` rather
             than setting up a full optimizer.
-
         Attributes
         ----------
         params: list
@@ -129,7 +114,6 @@ class TorchModelBase:
              exception of `display_progress`, their names are added to
              this list to support working with them using tools from
              `sklearn.model_selection`.
-
         """
         self.batch_size = batch_size
         self.max_iter = max_iter
@@ -141,9 +125,9 @@ class TorchModelBase:
         self.warm_start = warm_start
         self.early_stopping = early_stopping
         self.validation_fraction = validation_fraction
+        self.shuffle_train = shuffle_train
         self.n_iter_no_change = n_iter_no_change
         self.tol = tol
-        self.shuffle_train = shuffle_train
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(device)
@@ -176,23 +160,16 @@ class TorchModelBase:
         model inputs. For example, in a simple classifier, we expect
         `*args` to be a pair `(X, y)` for training and so this method
         should return something like:
-
         `torch.utils.data.TensorDataset(X, y)`
-
         For prediction, we get only `X`, so we should return
-
         `torch.utils.data.TensorDataset(X)`
-
         Parameters
         ----------
         *args: any arguments to be used to create the dataset
-
         **kwargs: any desired keyword arguments
-
         Returns
         -------
         `torch.utils.data.Dataset` or a custom subclass thereof
-
         """
         raise NotImplementedError
 
@@ -201,17 +178,13 @@ class TorchModelBase:
         Build the core computational graph. This is called only after
         `fit` is called. The return value of this function becomes the
         the `self.model` attribute.
-
         Parameters
         ----------
         *args: any arguments to be used to create the dataset
-
         **kwargs: any desired keyword arguments
-
         Returns
         -------
         nn.Module or subclass thereof
-
         """
         raise NotImplementedError
 
@@ -223,13 +196,11 @@ class TorchModelBase:
         is called and then some kind of scoring function is used to
         compare those predictions with `y`. The return value should be
         some kind of appropriate score for the model in question.
-
         Notes
         -----
         For early stopping, we use this function to get scores and
         assume that larger scores are better. This would conflict with
         using, say, a mean-squared-error scoring function.
-
         """
         raise NotImplementedError
 
@@ -237,11 +208,9 @@ class TorchModelBase:
         """
         Builds the optimizer. This function is called only when `fit`
         is called.
-
         Returns
         -------
         torch.optimizer.Optimizer
-
         """
         return self.optimizer_class(
             self.model.parameters(),
@@ -252,7 +221,6 @@ class TorchModelBase:
     def fit(self, *args):
         """
         Generic optimization method.
-
         Parameters
         ----------
         *args: list of objects
@@ -261,30 +229,25 @@ class TorchModelBase:
             For regular supervised learning, this is like (X, y), but
             we allow for models that might use multiple data structures
             for their inputs.
-
         Attributes
         ----------
         model: nn.Module or subclass thereof
             Set by `build_graph`. If `warm_start=True`, then this is
             initialized only by the first call to `fit`.
-
         optimizer: torch.optimizer.Optimizer
             Set by `build_optimizer`. If `warm_start=True`, then this is
             initialized only by the first call to `fit`.
-
         errors: list of float
             List of errors. If `warm_start=True`, then this is
             initialized only by the first call to `fit`. Thus, where
             `max_iter=5`, if we call `fit` twice with `warm_start=True`,
             then `errors` will end up with 10 floats in it.
-
         validation_scores: list
             List of scores. This is filled only if `early_stopping=True`.
             If `warm_start=True`, then this is initialized only by the
             first call to `fit`. Thus, where `max_iter=5`, if we call
             `fit` twice with `warm_start=True`, then `validation_scores`
             will end up with 10 floats in it.
-
         no_improvement_count: int
             Used to control early stopping and convergence. These values
             are controlled by `_update_no_improvement_count_early_stopping`
@@ -292,14 +255,12 @@ class TorchModelBase:
             then this is initialized only by the first call to `fit`. Thus,
             in that situation, the values could accumulate across calls to
             `fit`.
-
         best_error: float
            Used to control convergence. Smaller is assumed to be better.
            If `warm_start=True`, then this is initialized only by the first
            call to `fit`. It will be reset by
            `_update_no_improvement_count_errors` depending on how the
            optimization is proceeding.
-
         best_score: float
            Used to control early stopping. If `warm_start=True`, then this
            is initialized only by the first call to `fit`. It will be reset
@@ -308,18 +269,15 @@ class TorchModelBase:
            that larger scores are better. As a result, we will not get the
            correct results for, e.g., a scoring function based in
            `mean_squared_error`. See `self.score` for additional details.
-
         best_parameters: dict
             This is a PyTorch state dict. It is used if and only if
             `early_stopping=True`. In that case, it is updated whenever
             `best_score` is improved numerically. If the early stopping
             criteria are met, then `self.model` is reset to contain these
             parameters before `fit` exits.
-
         Returns
         -------
         self
-
         """
         if self.early_stopping:
             args, dev = self._build_validation_split(
@@ -329,19 +287,10 @@ class TorchModelBase:
         dataset = self.build_dataset(*args)
         dataloader = self._build_dataloader(dataset, shuffle=self.shuffle_train)
 
-        # Graph:
-        if not self.warm_start or not hasattr(self, "model"):
-            self.model = self.build_graph()
-            # This device move has to happen before the optimizer is built:
-            # https://pytorch.org/docs/master/optim.html#constructing-it
-            self.model.to(self.device)
-            self.optimizer = self.build_optimizer()
-            self.errors = []
-            self.validation_scores = []
-            self.no_improvement_count = 0
-            self.best_error = np.inf
-            self.best_score = -np.inf
-            self.best_parameters = None
+        # Set up parameters needed to use the model. This is a separate
+        # function to support using pretrained models for prediction,
+        # where it might not be desirable to call `fit`.
+        self.initialize()
 
         # Make sure the model is where we want it:
         self.model.to(self.device)
@@ -413,28 +362,42 @@ class TorchModelBase:
 
         return self
 
+    def initialize(self):
+        """
+        Method called by `fit` to establish core attributes. To use a
+        pretrained model without calling `fit`, one can use this
+        method.
+        """
+        if not self.warm_start or not hasattr(self, "model"):
+            self.model = self.build_graph()
+            # This device move has to happen before the optimizer is built:
+            # https://pytorch.org/docs/master/optim.html#constructing-it
+            self.model.to(self.device)
+            self.optimizer = self.build_optimizer()
+            self.errors = []
+            self.validation_scores = []
+            self.no_improvement_count = 0
+            self.best_error = np.inf
+            self.best_score = -np.inf
+            self.best_parameters = None
+
     @staticmethod
     def _build_validation_split(*args, validation_fraction=0.2):
         """
         Split `*args` into train and dev portions for early stopping.
         We use `train_test_split`. For args of length N, then delivers
         N*2 objects, arranged as
-
         X1_train, X1_test, X2_train, X2_test, ..., y_train, y_test
-
         Parameters
         ----------
         *args: List of objects to split.
-
         validation_fraction: float
             Percentage of the examples to use for the dev portion. In
             `fit`, this is determined by `self.validation_fraction`.
             We give it as an argument here to facilitate unit testing.
-
         Returns
         -------
         Pair of tuples `train` and `dev`
-
         """
         if validation_fraction == 1.0:
             return args, args
@@ -447,21 +410,17 @@ class TorchModelBase:
         """
         Internal method used to create a dataloader from a dataset.
         This is used by `fit` and `_predict`.
-
         Parameters
         ----------
         dataset: torch.utils.data.Dataset
-
         shuffle: bool
             When training, this is `True`. For prediction, this is
             crucially set to `False` so that the examples are not
             shuffled out of order with respect to labels that might
             be used for assessment.
-
         Returns
         -------
         torch.utils.data.DataLoader
-
         """
         if hasattr(dataset, "collate_fn"):
             collate_fn = dataset.collate_fn
@@ -481,7 +440,6 @@ class TorchModelBase:
         The method uses `self.score(*dev)` for scoring and updates
         `self.validation_scores`, `self.no_improvement_count`,
         `self.best_score`, `self.best_parameters` as appropriate.
-
         """
         score = self.score(*dev)
         self.validation_scores.append(score)
@@ -504,7 +462,6 @@ class TorchModelBase:
         `self.tol` to make decisions, and it updates `self.errors`,
         `self.no_improvement_count`, and `self.best_error` as
         appropriate.
-
         """
         if epoch_error > (self.best_error - self.tol):
             self.no_improvement_count += 1
@@ -521,17 +478,14 @@ class TorchModelBase:
         can do all the data organization and other details, allowing
         subclasses to have compact predict methods that just encode
         the core logic specific to them.
-
         Parameters
         ----------
         *args: system inputs
-
         device: str or None
             Allows the user to temporarily change the device used
             during prediction. This is useful if predictions require a
             lot of memory and so are better done on the CPU. After
             prediction is done, the model is returned to `self.device`.
-
         Returns
         -------
         The precise return value depends on the nature of the predictions.
@@ -539,7 +493,6 @@ class TorchModelBase:
         we return a single tensor concatenation of them. If the shape
         can vary across batches, as is common for sequence prediction,
         then we return a list of tensors of varying length.
-
         """
         device = self.device if device is None else torch.device(device)
 
@@ -598,21 +551,17 @@ class TorchModelBase:
         """
         Serialize the entire class instance. Importantly, this is
         different from using the standard `torch.save` method:
-
         torch.save(self.model.state_dict(), output_filename)
-
         The above stores only the underlying model parameters. In
         contrast, the current method ensures that all of the model
         parameters are on the CPU and then stores the full instance.
         This is necessary to ensure that we retain all the information
         needed to read new examples, do additional training, make
         predictions, and so forth.
-
         Parameters
         ----------
         output_filename : str
             Full path for the output file.
-
         """
         self.model = self.model.cpu()
         with open(output_filename, 'wb') as f:
@@ -624,25 +573,19 @@ class TorchModelBase:
         Load an entire class instance onto the CPU. This also sets
         `self.warm_start=True` so that the loaded parameters are used
         if `fit` is called.
-
         Importantly, this is different from recommended PyTorch method:
-
         self.model.load_state_dict(torch.load(src_filename))
-
         We cannot reliably do this with new instances, because we need
         to see new examples in order to set some of the model
         dimensionalities and obtain information about what the class
         labels are. Thus, the current method loads an entire serialized
         class as created by `to_pickle`.
-
         The training and prediction code move the model parameters to
         `self.device`.
-
         Parameters
         ----------
         src_filename : str
             Full path to the serialized model file.
-
         """
         with open(src_filename, 'rb') as f:
             return pickle.load(f)
