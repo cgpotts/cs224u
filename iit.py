@@ -2,6 +2,7 @@ import numpy as np
 import random
 import torch
 from utils import randvec
+import copy
 
 class IITModel(torch.nn.Module):
     def __init__(self, model, layers, id_to_coords,device):
@@ -15,56 +16,70 @@ class IITModel(torch.nn.Module):
         return self.model(X)
 
     def forward(self, X):
-        base, source, coord_ids = X[:,0,:].squeeze(1), X[:,1,:].squeeze(1),X[:,2,:].squeeze(1)
-        get = self.id_to_coords[int(coord_ids.flatten()[0])]
-        base = base.type(torch.FloatTensor).to(self.device)
-        source = source.type(torch.FloatTensor).to(self.device)
+        base,coord_ids,sources = X[:,0,:].squeeze(1).type(torch.FloatTensor).to(self.device), X[:,1,:].squeeze(1).type(torch.FloatTensor).to(self.device), X[:,2:,:].to(self.device)
+        sources = [sources[:,j,:].squeeze(1).type(torch.FloatTensor).to(self.device) for j in range(sources.shape[1])]
+        gets = self.id_to_coords[int(coord_ids.flatten()[0])]
+        sets = copy.deepcopy(gets)
         self.activation = dict()
-        handlers = self._get_set(get,None)
-        source_logits = self.no_IIT_forward(source)
-        for handler in handlers:
-            handler.remove()
+
+        for layer in gets:
+            for i, get in enumerate(gets[layer]):
+                handlers = self._gets_sets(gets ={layer: [get]},sets = None)
+                source_logits = self.no_IIT_forward(sources[i])
+                for handler in handlers:
+                    handler.remove()
+                sets[layer][i]["intervention"] = self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
 
         base_logits = self.no_IIT_forward(base)
-        set = {k:get[k] for k in get}
-        set["intervention"] = self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
-        handlers = self._get_set(get, set)
+        handlers = self._gets_sets(gets = None, sets = sets)
         counterfactual_logits = self.no_IIT_forward(base)
         for handler in handlers:
             handler.remove()
 
         return counterfactual_logits, base_logits
 
-    def _get_set(self,get, set = None):
-        if set is None:
-            def gethook(model,input,output):
-                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"]]
-            set_handler = self.layers[get["layer"]].register_forward_hook(gethook)
-            return [set_handler]
-        elif set["layer"] != get["layer"]:
-            def sethook(model,input,output):
-                output[:,set["start"]: set["end"]] = set["intervention"]
-            set_handler = self.layers[set["layer"]].register_forward_hook(sethook)
-            def gethook(model,input,output):
+    def make_hook(self, gets, sets, layer):
+        def hook(model, input, output):
+            layer_gets, layer_sets = [], []
+            if gets is not None and layer in gets:
+                layer_gets = gets[layer]
+            if sets is not None and layer in sets:
+                layer_sets = sets[layer]
+            for get in layer_gets:
                 self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
-            get_handler = self.layers[get["layer"]].register_forward_hook(gethook)
-            return [set_handler, get_handler]
-        else:
-            def bothhook(model, input, output):
+            for set in layer_sets:
                 output[:,set["start"]: set["end"]] = set["intervention"]
-                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
-            both_handler = self.layers[set["layer"]].register_forward_hook(bothhook)
-            return [both_handler]
+        return hook
 
-    def retrieve_activations(self, input, get, set):
+    def _gets_sets(self,gets=None, sets = None):
+        handlers = []
+        for layer in range(len(self.layers)):
+            hook = self.make_hook(gets,sets, layer)
+            both_handler = self.layers[layer].register_forward_hook(hook)
+            handlers.append(both_handler)
+        return handlers
+
+    def retrieve_activations(self, input, get, sets):
         input = input.type(torch.FloatTensor).to(self.device)
         self.activation = dict()
-        handlers = self._get_set(get, set)
+        handlers = self._gets_sets({get["layer"]:[get]}, sets)
         logits = self.model(input)
         for handler in handlers:
             handler.remove()
         return self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
 
+# def get_IIT_MoNLI_dataset(variable, embed_dim, size):
+def get_IIT_equality_dataset_both(embed_dim, size):
+        train_dataset = IIT_PremackDatasetBoth(
+            embed_dim=embed_dim,
+            size=size)
+        X_base_train, X_sources_train,  y_base_train, y_IIT_train, interventions = train_dataset.create()
+        X_base_train = torch.tensor(X_base_train)
+        X_sources_train = [torch.tensor(X_source_train) for X_source_train in X_sources_train]
+        y_base_train = torch.tensor(y_base_train)
+        y_IIT_train = torch.tensor(y_IIT_train)
+        interventions = torch.tensor(interventions)
+        return X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions
 
 def get_IIT_equality_dataset(variable, embed_dim, size):
         class_size = size/2
@@ -72,13 +87,13 @@ def get_IIT_equality_dataset(variable, embed_dim, size):
             embed_dim=embed_dim,
             n_pos=class_size,
             n_neg=class_size)
-        X_base_train, X_source_train, y_base_train, y_IIT_train, interventions = train_dataset.create()
+        X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions = train_dataset.create()
         X_base_train = torch.tensor(X_base_train)
-        X_source_train = torch.tensor(X_source_train)
+        X_sources_train = [torch.tensor(X_source_train) for X_source_train in X_sources_train]
         y_base_train = torch.tensor(y_base_train)
         y_IIT_train = torch.tensor(y_IIT_train)
         interventions = torch.tensor(interventions)
-        return X_base_train, X_source_train, y_base_train, y_IIT_train, interventions
+        return X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions
 
 def get_equality_dataset(embed_dim, size):
         class_size = size/2
@@ -431,39 +446,6 @@ class IIT_PremackDataset:
         self.intermediate = intermediate
 
     def create(self):
-        """Main interface
-
-        Attributes
-        ----------
-        data : list
-            Shuffled version of the raw instances, ignoring
-            `self.flatten_root` and `self.flatten_leaves`.
-            Thus, these are all of the form `(((a, b), (c, d)), label)`
-
-        X : np.array
-            The dimensionality depends on `self.flatten_root` and
-            `self.flatten_leaves`.
-
-            If both are False, then
-
-            `X.shape == (n_pos+n_neg, 2, 2, embed_dim)`
-
-            If `self.flatten_root`, then
-
-            `X.shape == (n_pos+n_neg, embed_dim*4)`
-
-            If only `self.flatten_leaves`, then
-
-            `X.shape == (n_pos+n_neg, 2, embed_dim*2)`
-
-        y : list
-            Containing `POS_LABEL` and `NEG_LABEL`. Length: n_pos+n_neg
-
-        Returns
-        -------
-        self.X, self.y
-
-        """
         self.data = []
         self.data += self._create_same_same_to_same()
         self.data += self._create_diff_diff_to_same()
@@ -486,7 +468,9 @@ class IIT_PremackDataset:
         self.y = np.array(y)
         self.IIT_y = np.array(IIT_y)
         self.interventions = np.array(interventions)
-        return self.base, self.source, self.y, self.IIT_y, self.interventions
+        self.sources = list()
+        self.sources.append(self.source)
+        return self.base, self.sources, self.y, self.IIT_y, self.interventions
 
     def _create_same_same_to_same(self):
         data = []
@@ -647,6 +631,69 @@ class IIT_PremackDataset:
             rep = (base_left, base_right, source_left,source_right)
             data.append((rep, base_label, IIT_label, intervention))
         return data
+
+    def _create_random_pair(self):
+        if random.choice([True,False]):
+            return self._create_same_pair()
+        else:
+            return self._create_diff_pair()
+
+    def _create_same_pair(self):
+        vec = randvec(self.embed_dim)
+        return (vec, vec)
+
+    def _create_diff_pair(self):
+        vec1 = randvec(self.embed_dim)
+        vec2 = randvec(self.embed_dim)
+        assert not np.array_equal(vec1, vec2)
+        return (vec1, vec2)
+
+class IIT_PremackDatasetBoth:
+
+    V1 = 0
+    V2 = 1
+    POS_LABEL = 1
+    NEG_LABEL = 0
+    both_coord_id = 2
+
+    def __init__(self, size= 1000, embed_dim=50,  flatten_root=True, flatten_leaves=True, intermediate=False):
+
+        self.embed_dim = embed_dim
+        self.size= size
+
+
+        self.flatten_root = flatten_root
+        self.flatten_leaves = flatten_leaves
+        self.intermediate = intermediate
+
+    def create(self):
+        data = []
+        for _ in range(self.size):
+            rep = [self._create_random_pair() for _ in range(6)]
+            if (rep[0][0] == rep[0][1]).all() == (rep[1][0] == rep[1][1]).all():
+                base_label = self.POS_LABEL
+            else:
+                base_label = self.NEG_LABEL
+            if (rep[2][0] == rep[2][1]).all() == (rep[5][0] == rep[5][1]).all():
+                IIT_label = self.POS_LABEL
+            else:
+                IIT_label = self.NEG_LABEL
+            data.append((rep,base_label, IIT_label, self.both_coord_id))
+        random.shuffle(data)
+        data = data.copy()
+        if self.flatten_root or self.flatten_leaves:
+            data = [(((np.concatenate(x1), np.concatenate(x2)),(np.concatenate(x3), np.concatenate(x4)),(np.concatenate(x5), np.concatenate(x6))), base_label, IIT_label, intervention) for (x1, x2,x3,x4,x5,x6), base_label, IIT_label, intervention in data]
+        if self.flatten_root:
+            data = [(np.concatenate(base), np.concatenate(source),np.concatenate(source2), label, IIT_label, intervention) for (base, source, source2), label, IIT_label, intervention in data]
+        base, source, source2, y, IIT_y, interventions = zip(*data)
+        self.base = np.array(base)
+        self.source = np.array(source)
+        self.source2 = np.array(source2)
+        self.y = np.array(y)
+        self.IIT_y = np.array(IIT_y)
+        self.interventions = np.array(interventions)
+        return self.base, [self.source, self.source2], self.y, self.IIT_y, self.interventions
+
 
     def _create_random_pair(self):
         if random.choice([True,False]):
