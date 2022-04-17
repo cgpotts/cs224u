@@ -4,6 +4,10 @@ import torch
 from utils import randvec
 import copy
 
+__author__ = "Atticus Geiger"
+__version__ = "CS224u, Stanford, Spring 2022"
+
+
 class IITModel(torch.nn.Module):
     def __init__(self, model, layers, id_to_coords,device):
         super().__init__()
@@ -16,8 +20,11 @@ class IITModel(torch.nn.Module):
         return self.model(X)
 
     def forward(self, X):
-        base,coord_ids,sources = X[:,0,:].squeeze(1).type(torch.FloatTensor).to(self.device), X[:,1,:].squeeze(1).type(torch.FloatTensor).to(self.device), X[:,2:,:].to(self.device)
-        sources = [sources[:,j,:].squeeze(1).type(torch.FloatTensor).to(self.device) for j in range(sources.shape[1])]
+        base = X[:,0,:].squeeze(1).type(torch.FloatTensor).to(self.device)
+        coord_ids = X[:,1,:].squeeze(1).type(torch.FloatTensor).to(self.device)
+        sources = X[:,2:,:].to(self.device)
+        sources = [sources[:,j,:].squeeze(1).type(torch.FloatTensor).to(self.device)
+                   for j in range(sources.shape[1])]
         gets = self.id_to_coords[int(coord_ids.flatten()[0])]
         sets = copy.deepcopy(gets)
         self.activation = dict()
@@ -68,52 +75,56 @@ class IITModel(torch.nn.Module):
             handler.remove()
         return self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
 
+
 # def get_IIT_MoNLI_dataset(variable, embed_dim, size):
 def get_IIT_equality_dataset_both(embed_dim, size):
-        train_dataset = IIT_PremackDatasetBoth(
-            embed_dim=embed_dim,
-            size=size)
-        X_base_train, X_sources_train,  y_base_train, y_IIT_train, interventions = train_dataset.create()
-        X_base_train = torch.tensor(X_base_train)
-        X_sources_train = [torch.tensor(X_source_train) for X_source_train in X_sources_train]
-        y_base_train = torch.tensor(y_base_train)
-        y_IIT_train = torch.tensor(y_IIT_train)
-        interventions = torch.tensor(interventions)
-        return X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions
+    train_dataset = IIT_PremackDatasetBoth(
+        embed_dim=embed_dim,
+        size=size)
+    X_base_train, X_sources_train,  y_base_train, y_IIT_train, interventions = train_dataset.create()
+    X_base_train = torch.tensor(X_base_train)
+    X_sources_train = [torch.tensor(X_source_train) for X_source_train in X_sources_train]
+    y_base_train = torch.tensor(y_base_train)
+    y_IIT_train = torch.tensor(y_IIT_train)
+    interventions = torch.tensor(interventions)
+    return X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions
+
 
 def get_IIT_equality_dataset(variable, embed_dim, size):
-        class_size = size/2
-        train_dataset = IIT_PremackDataset(variable,
-            embed_dim=embed_dim,
-            n_pos=class_size,
-            n_neg=class_size)
-        X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions = train_dataset.create()
-        X_base_train = torch.tensor(X_base_train)
-        X_sources_train = [torch.tensor(X_source_train) for X_source_train in X_sources_train]
-        y_base_train = torch.tensor(y_base_train)
-        y_IIT_train = torch.tensor(y_IIT_train)
-        interventions = torch.tensor(interventions)
-        return X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions
+    class_size = size/2
+    train_dataset = IIT_PremackDataset(
+        variable,
+        embed_dim=embed_dim,
+        n_pos=class_size,
+        n_neg=class_size)
+    X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions = train_dataset.create()
+    X_base_train = torch.tensor(X_base_train)
+    X_sources_train = [torch.tensor(X_source_train) for X_source_train in X_sources_train]
+    y_base_train = torch.tensor(y_base_train)
+    y_IIT_train = torch.tensor(y_IIT_train)
+    interventions = torch.tensor(interventions)
+    return X_base_train, X_sources_train, y_base_train, y_IIT_train, interventions
+
 
 def get_equality_dataset(embed_dim, size):
-        class_size = size/2
-        train_dataset = PremackDataset(
-            embed_dim=embed_dim,
-            n_pos=class_size,
-            n_neg=class_size)
-        X_train, y_train = train_dataset.create()
+    class_size = size/2
+    train_dataset = PremackDataset(
+        embed_dim=embed_dim,
+        n_pos=class_size,
+        n_neg=class_size)
+    X_train, y_train = train_dataset.create()
 
-        test_dataset = PremackDataset(
-            embed_dim=embed_dim,
-            n_pos=class_size,
-            n_neg=class_size)
-        X_test, y_test = test_dataset.create()
+    test_dataset = PremackDataset(
+        embed_dim=embed_dim,
+        n_pos=class_size,
+        n_neg=class_size)
+    X_test, y_test = test_dataset.create()
 
-        train_dataset.test_disjoint(test_dataset)
-        X_train = torch.tensor(X_train)
-        X_test = torch.tensor(X_test)
+    train_dataset.test_disjoint(test_dataset)
+    X_train = torch.tensor(X_train)
+    X_test = torch.tensor(X_test)
 
-        return X_train, X_test, y_train, y_test, test_dataset
+    return X_train, X_test, y_train, y_test, test_dataset
 
 
 class EqualityDataset:
@@ -461,7 +472,8 @@ class IIT_PremackDataset:
             data = [((np.concatenate(x1), np.concatenate(x2)),(np.concatenate(x3), np.concatenate(x4)), base_label, IIT_label, intervention)
                     for (x1, x2,x3,x4), base_label, IIT_label, intervention in data]
         if self.flatten_root:
-            data = [(np.concatenate(base), np.concatenate(source), label, IIT_label, intervention) for base, source, label, IIT_label, intervention in data]
+            data = [(np.concatenate(base), np.concatenate(source), label, IIT_label, intervention)
+                    for base, source, label, IIT_label, intervention in data]
         base, source, y, IIT_y, interventions = zip(*data)
         self.base = np.array(base)
         self.source = np.array(source)
@@ -648,6 +660,7 @@ class IIT_PremackDataset:
         assert not np.array_equal(vec1, vec2)
         return (vec1, vec2)
 
+
 class IIT_PremackDatasetBoth:
 
     V1 = 0
@@ -682,9 +695,20 @@ class IIT_PremackDatasetBoth:
         random.shuffle(data)
         data = data.copy()
         if self.flatten_root or self.flatten_leaves:
-            data = [(((np.concatenate(x1), np.concatenate(x2)),(np.concatenate(x3), np.concatenate(x4)),(np.concatenate(x5), np.concatenate(x6))), base_label, IIT_label, intervention) for (x1, x2,x3,x4,x5,x6), base_label, IIT_label, intervention in data]
+            data = [
+                (
+                    (
+                        (np.concatenate(x1), np.concatenate(x2)),
+                        (np.concatenate(x3), np.concatenate(x4)),
+                        (np.concatenate(x5), np.concatenate(x6))
+                    ),
+                    base_label, IIT_label, intervention
+                )
+                for (x1, x2,x3,x4,x5,x6), base_label, IIT_label, intervention in data
+            ]
         if self.flatten_root:
-            data = [(np.concatenate(base), np.concatenate(source),np.concatenate(source2), label, IIT_label, intervention) for (base, source, source2), label, IIT_label, intervention in data]
+            data = [(np.concatenate(base), np.concatenate(source),np.concatenate(source2), label, IIT_label, intervention)
+                    for (base, source, source2), label, IIT_label, intervention in data]
         base, source, source2, y, IIT_y, interventions = zip(*data)
         self.base = np.array(base)
         self.source = np.array(source)

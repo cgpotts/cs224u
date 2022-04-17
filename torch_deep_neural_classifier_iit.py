@@ -6,15 +6,23 @@ from torch_deep_neural_classifier import TorchDeepNeuralClassifier
 import utils
 from iit import IITModel
 
-__author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__author__ = "Atticus Geiger"
+__version__ = "CS224u, Stanford, Spring 2022"
+
+
+class CrossEntropyLossIIT(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.loss = nn.CrossEntropyLoss(reduction="mean")
+
+    def forward(self, preds, labels):
+        return self.loss(preds[0], labels[: , 0]) + self.loss(preds[1], labels[:,1])
 
 
 class TorchDeepNeuralClassifierIIT(TorchDeepNeuralClassifier):
-    def __init__(self,id_to_coords = None, **base_kwargs):
+    def __init__(self, id_to_coords=None, **base_kwargs):
         super().__init__(**base_kwargs)
-        loss_function= nn.CrossEntropyLoss(reduction="mean")
-        self.loss = lambda preds, labels: loss_function(preds[0],labels[:,0]) + loss_function(preds[1],labels[:,1])
+        self.loss = CrossEntropyLossIIT()
         self.id_to_coords = id_to_coords
         self.shuffle_train = False
 
@@ -33,40 +41,10 @@ class TorchDeepNeuralClassifierIIT(TorchDeepNeuralClassifier):
         return output
 
     def build_dataset(self, base, sources, base_y, IIT_y, coord_ids):
-        """
-        Define datasets for the model.
-
-        Parameters
-        ----------
-        X : iterable of length `n_examples`
-           Each element must have the same length.
-
-        y: None or iterable of length `n_examples`
-
-        Attributes
-        ----------
-        input_dim : int
-            Set based on `X.shape[1]` after `X` has been converted to
-            `np.array`.
-
-        Returns
-        -------
-        torch.utils.data.TensorDataset` Where `y=None`, the dataset will
-        yield single tensors `X`. Where `y` is specified, it will yield
-        `(X, y)` pairs.
-
-        """
         base = torch.FloatTensor(np.array(base))
         sources = [torch.FloatTensor(np.array(source)) for source in sources]
         self.input_dim = base.shape[1]
         coord_ids = torch.FloatTensor(np.array(coord_ids))
-
-        IIT_y = np.array(IIT_y)
-        self.classes_ = sorted(set(IIT_y))
-        self.n_classes_ = len(self.classes_)
-        class2index = dict(zip(self.classes_, range(self.n_classes_)))
-        IIT_y = [class2index[int(label)] for label in IIT_y]
-        IIT_y = torch.tensor(IIT_y)
 
         base_y = np.array(base_y)
         self.classes_ = sorted(set(base_y))
@@ -74,6 +52,10 @@ class TorchDeepNeuralClassifierIIT(TorchDeepNeuralClassifier):
         class2index = dict(zip(self.classes_, range(self.n_classes_)))
         base_y = [class2index[label] for label in base_y]
         base_y = torch.tensor(base_y)
+
+        IIT_y = np.array(IIT_y)
+        IIT_y = [class2index[int(label)] for label in IIT_y]
+        IIT_y = torch.tensor(IIT_y)
 
         bigX = torch.stack([base, coord_ids.unsqueeze(1).expand(-1, base.shape[1])] + sources, dim=1)
         bigy = torch.stack((IIT_y, base_y), dim=1)
@@ -83,8 +65,3 @@ class TorchDeepNeuralClassifierIIT(TorchDeepNeuralClassifier):
     def prep_input(self, base, sources, coord_ids):
         bigX = torch.stack([base, coord_ids.unsqueeze(1).expand(-1, base.shape[1])] + sources, dim=1)
         return bigX
-
-
-
-if __name__ == '__main__':
-    simple_example()
