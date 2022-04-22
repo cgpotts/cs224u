@@ -52,10 +52,11 @@ class IITModel(torch.nn.Module):
                 layer_gets = gets[layer]
             if sets is not None and layer in sets:
                 layer_sets = sets[layer]
+            for set in layer_sets:
+                output = torch.cat([output[:,:set["start"]], set["intervention"], output[:,set["end"]:]], dim = 1)
             for get in layer_gets:
                 self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
-            for set in layer_sets:
-                output[:,set["start"]: set["end"]] = set["intervention"]
+            return output
         return hook
 
     def _gets_sets(self,gets=None, sets = None):
@@ -69,7 +70,9 @@ class IITModel(torch.nn.Module):
     def retrieve_activations(self, input, get, sets):
         input = input.type(torch.FloatTensor).to(self.device)
         self.activation = dict()
-        handlers = self._gets_sets({get["layer"]:[get]}, sets)
+        get_val = {get["layer"]: [get]} if get is not None else None
+        set_val = {sets["layer"]: [sets]} if sets is not None else None
+        handlers = self._gets_sets(get_val, set_val)
         logits = self.model(input)
         for handler in handlers:
             handler.remove()
