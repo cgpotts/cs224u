@@ -21,8 +21,6 @@ class ActivationLayer(torch.nn.Module):
 
 class TorchDeepNeuralClassifier(TorchShallowNeuralClassifier):
     def __init__(self,
-            hidden_dim=50,
-            hidden_activation=nn.Tanh(),
             num_layers=1,
             **base_kwargs):
         """
@@ -55,8 +53,6 @@ class TorchDeepNeuralClassifier(TorchShallowNeuralClassifier):
 
         """
         self.num_layers = num_layers
-        self.hidden_dim = hidden_dim
-        self.hidden_activation = hidden_activation
         super().__init__(**base_kwargs)
         self.loss = nn.CrossEntropyLoss(reduction="mean")
         self.params += ['hidden_dim', 'hidden_activation', 'num_layers']
