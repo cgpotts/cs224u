@@ -29,13 +29,6 @@ class TorchDeepNeuralClassifier(TorchShallowNeuralClassifier):
 
         Parameters
         ----------
-        hidden_dim : int
-            Dimensionality of the hidden layer.
-
-        hidden_activation : nn.Module
-            The non-activation function used by the network for the
-            hidden layer.
-
         num_layers : int
             Number of hidden layers in the network.
 
@@ -55,7 +48,7 @@ class TorchDeepNeuralClassifier(TorchShallowNeuralClassifier):
         self.num_layers = num_layers
         super().__init__(**base_kwargs)
         self.loss = nn.CrossEntropyLoss(reduction="mean")
-        self.params += ['hidden_dim', 'hidden_activation', 'num_layers']
+        self.params += ['num_layers']
 
     def build_graph(self):
         """

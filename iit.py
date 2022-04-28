@@ -2,84 +2,11 @@ import numpy as np
 import random
 import torch
 from utils import randvec
-import copy
 
 __author__ = "Atticus Geiger"
 __version__ = "CS224u, Stanford, Spring 2022"
 
 
-class IITModel(torch.nn.Module):
-    def __init__(self, model, layers, id_to_coords,device):
-        super().__init__()
-        self.model = model
-        self.layers = layers
-        self.id_to_coords = id_to_coords
-        self.device = device
-
-    def no_IIT_forward(self, X):
-        return self.model(X)
-
-    def forward(self, X):
-        base = X[:,0,:].squeeze(1).type(torch.FloatTensor).to(self.device)
-        coord_ids = X[:,1,:].squeeze(1).type(torch.FloatTensor).to(self.device)
-        sources = X[:,2:,:].to(self.device)
-        sources = [sources[:,j,:].squeeze(1).type(torch.FloatTensor).to(self.device)
-                   for j in range(sources.shape[1])]
-        gets = self.id_to_coords[int(coord_ids.flatten()[0])]
-        sets = copy.deepcopy(gets)
-        self.activation = dict()
-
-        for layer in gets:
-            for i, get in enumerate(gets[layer]):
-                handlers = self._gets_sets(gets ={layer: [get]},sets = None)
-                source_logits = self.no_IIT_forward(sources[i])
-                for handler in handlers:
-                    handler.remove()
-                sets[layer][i]["intervention"] = self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
-
-        base_logits = self.no_IIT_forward(base)
-        handlers = self._gets_sets(gets = None, sets = sets)
-        counterfactual_logits = self.no_IIT_forward(base)
-        for handler in handlers:
-            handler.remove()
-
-        return counterfactual_logits, base_logits
-
-    def make_hook(self, gets, sets, layer):
-        def hook(model, input, output):
-            layer_gets, layer_sets = [], []
-            if gets is not None and layer in gets:
-                layer_gets = gets[layer]
-            if sets is not None and layer in sets:
-                layer_sets = sets[layer]
-            for set in layer_sets:
-                output = torch.cat([output[:,:set["start"]], set["intervention"], output[:,set["end"]:]], dim = 1)
-            for get in layer_gets:
-                self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}'] = output[:,get["start"]: get["end"] ]
-            return output
-        return hook
-
-    def _gets_sets(self,gets=None, sets = None):
-        handlers = []
-        for layer in range(len(self.layers)):
-            hook = self.make_hook(gets,sets, layer)
-            both_handler = self.layers[layer].register_forward_hook(hook)
-            handlers.append(both_handler)
-        return handlers
-
-    def retrieve_activations(self, input, get, sets):
-        input = input.type(torch.FloatTensor).to(self.device)
-        self.activation = dict()
-        get_val = {get["layer"]: [get]} if get is not None else None
-        set_val = {sets["layer"]: [sets]} if sets is not None else None
-        handlers = self._gets_sets(get_val, set_val)
-        logits = self.model(input)
-        for handler in handlers:
-            handler.remove()
-        return self.activation[f'{get["layer"]}-{get["start"]}-{get["end"]}']
-
-
-# def get_IIT_MoNLI_dataset(variable, embed_dim, size):
 def get_IIT_equality_dataset_both(embed_dim, size):
     train_dataset = IIT_PremackDatasetBoth(
         embed_dim=embed_dim,
