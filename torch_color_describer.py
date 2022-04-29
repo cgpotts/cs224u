@@ -12,7 +12,7 @@ import utils
 from utils import START_SYMBOL, END_SYMBOL, UNK_SYMBOL
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 class ColorDataset(torch.utils.data.Dataset):

@@ -12,7 +12,7 @@ import sys
 import os
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 START_SYMBOL = "<s>"
@@ -47,7 +47,7 @@ def glove2dict(src_filename):
             try:
                 line = next(f)
                 line = line_parser(line)
-                data[line[0]] = np.array(line[1: ], dtype=np.float)
+                data[line[0]] = np.array(line[1: ], dtype=np.float64)
             except StopIteration:
                 break
             except UnicodeDecodeError:

@@ -16,7 +16,7 @@ from torch_shallow_neural_classifier import TorchShallowNeuralClassifier
 from torch_shallow_neural_classifier import simple_example
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 utils.fix_random_seeds()
@@ -110,7 +110,7 @@ def test_simple_example_params(digits, param, expected):
     preds = mod.predict(X_test)
     acc = accuracy_score(y_test, preds)
     if not (param in ["max_iter", "batch_size"] and expected <= 1):
-        assert acc >= 0.86
+        assert acc >= 0.80
 
 
 @pytest.mark.parametrize("param, expected", PARAMS_WITH_TEST_VALUES)

@@ -9,7 +9,7 @@ import scipy.stats
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2021"
+__version__ = "CS224u, Stanford, Spring 2022"
 
 
 def sentiment_reader(src_filename, include_subtrees=True, dedup=False):
