@@ -67,6 +67,5 @@ nlidata/*
 rel_ext_data*
 *_solved.ipynb
 .DS_Store
-
 ColBERT*
 experiments*
