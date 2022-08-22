@@ -321,7 +321,7 @@ And check out this amazing contribution: [The Annotated Transformer](http://nlp.
 
 ### Some CS224u papers that became publications
 
-Here is a selection of recent CS224u papers that evolved into published work:
+Here is a selection of CS224u papers that evolved into published work:
 
 * Badlani, Rohan; Nishit Asnani; and Manan Rai. 2019. An ensemble of humour, sarcasm, and hate speech for sentiment classification in online reviews. _Proceedings of the 5th Workshop on Noisy User-generated Text (W-NUT)_. Hong Kong: Association for Computational Linguistics.
 
@@ -329,9 +329,11 @@ Here is a selection of recent CS224u papers that evolved into published work:
 
 * Chen, Xiaoyu and Rohan Badlani. 2020. [Relation extraction with contextualized relation embedding (CRE)](https://www.aclweb.org/anthology/2020.deelio-1.2). In _Proceedings of Deep Learning Inside Out (DeeLIO): The First Workshop on Knowledge Extraction and Integration for Deep Learning Architectures_, 11–19. Association for Computational Linguistics.
 
-* Kolchinski, Y. Alex and Christopher Potts. 2018. [Representing social media users for sarcasm detection](https://www.aclweb.org/anthology/D18-1140/). In _Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing_, 1115-1121. Brussels, Belgium: Association for Computational Linguistics.
+* Jezabek, Jan and Akash Singh. 2022. MockingBERT: A Method for Retroactively Adding Resilience to NLP Models. _Proceedings of COLING_.
 
 * Jiang, Hang; Yuxing Chen; Haoshen Hong; and Vivek Kulkarni. 2020. DialectGram: Automatic detection of dialectal variation at multiple geographic resolutions. In _Proceedings of the Society for Computation in Linguistics (SCiL) 2020_. New Orleans: Association for Computational Linguistics.
+
+* Kolchinski, Y. Alex and Christopher Potts. 2018. [Representing social media users for sarcasm detection](https://www.aclweb.org/anthology/D18-1140/). In _Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing_, 1115-1121. Brussels, Belgium: Association for Computational Linguistics.
 
 * Li, Lucy and Julia Mendelsohn. 2019. [Using sentiment induction to understand variation in gendered online communities](https://www.aclweb.org/anthology/W19-0116/). In _Proceedings of the Society for Computation in Linguistics (SCiL) 2019_, 156–166. New York: Association for Computational Linguistics.
 
