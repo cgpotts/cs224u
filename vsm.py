@@ -237,6 +237,7 @@ def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50), random_sta
             ax.annotate(word, (x, y), fontsize=8, color=color)
         except UnicodeDecodeError:  ## Python 2 won't cooperate!
             pass
+    plt.axis('off')
     # Output:
     if output_filename:
         plt.savefig(output_filename, bbox_inches='tight')
