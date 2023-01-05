@@ -26,8 +26,8 @@
 ######################################################################
 # Required installs even for conda
 
-torch==1.10.0
-torchvision==0.11.1
+torch==1.10.1
+torchvision==0.11.2
 transformers==4.17.0
 datasets==2.0.0
 spacy
