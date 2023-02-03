@@ -323,6 +323,8 @@ And check out this amazing contribution: [The Annotated Transformer](http://nlp.
 
 Here is a selection of CS224u papers that evolved into published work:
 
+* AL-Qurishi, Muhammad. 2023. BERT-based Models for Arabic Long Document Classification. _Proceedings of the Thirty-Seventh AAAI Conference on Artificial Intelligence_.
+
 * Badlani, Rohan; Nishit Asnani; and Manan Rai. 2019. An ensemble of humour, sarcasm, and hate speech for sentiment classification in online reviews. _Proceedings of the 5th Workshop on Noisy User-generated Text (W-NUT)_. Hong Kong: Association for Computational Linguistics.
 
 * Benavidez, Susana and Andy Lapastora. 2019. Improving hate speech classification on Twitter. _Proceedings of LatinX in AI Research_. Vancouver.
