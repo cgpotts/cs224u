@@ -223,7 +223,11 @@ def tsne_viz(df, colors=None, output_filename=None, figsize=(40, 50), random_sta
     dimreduce = PCA(n_components=n_components, random_state=random_state)
     X = dimreduce.fit_transform(df)
     # t-SNE:
-    tsne = TSNE(n_components=2, random_state=random_state)
+    tsne = TSNE(
+        n_components=2,
+        init='random',
+        learning_rate='auto',
+        random_state=random_state)
     tsnemat = tsne.fit_transform(X)
     # Plot values:
     xvals = tsnemat[: , 0]
@@ -440,78 +444,3 @@ def create_subword_pooling_vsm(vocab, tokenizer, model, layer=1, pool_func=mean_
     pooled = [pool_func(h) for h in vocab_hiddens]
     pooled = [p.squeeze().cpu().numpy() for p in pooled]
     return pd.DataFrame(pooled, index=vocab)
-
-
-def word_relatedness_evaluation(dataset_df, vsm_df, distfunc=cosine):
-    """
-    Main function for word relatedness evaluations used in the assignment
-    and bakeoff. The function makes predictions for word pairs in
-    `dataset_df` using `vsm_df` and `distfunc`, and it returns a copy of
-    `dataset_df` with a new column `'prediction'`, as well as the Spearman
-    rank correlation between those predictions and the `'score'` column
-    in `dataset_df`.
-
-    The prediction for a word pair (w1, w1) is determined by applying
-    `distfunc` to the representations of w1 and w2 in `vsm_df`. We return
-    the negative of this value since it is assumed that `distfunc` is a
-    distance function and the scores in `dataset_df` are for positive
-    relatedness.
-
-    Parameters
-    ----------
-    dataset_df : pd.DataFrame
-        Required to have columns {'word1', 'word2', 'score'}.
-
-    vsm_df : pd.DataFrame
-        The vector space model used to get representations for the
-        words in `dataset_df`. The index must contain every word
-        represented in `dataset_df`.
-
-    distfunc : function mapping vector pairs to floats (default: `cosine`)
-        The measure of distance between vectors. Can also be `euclidean`,
-        `matching`, `jaccard`, as well as any other distance measure
-        between 1d vectors.
-
-    Raises
-    ------
-    ValueError
-        If any words in `dataset_df` are not in the index of `vsm_df`.
-
-    Returns
-    -------
-    tuple (dataset_df, rho)
-        Where `dataset_df` is a `pd.DataFrame` -- a copy of the
-        input with a new column `'prediction'` -- and `rho` is a float
-        giving the Spearman rank correlation between the `'score'`
-        and `prediction` values.
-
-    """
-    dataset_df = dataset_df.copy()
-
-    dataset_vocab = set(dataset_df.word1.values) | set(dataset_df.word2.values)
-
-    vsm_vocab = set(vsm_df.index)
-
-    missing = dataset_vocab - vsm_vocab
-
-    if missing:
-        raise ValueError(
-            "The following words are in the evaluation dataset but not in the "
-            "VSM. Please switch to a VSM with an appropriate vocabulary:\n"
-            "{}".format(sorted(missing)))
-
-    def predict(row):
-        x1 = vsm_df.loc[row.word1]
-        x2 = vsm_df.loc[row.word2]
-        return -distfunc(x1, x2)
-
-    dataset_df['prediction'] = dataset_df.apply(predict, axis=1)
-
-    rho = None
-
-    if 'score' in dataset_df.columns:
-        rho, pvalue = spearmanr(
-            dataset_df.score.values,
-            dataset_df.prediction.values)
-
-    return dataset_df, rho

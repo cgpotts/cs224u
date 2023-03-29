@@ -1,7 +1,7 @@
 # Final projects
 
 Christopher Potts<br />
-CS224u, Stanford, Spring 2022
+CS224u, Stanford, Spring 2023
 
 ## Contents
 
@@ -78,7 +78,6 @@ Whereas those notebooks cover specific technical concepts, this document is focu
 
   Yes! Please see [the section on hypotheses](#Hypotheses) below.
 
-
 7. __Can my final paper reuse prose from my lit review and protocol?__
 
   Absolutely! We're hoping you can do this.
@@ -113,7 +112,7 @@ And even "paper" is too restrictive. The items in your lit review could be books
 
 All that said, projects for this course need to have an NLP/NLU component, so it will pay to spend time in the [ACL Anthology](https://aclweb.org/anthology/). The ACL community has been exceptionally good about collecting all of its published work going back for decades, so searching at the Anthology can very quickly give you a sense of the intellectual landscape and take you to the important papers.
 
-For more general searches of the scientific literature, [Google Scholar](https://scholar.google.com) is outstanding in terms of its coverage, and its citation counts provide some useful guidance as to which papers are the most important in a given area. (Citation counts don't guarantee quality, but they do suggest influence, and so papers with many citations are probably worth a look.)
+For more general searches of the scientific literature, [Google Scholar](https://scholar.google.com) and [Semantic Scholar](https://www.semanticscholar.org) are outstanding in terms of its coverage, and their citation counts provide some useful guidance as to which papers are the most important in a given area. (Citation counts don't guarantee quality, but they do suggest influence, and so papers with many citations are probably worth a look.)
 
 It's also worth diving directly into [arXiv](https://arxiv.org). Note, though, that it has only recently become a norm for NLPers to post their work there, so arXiv will strongly favor newer work in NLP. As your project progresses, you might increasingly search on arXiv with trepidation that you will find out you've been scooped – such is life in AI these days!
 
@@ -224,7 +223,7 @@ It's worth reiterating a central point from [the evaluation methods notebook](ev
 
 ### Formatting
 
-The paper should be 8 pages long, in ACL submission format and adhering to ACL guidelines concerning references, layout, supplementary materials, and so forth. [Here are the LaTeX and Word templates for the 2020 ACL style](https://www.overleaf.com/latex/templates/acl-2020-proceedings-template/zsrkcwjptpcd).
+The paper should be 8 pages long, in ACL submission format and adhering to ACL guidelines concerning references, layout, supplementary materials, and so forth. See [the projects page](https://web.stanford.edu/class/cs224u/projects.html) of our course website for templates (Word and LaTeX).
 
 
 ### Suggested paper organization

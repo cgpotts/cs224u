@@ -7,7 +7,7 @@ import torch.nn as nn
 import utils
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2022"
+__version__ = "CS224u, Stanford, Spring 2023"
 
 
 class TorchModelBase:
@@ -348,7 +348,7 @@ class TorchModelBase:
 
             for batch_num, batch in enumerate(dataloader, start=1):
 
-                batch = [x.to(self.device, non_blocking=True) for x in batch]
+                batch = [x.to(self.device) for x in batch]
 
                 X_batch = batch[: -1]
                 y_batch = batch[-1]
@@ -567,7 +567,7 @@ class TorchModelBase:
         preds = []
         with torch.no_grad():
             for batch in dataloader:
-                X = [x.to(device, non_blocking=True) for x in batch]
+                X = [x.to(device) for x in batch]
                 preds.append(self.model(*X))
 
         # Make sure the model is back on the instance device:

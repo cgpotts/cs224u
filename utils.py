@@ -12,7 +12,7 @@ import sys
 import os
 
 __author__ = "Christopher Potts"
-__version__ = "CS224u, Stanford, Spring 2022"
+__version__ = "CS224u, Stanford, Spring 2023"
 
 
 START_SYMBOL = "<s>"
@@ -97,7 +97,7 @@ def randmatrix(m, n, lower=-0.5, upper=0.5):
     return np.array([random.uniform(lower, upper) for i in range(m*n)]).reshape(m, n)
 
 
-def safe_macro_f1(y, y_pred):
+def safe_macro_f1(y, y_pred, **kwargs):
     """
     Macro-averaged F1, forcing `sklearn` to report as a multiclass
     problem even when there are just two classes. `y` is the list of

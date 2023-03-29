@@ -252,14 +252,3 @@ def test_create_subword_pooling_vsm():
         vocab, tokenizer, model,
         layer=1, pool_func=vsm.mean_pooling)
     assert list(df.index) == vocab
-
-
-def test_word_relatedness_evaluation():
-    """Really just tests that the function works."""
-    dev_df = pd.read_csv(
-        os.path.join(REL_HOME, "cs224u-wordrelatedness-dev.csv"))
-    count_df = pd.read_csv(
-        os.path.join(DATA_HOME, "giga_window5-scaled.csv.gz"), index_col=0)
-    count_pred_df, count_rho = vsm.word_relatedness_evaluation(dev_df, count_df)
-    assert isinstance(count_rho, float)
-    assert 'prediction' in count_pred_df.columns
