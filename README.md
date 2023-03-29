@@ -34,7 +34,7 @@ Reference implementations for the `torch_*.py` models, designed to reveal more a
 
 ## `vsm_*` and `hw_wordrelatedness.ipynb`
 
-A until on vector space models of meaning, covering traditional methods like PMI and LSA as well as newer methods like Autoencoders and GloVe. `vsm.py` provides a lot of the core functionality, and `torch_glove.py` and `torch_autoencoder.py` are the learned models that we cover. `vsm_03_retroffiting.ipynb` is an extension that uses `retrofitting.py`, and `vsm_04_contextualreps.ipynb` explores methods for deriving static representations from contextual models.
+A unit on vector space models of meaning, covering traditional methods like PMI and LSA as well as newer methods like Autoencoders and GloVe. `vsm.py` provides a lot of the core functionality, and `torch_glove.py` and `torch_autoencoder.py` are the learned models that we cover. `vsm_03_retroffiting.ipynb` is an extension that uses `retrofitting.py`, and `vsm_04_contextualreps.ipynb` explores methods for deriving static representations from contextual models.
 
 
 ## `sst_*` and `hw_sst.ipynb`
