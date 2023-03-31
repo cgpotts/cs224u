@@ -69,3 +69,4 @@ rel_ext_data*
 .DS_Store
 ColBERT*
 experiments*
+cache*
