@@ -13,3 +13,5 @@ datasets==2.10.1
 spacy==3.5.1
 #dsp-ml==0.1.4
 git+https://github.com/stanfordnlp/dsp
+cohere
+openai
