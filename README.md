@@ -22,7 +22,7 @@ The set of homeworks for the current run of the course.
 
 ### `tutorial_*` notebooks
 
-Introductions to Juypter notebooks, scientific computing with NumPy and friends, and PyTorch.
+Introductions to Jupyter notebooks, scientific computing with NumPy and friends, and PyTorch.
 
 
 ### `torch_*.py` modules
