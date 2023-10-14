@@ -179,7 +179,7 @@ def fit_classifier_with_hyperparameter_search(
 
     cv : int or an sklearn Splitter
         Number of cross-validation folds, or the object used to define
-        the splits. For example, where there is a predefeined train/dev
+        the splits. For example, where there is a predefined train/dev
         split one wants to use, one can feed in a `PredefinedSplitter`
         instance to use that split during cross-validation.
 
