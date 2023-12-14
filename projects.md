@@ -336,6 +336,8 @@ Here is a selection of CS224u papers that evolved into published work:
 
 * Kolchinski, Y. Alex and Christopher Potts. 2018. [Representing social media users for sarcasm detection](https://www.aclweb.org/anthology/D18-1140/). In _Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing_, 1115-1121. Brussels, Belgium: Association for Computational Linguistics.
 
+* Lacombe, Romain; Kerrie Wu; and Eddie Dilworth. 2023. [ClimateX: Do LLMs accurately assess human expert confidence in climate statements?](https://arxiv.org/abs/2311.17107) _NeurIPS 2023 Workshop: Tackling Climate Change with Machine Learning_. [[Associated dataset](https://huggingface.co/datasets/rlacombe/ClimateX)]
+
 * Li, Lucy and Julia Mendelsohn. 2019. [Using sentiment induction to understand variation in gendered online communities](https://www.aclweb.org/anthology/W19-0116/). In _Proceedings of the Society for Computation in Linguistics (SCiL) 2019_, 156–166. New York: Association for Computational Linguistics.
 
 * Li, Yutong. 2021. [Maps search misspelling detection leveraging domain-augmented contextual representations](https://arxiv.org/abs/2108.06842). _WIT: Workshop On Deriving Insights From User-Generated Text @KDD2021_.
