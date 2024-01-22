@@ -9,8 +9,11 @@ pandas>=1.5
 torch==1.13.1
 torchvision==0.14.1
 transformers==4.26.1
-datasets==2.10.1
+# https://stackoverflow.com/questions/77671277/valueerror-invalid-pattern-can-only-be-an-entire-path-component
+datasets==2.16.1
 spacy==3.5.1
 dsp-ml<0.2
-openai
+# https://github.com/stanfordnlp/dspy/issues/220
+openai==0.28.1
 cohere
+python-dotenv
