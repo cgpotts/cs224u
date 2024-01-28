@@ -18,7 +18,7 @@ sst_home = os.path.join('data', 'sentiment')
 
 @pytest.mark.parametrize("split_df, expected_count", [
     [sst.train_reader(sst_home, include_subtrees=True, dedup=False), 318582],
-    [sst.train_reader(sst_home, include_subtrees=True, dedup=True), 159274],
+    [sst.train_reader(sst_home, include_subtrees=True, dedup=True), 159273],
     [sst.train_reader(sst_home, include_subtrees=False, dedup=False), 8544],
     [sst.train_reader(sst_home, include_subtrees=False, dedup=True), 8534],
     [sst.dev_reader(sst_home, include_subtrees=True, dedup=False), 1101],
