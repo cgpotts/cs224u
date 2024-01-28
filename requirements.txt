@@ -6,11 +6,12 @@ nltk>=3.7
 pytest>=7.1
 jupyter>=1.0.0
 pandas>=1.5
-torch==1.13.1
-torchvision==0.14.1
-transformers==4.26.1
-datasets==2.10.1
-spacy==3.5.1
-dsp-ml<0.2
+# torch==2.1.2
+# torchvision==0.16.2
+# torchaudio==2.1.2
+transformers==4.37.1
+datasets==2.12.0
+spacy==3.7.2
+dspy-ai
 openai
 cohere
