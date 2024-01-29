@@ -2,7 +2,6 @@ from nltk.tree import Tree
 from np_shallow_neural_classifier import ShallowNeuralClassifier
 from np_rnn_classifier import RNNClassifier
 from np_autoencoder import Autoencoder
-from np_tree_nn import TreeNN
 import numpy as np
 import pytest
 import utils
@@ -113,43 +112,6 @@ def test_np_autoencoder(hidden_activation, d_hidden_activation):
         ('b_hy', d_b_hy),
         ('W_xh', d_W_xh),
         ('b_xh', d_b_xh)
-    )
-    gradient_check(param_pairs, model, ex, label)
-
-
-@pytest.mark.parametrize("hidden_activation, d_hidden_activation", [
-    [np.tanh, utils.d_tanh],
-    [utils.relu, utils.d_relu]
-])
-def test_np_tree_nn(hidden_activation, d_hidden_activation):
-    # A tiny dataset so that we can run `fit` and set all the model
-    # parameters:
-    vocab = ["1", "+", "2"]
-    X = [
-        "(even (odd 1) (neutral (neutral +) (odd 1)))",
-        "(odd (odd 1) (neutral (neutral +) (even 2)))"]
-    X = [Tree.fromstring(ex) for ex in X]
-    y = [tree.label() for tree in X]
-    model = TreeNN(
-        vocab,
-        max_iter=10,
-        hidden_dim=5,
-        hidden_activation=hidden_activation,
-        d_hidden_activation=d_hidden_activation)
-    model.fit(X, y)
-    # Use the first example for the check:
-    ex = X[0]
-    label = model._onehot_encode([ex.label()])[0]
-    # Forward and backward to get the gradients:
-    hidden, pred = model.forward_propagation(ex)
-    d_W_hy, d_b_y, d_W, d_b = model.backward_propagation(
-        hidden, pred, ex, label)
-    # Model parameters to check:
-    param_pairs = (
-        ('W_hy', d_W_hy),
-        ('b_y', d_b_y),
-        ('W', d_W),
-        ('b', d_b)
     )
     gradient_check(param_pairs, model, ex, label)
 
