@@ -147,7 +147,12 @@ class TorchModelBase:
         self.n_iter_no_change = n_iter_no_change
         self.tol = tol
         if device is None:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
+            if torch.cuda.is_available(): 
+                device = "cuda"
+            elif torch.backends.mps.is_available() and torch.backends.mps.is_built():
+                device = "mps"
+            else:
+                device = "cpu"
         self.device = torch.device(device)
         self.display_progress = display_progress
         self.optimizer_kwargs = optimizer_kwargs
