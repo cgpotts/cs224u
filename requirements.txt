@@ -6,8 +6,9 @@ nltk>=3.7
 pytest>=7.1
 jupyter>=1.0.0
 pandas>=1.5
-torch==2.1.2; sys_platform != "linux" and sys_platform != "win32"
-torch==2.1.2+${DEVICE}; sys_platform == "linux" or sys_platform == "win32"
+# uncomment the following line to install pytorch and torchvision
+# torch==2.1.2; sys_platform != "linux" and sys_platform != "win32"
+# torch==2.1.2+${DEVICE}; sys_platform == "linux" or sys_platform == "win32"
 # torchvision==0.16.2
 # torchaudio==2.1.2
 transformers==4.37.1
