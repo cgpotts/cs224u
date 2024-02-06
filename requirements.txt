@@ -6,7 +6,7 @@ nltk>=3.7
 pytest>=7.1
 jupyter>=1.0.0
 pandas>=1.5
-# torch==2.1.0
+# torch==2.1.2
 # torchvision==0.16.2
 # torchaudio==2.1.2
 transformers==4.37.1
