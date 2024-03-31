@@ -342,7 +342,9 @@ Here is a selection of CS224u papers that evolved into published work:
 
 * Li, Yutong. 2021. [Maps search misspelling detection leveraging domain-augmented contextual representations](https://arxiv.org/abs/2108.06842). _WIT: Workshop On Deriving Insights From User-Generated Text @KDD2021_.
 
-* Mohanty, Ipsita. 2022. [DEFTri: A few-shot label fused contextual representation learning for product defect triage in e-commerce](https://aclanthology.org/2022.ecnlp-1.1). _Proceedings of The Fifth Workshop on e-Commerce and NLP (ECNLP 5)_, 1-7. Dublin: Association for Computational Linguistics
+* Mohanty, Ipsita. 2022. [DEFTri: A few-shot label fused contextual representation learning for product defect triage in e-commerce](https://aclanthology.org/2022.ecnlp-1.1). _Proceedings of The Fifth Workshop on e-Commerce and NLP (ECNLP 5)_, 1-7. Dublin: Association for Computational Linguistics.
+
+* Tan, Juanhe (TJ). 2023. [Causal abstraction for chain-of-thought reasoning in arithmetic word problems]( https://aclanthology.org/2023.blackboxnlp-1.12/). In _Proceedings of the 6th BlackboxNLP Workshop: Analyzing and Interpreting Neural Networks for NLP_, 155–168, Singapore. Association for Computational Linguistics.
 
 * Zhengxuan Wu, Desmond C. Ong. 2020. [Pragmatically informative color generation by grounding contextual modifiers](https://scholarworks.umass.edu/scil/vol4/iss1/54/). _Proceedings of the Society for Computation in Linguistics_, Vol. 4 , Article 54.
 
