@@ -14,7 +14,8 @@ pandas>=1.5
 transformers==4.37.1
 datasets==2.14.6
 spacy==3.7.2
-dspy-ai==2.3.1
+-e ./dspy-ai
+# dspy-ai==2.3.1
 # dependencies for dspy-ai
 openai<=0.28.1
 python-dotenv
