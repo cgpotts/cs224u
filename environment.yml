@@ -1,0 +1,23 @@
+name: nlu
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.9
+  - numpy>=1.20.0
+  - scipy>=1.7.0
+  - matplotlib>=3.7.0
+  - scikit-learn>=1.0.2
+  - nltk>=3.7
+  - pytest>=7.1
+  - jupyter>=1.0.0
+  - pandas>=1.5
+  - pytorch==2.1.2
+  - transformers==4.37.1
+  - datasets==2.14.6
+  - spacy==3.7.2
+  - pip:
+    - dspy-ai
+    - openai
+    - python-dotenv
+    - wget
