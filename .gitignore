@@ -70,3 +70,4 @@ rel_ext_data*
 ColBERT*
 experiments*
 cache*
+.virtual_documents*
