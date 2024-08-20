@@ -8,11 +8,11 @@ jupyter>=1.0.0
 pandas>=1.5
 # uncomment the following lines to install pytorch and torchvision
 # for Mac
-torch==2.4.0; sys_platform != "linux" and sys_platform != "win32"
+# torch==2.4.0; sys_platform != "linux" and sys_platform != "win32"
 # for windows or linux
 # torch==2.4.0+${DEVICE}; sys_platform == "linux" or sys_platform == "win32"
-torchvision
-torchaudio
+# torchvision
+# torchaudio
 transformers>=4.37
 datasets>=2.14.6
 spacy>=3.7.2
