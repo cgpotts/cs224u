@@ -21,3 +21,4 @@ colbert-ai>=0.2.20
 dspy-ai==2.4.13
 python-dotenv
 wget
+openai==1.61.1
